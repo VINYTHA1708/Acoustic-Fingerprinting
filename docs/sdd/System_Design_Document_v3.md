@@ -1,4 +1,5 @@
 # System Design Document (SDD)
+
 ## Acoustic Fingerprinting of Industrial Machines for Predictive Failure Detection Without Labeled Data
 
 **Version:** 3.0 (simplifies fingerprint decomposition, adds Acoustic Signature, Confidence Score, Fingerprint Evolution view, and an explicit MIMII scope caveat)
@@ -9,7 +10,7 @@
 
 ## 1. Purpose and Scope
 
-This document is the blueprint for implementing the project. It fixes the design decisions — representation, architecture, data flow, folder structure, pipelines, and evaluation strategy — *before* any code is written.
+This document is the blueprint for implementing the project. It fixes the design decisions — representation, architecture, data flow, folder structure, pipelines, and evaluation strategy — _before_ any code is written.
 
 Everything below traces back to the core research question:
 
@@ -18,22 +19,24 @@ Everything below traces back to the core research question:
 (Phrasing tightened slightly from earlier drafts — see §1.3 on dataset scope.)
 
 ### 1.1 Non-goals
+
 - No supervised classification. The system never trains on labeled fault types.
 - No reliance on abnormal recordings during training — abnormal audio is test-time-only.
 - No black-box scoring or black-box explanations. Every health score and every explanation must be traceable to a computable, named DSP quantity.
 - No unsolved research problem embedded as a load-bearing component (see §1.2 — this is why the Identity/Health split was removed).
 
 ### 1.2 What changed in v3
+
 This revision makes one **mandatory** simplification and four optional enhancements, plus adds an important scope caveat about the dataset.
 
-| # | Change | Type | Section |
-|---|---|---|---|
-| 1 | Remove "Identity Fingerprint + Health Fingerprint"; replace with **Reference Fingerprint vs. Current Fingerprint → Fingerprint Drift** | **Mandatory** | §4.3 |
-| 2 | Rename "Healthy Cloud" → "Healthy Fingerprint Profile" for dashboard/stakeholder-facing language (internals unchanged: still a cluster/point-cloud) | Enhancement | §6 |
-| 3 | Add "Acoustic Signature" — a small, human-readable summary (dominant frequency, dominant harmonic, average energy, rotation frequency) alongside the numeric fingerprint | Enhancement | §4.5 |
-| 4 | Add a Confidence score alongside the Health % | Enhancement | §8.4 |
-| 5 | Add a "Fingerprint Evolution" dashboard page (fingerprint/health trend over successive recordings) | Enhancement | §11.1 |
-| — | Clarify that MIMII is not a longitudinal degradation dataset — redefine "drift" scope accordingly | Scope caveat | §1.3 |
+| #   | Change                                                                                                                                                                   | Type          | Section |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------- | ------- |
+| 1   | Remove "Identity Fingerprint + Health Fingerprint"; replace with **Reference Fingerprint vs. Current Fingerprint → Fingerprint Drift**                                   | **Mandatory** | §4.3    |
+| 2   | Rename "Healthy Cloud" → "Healthy Fingerprint Profile" for dashboard/stakeholder-facing language (internals unchanged: still a cluster/point-cloud)                      | Enhancement   | §6      |
+| 3   | Add "Acoustic Signature" — a small, human-readable summary (dominant frequency, dominant harmonic, average energy, rotation frequency) alongside the numeric fingerprint | Enhancement   | §4.5    |
+| 4   | Add a Confidence score alongside the Health %                                                                                                                            | Enhancement   | §8.4    |
+| 5   | Add a "Fingerprint Evolution" dashboard page (fingerprint/health trend over successive recordings)                                                                       | Enhancement   | §11.1   |
+| —   | Clarify that MIMII is not a longitudinal degradation dataset — redefine "drift" scope accordingly                                                                        | Scope caveat  | §1.3    |
 
 ### 1.3 Scope caveat: what "drift" means given MIMII
 
@@ -52,6 +55,7 @@ This is fully valid and testable on MIMII (healthy vs. anomalous recordings per 
 Unchanged from v2 — still recommended as-is.
 
 ### Version 1 — DSP-only baseline (build and validate first)
+
 ```
 Machine Audio
     │
@@ -70,14 +74,17 @@ Simple Fingerprint (concatenated DSP vector)
     ▼
 Distance-based drift + naive health score
 ```
+
 **Goal:** prove the end-to-end plumbing works on a purely classical, fully-interpretable feature set before adding any learned component, so that later problems can be attributed to BEATs/contrastive learning rather than infrastructure.
 
 **Exit criteria for V1:** healthy-vs-healthy distances are small and stable; healthy-vs-faulty distances are visibly larger on at least the Fan and Pump subsets; dashboard renders a full run end-to-end.
 
 ### Version 2 — Add deep features and fusion
-BEATs is introduced *alongside* (not instead of) the DSP features, per §4.1. Strictly additive — the V1 DSP pathway is never deleted, since it remains the explainability backbone and half of the fusion fingerprint.
+
+BEATs is introduced _alongside_ (not instead of) the DSP features, per §4.1. Strictly additive — the V1 DSP pathway is never deleted, since it remains the explainability backbone and half of the fusion fingerprint.
 
 ### Version 3 — Add contrastive learning
+
 Once V2 is validated, add contrastive training over the Fusion Fingerprint (same-machine-different-time → similar; different-machine → dissimilar). This produces a single trained **Fusion Fingerprint** — there is no further split into sub-fingerprints at this stage (see §4.3 for why).
 
 ---
@@ -125,10 +132,12 @@ Classical DSP   BEATs Encoder   Metadata (optional)
 ```
 
 ### Design principle: computed explainability, not forced explainability
-Nothing in the fingerprint is *labeled* by construction unless it is *computed* by construction. Any component we want to call "frequency" must actually be a frequency-domain DSP quantity — never a block of neurons we merely hope specializes that way.
+
+Nothing in the fingerprint is _labeled_ by construction unless it is _computed_ by construction. Any component we want to call "frequency" must actually be a frequency-domain DSP quantity — never a block of neurons we merely hope specializes that way.
 
 ### Design principle (new in v3): no unsolved research problem as a load-bearing component
-Any module that the *entire pipeline* depends on must be implementable with well-understood techniques within the project timeline. Disentangling a stable "identity" signal from a drifting "health" signal with no supervision is an open research problem in its own right (related to slow-feature analysis / disentangled representation learning) — solving it is not a prerequisite for this project's core contribution, so it is removed as a dependency (§4.3).
+
+Any module that the _entire pipeline_ depends on must be implementable with well-understood techniques within the project timeline. Disentangling a stable "identity" signal from a drifting "health" signal with no supervision is an open research problem in its own right (related to slow-feature analysis / disentangled representation learning) — solving it is not a prerequisite for this project's core contribution, so it is removed as a dependency (§4.3).
 
 ---
 
@@ -140,22 +149,23 @@ Any module that the *entire pipeline* depends on must be implementable with well
 Fingerprint = Deep Features (BEATs) ⊕ DSP Features
 ```
 
-| Block | Contents | Computed or Learned | Purpose |
-|---|---|---|---|
-| Deep block | 768-dim frozen BEATs embedding | Learned (pretrained, frozen) | Captures rich, general timbral/spectral structure a hand-designed feature set would miss |
-| DSP block | MFCC (e.g., 20 coeffs, mean+std pooled), Spectral Centroid, Spectral Rolloff, RMS Energy, Harmonic-to-Noise Ratio / harmonic peak salience | **Computed**, not learned | Gives every dimension a named, human-interpretable meaning |
+| Block      | Contents                                                                                                                                   | Computed or Learned          | Purpose                                                                                  |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------- | ---------------------------------------------------------------------------------------- |
+| Deep block | 768-dim frozen BEATs embedding                                                                                                             | Learned (pretrained, frozen) | Captures rich, general timbral/spectral structure a hand-designed feature set would miss |
+| DSP block  | MFCC (e.g., 20 coeffs, mean+std pooled), Spectral Centroid, Spectral Rolloff, RMS Energy, Harmonic-to-Noise Ratio / harmonic peak salience | **Computed**, not learned    | Gives every dimension a named, human-interpretable meaning                               |
 
 The two blocks are concatenated (optionally after a small learned linear re-weighting during contrastive training) into a single **Fusion Fingerprint**.
 
 ### 4.2 Frequency descriptor is computed, not learned (unchanged from v2)
+
 There is no learned "Frequency Head" carved out of BEATs. All four semantic descriptors used for explainability are computed directly from DSP:
 
-| Descriptor | Computed from |
-|---|---|
+| Descriptor           | Computed from                                                 |
+| -------------------- | ------------------------------------------------------------- |
 | Frequency Descriptor | Spectral centroid, spectral rolloff, dominant Mel-band energy |
-| Temporal Descriptor | Onset strength envelope / tempogram summary statistics |
-| Harmonic Descriptor | Harmonic-to-noise ratio, harmonic peak salience (via HPSS) |
-| Energy Descriptor | RMS energy, dynamic range, energy envelope statistics |
+| Temporal Descriptor  | Onset strength envelope / tempogram summary statistics        |
+| Harmonic Descriptor  | Harmonic-to-noise ratio, harmonic peak salience (via HPSS)    |
+| Energy Descriptor    | RMS energy, dynamic range, energy envelope statistics         |
 
 These live inside the DSP block only. The BEATs deep block stays a single undivided 768-dim vector — it contributes to overall drift magnitude and contrastive discriminability but is never decomposed into semantic sub-parts.
 
@@ -175,14 +185,16 @@ Fusion Fingerprint (single, undivided vector — no learned split)
 Fingerprint Drift = distance(Reference Fingerprint, Current Fingerprint)
 ```
 
-There is exactly one learned fingerprint per clip. "Reference" and "Current" are not two different *kinds* of fingerprint — they are the *same* fingerprint computed at two different times (training-time healthy clips vs. inference-time new clips) and compared. This is simpler, requires no unproven disentanglement mechanism, and is much easier to explain and defend: *"we compare what the machine sounds like now to what it sounded like when healthy."*
+There is exactly one learned fingerprint per clip. "Reference" and "Current" are not two different _kinds_ of fingerprint — they are the _same_ fingerprint computed at two different times (training-time healthy clips vs. inference-time new clips) and compared. This is simpler, requires no unproven disentanglement mechanism, and is much easier to explain and defend: _"we compare what the machine sounds like now to what it sounded like when healthy."_
 
 Contrastive training (§2, Version 3) keeps its original, single objective: same-machine-different-time clips should map close together; different-machine clips should map apart. There is no second "invariance" objective and no residual computation.
 
 ### 4.4 Component-wise drift (retained from v2, now framed as directly comparing DSP sub-blocks)
+
 Even though there is no learned sub-fingerprint split, the **DSP block** was always composed of named descriptors (§4.2), so component-wise drift analysis is retained by comparing each named descriptor between Reference and Current directly — no disentanglement needed, since these were separable inputs from the start, not something extracted from an entangled learned vector.
 
 ### 4.5 Acoustic Signature (new)
+
 In addition to the numeric Fusion Fingerprint, store a small, human-readable summary per machine — the **Acoustic Signature** — derived directly from DSP, independent of any learned component:
 
 ```
@@ -231,6 +243,7 @@ Only the small contrastive head is trained; both BEATs and the DSP extractors ar
 ## 6. Healthy Fingerprint Profile (renamed from "Healthy Cloud")
 
 ### 6.1 Naming rationale
+
 Internally this remains a point-cloud / cluster representation (unchanged from v2's design intent — healthy sound varies naturally across morning/afternoon/night and load conditions, and a single centroid would discard that variance). The name shown on the dashboard and in stakeholder-facing text is **"Healthy Fingerprint Profile,"** since factory engineers recognize "profile" more readily than "cloud." Internal code/module names may keep "cloud" or "profile" interchangeably — the schema does not change.
 
 ### 6.2 Storage schema
@@ -248,9 +261,11 @@ FingerprintProfile   (internal implementation: still cluster/cloud-based)
 ```
 
 ### 6.3 Construction
+
 For each machine ID, compute the Fusion Fingerprint for every healthy training clip and retain the full set (or a compressed multi-cluster summary if large). This set — the Healthy Fingerprint Profile — is the Reference against which every Current Fingerprint is compared.
 
 ### 6.4 Backing store
+
 FAISS index over the stored healthy point set per machine_id (nearest-neighbor search), plus a metadata store (SQLite/JSON) for the distance distribution used in Health Index calibration and for the Acoustic Signature.
 
 ---
@@ -258,6 +273,7 @@ FAISS index over the stored healthy point set per machine_id (nearest-neighbor s
 ## 7. Fingerprint Drift Analysis
 
 ### 7.1 Drift Vector computation
+
 For an incoming clip, after computing its Current Fingerprint:
 
 1. Find distance to the nearest point(s) in the machine's Healthy Fingerprint Profile — the "profile distance."
@@ -276,6 +292,7 @@ DriftVector {
 ```
 
 ### 7.2 Output contract
+
 `DriftVector` feeds both Health Index (§8) and Explainability (§9) directly — no re-computation downstream.
 
 ---
@@ -283,6 +300,7 @@ DriftVector {
 ## 8. Health Index — Statistical, With Confidence
 
 ### 8.1 Statistical calibration (unchanged from v2)
+
 Health % is derived from the empirical distribution of intra-healthy distances stored in the Fingerprint Profile (§6.2), not a hardcoded formula:
 
 ```
@@ -293,18 +311,21 @@ A clip within the normal healthy-variation range scores near 100%; a clip in the
 
 ### 8.2 Status bands
 
-| Health % | Status | Statistical meaning |
-|---|---|---|
-| 90–100 | Excellent | Within normal healthy variation |
-| 75–89 | Good | Slightly outside typical healthy variation, not yet significant |
-| 50–74 | Warning | Statistically significant deviation from healthy distribution |
-| 0–49 | Critical | Extreme outlier relative to healthy distribution |
+| Health % | Status    | Statistical meaning                                             |
+| -------- | --------- | --------------------------------------------------------------- |
+| 90–100   | Excellent | Within normal healthy variation                                 |
+| 75–89    | Good      | Slightly outside typical healthy variation, not yet significant |
+| 50–74    | Warning   | Statistically significant deviation from healthy distribution   |
+| 0–49     | Critical  | Extreme outlier relative to healthy distribution                |
 
 ### 8.3 Per-machine calibration
+
 Calibrated per machine, since each unit's natural healthy variance differs.
 
 ### 8.4 Confidence score (new)
+
 Alongside Health %, report a **Confidence** score reflecting how well-supported that health estimate is, based on:
+
 - **Profile density near the Current Fingerprint** — if the healthy profile has few nearby reference samples (i.e., the current recording sits in a sparsely-sampled region of the healthy distribution, even if not far in raw distance), confidence is lower.
 - **Sample size** — machines with few healthy training recordings get systematically lower confidence, surfaced explicitly rather than silently producing an overconfident score.
 - **Agreement between DSP-only and BEATs-only sub-scores** — if the two feature families disagree substantially on drift magnitude, confidence is reduced (this is a cheap ensemble-agreement heuristic, not a new learned component).
@@ -323,9 +344,11 @@ This is computed entirely from statistics already available in the Fingerprint P
 ## 9. Explainability — With Spectrogram Difference and Acoustic Signature
 
 ### 9.1 Component attribution (unchanged from v2)
+
 Rank the four DriftVector DSP components by z-score relative to that component's own healthy-profile distance distribution. The top-ranked component drives the natural-language explanation.
 
 ### 9.2 Spectrogram difference visualization (unchanged from v2)
+
 ```
 Healthy Reference Spectrogram (representative profile member, or profile-median)
         −
@@ -333,9 +356,11 @@ Current Spectrogram
         =
 Difference Spectrogram (highlighted, e.g. red = increased energy, blue = decreased)
 ```
+
 Cross-referenced against the top-ranked drift component.
 
 ### 9.3 Acoustic Signature comparison (new)
+
 Alongside the plot, show the machine's Acoustic Signature (§4.5) for both the healthy reference and the current recording side by side:
 
 ```
@@ -353,6 +378,7 @@ This gives a fully non-AI, human-checkable cross-reference for the AI-driven exp
 ## 10. Training Pipeline (Staged per §2)
 
 **V1 (DSP-only):**
+
 ```
 1. Load healthy clips per machine
 2. Preprocess (mono/16kHz/normalize/trim/fixed-length)
@@ -362,12 +388,14 @@ This gives a fully non-AI, human-checkable cross-reference for the AI-driven exp
 ```
 
 **V2 (add BEATs, fusion):**
+
 ```
 6. Encode same clips with frozen BEATs → 768-dim embedding
 7. Concatenate with DSP block → Fusion Fingerprint (no learning yet — validate fusion plumbing)
 ```
 
 **V3 (add contrastive learning — single objective, no split):**
+
 ```
 8. Train small contrastive head over the Fusion Fingerprint:
    - Positive pairs: same machine, different time segments
@@ -389,6 +417,7 @@ This gives a fully non-AI, human-checkable cross-reference for the AI-driven exp
 ```
 
 ### 11.1 Fingerprint Evolution (new dashboard capability)
+
 For machines with more than one historical recording, plot successive Current Fingerprint drift/health values over time:
 
 ```
@@ -405,15 +434,18 @@ Recording 4  →  Health: 89
 ## 12. Evaluation Strategy
 
 ### 12.1 Baselines for comparison
+
 - Autoencoder (reconstruction error)
 - Deep SVDD
 - Isolation Forest
 
 ### 12.2 Detection metrics
+
 - AUC, Precision, Recall, F1 (healthy vs. abnormal, thresholded on Health %)
 - Inference time per clip, memory footprint
 
 ### 12.3 Project-specific metrics
+
 - **Fingerprint Stability:** cosine similarity between Fusion Fingerprints of the same machine's healthy recordings taken at different times/conditions. High, tightly-clustered similarity supports the fingerprint's validity as a machine identity — reportable as a standalone contribution.
 - **Fingerprint Visualization:** UMAP or t-SNE projection of fingerprints across machines and machine types; healthy clips from different machine types should form separated clusters, with faulty clips drifting away from their own machine's cluster.
 - **Confidence calibration:** does reported Confidence actually correlate with correctness (e.g., are low-confidence predictions more often wrong)? Report as a reliability diagram if time permits.
@@ -457,19 +489,19 @@ Acoustic-Fingerprinting/
 
 ## 14. Technology Stack (Unchanged)
 
-| Component | Technology |
-|---|---|
-| Language | Python |
-| Deep Learning | PyTorch |
-| Audio processing | librosa, torchaudio |
-| Spectrogram / DSP features | librosa (MFCC, spectral centroid/rolloff, RMS, HPSS/harmonic salience) |
-| Encoder | BEATs (pretrained, frozen) |
-| Contrastive learning | PyTorch |
-| Fingerprint profile storage | FAISS |
-| Visualization | UMAP or scikit-learn t-SNE, matplotlib/plotly |
-| Dashboard | Streamlit |
-| Explainability | Template-based DSP attribution + spectrogram difference plots + Acoustic Signature comparison |
-| Evaluation | scikit-learn |
+| Component                   | Technology                                                                                    |
+| --------------------------- | --------------------------------------------------------------------------------------------- |
+| Language                    | Python                                                                                        |
+| Deep Learning               | PyTorch                                                                                       |
+| Audio processing            | librosa, torchaudio                                                                           |
+| Spectrogram / DSP features  | librosa (MFCC, spectral centroid/rolloff, RMS, HPSS/harmonic salience)                        |
+| Encoder                     | BEATs (pretrained, frozen)                                                                    |
+| Contrastive learning        | PyTorch                                                                                       |
+| Fingerprint profile storage | FAISS                                                                                         |
+| Visualization               | UMAP or scikit-learn t-SNE, matplotlib/plotly                                                 |
+| Dashboard                   | Streamlit                                                                                     |
+| Explainability              | Template-based DSP attribution + spectrogram difference plots + Acoustic Signature comparison |
+| Evaluation                  | scikit-learn                                                                                  |
 
 ---
 
