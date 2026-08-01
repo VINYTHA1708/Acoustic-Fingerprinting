@@ -13,8 +13,9 @@ Public API:
     FusedVectorSerializer — save/load to JSON and NPZ
 """
 
+from .cache import FusionCache
 from .fused_vector import FusedFeatureVector
 from .fusion import FusionBuilder
 from .serializer import FusedVectorSerializer
 
-__all__ = ["FusionBuilder", "FusedFeatureVector", "FusedVectorSerializer"]
+__all__ = ["FusionBuilder", "FusedFeatureVector", "FusedVectorSerializer", "FusionCache"]

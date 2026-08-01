@@ -1,10 +1,12 @@
 """Contrastive dataset example.
 
-Loads a MIMII-style dataset, encodes all normal recordings, builds positive
-and negative pairs, and prints a summary.
+Lightweight pipeline verification: loads a subset of normal recordings,
+builds positive and negative pairs, and prints a summary.
 
 Usage:
     python examples/contrastive_dataset_example.py --root data/raw/MIMII
+    python examples/contrastive_dataset_example.py \\
+        --root data/raw/MIMII --machine-type pump --machine-id id_00 --max-recordings 100
 """
 
 from __future__ import annotations
@@ -24,10 +26,18 @@ logging.basicConfig(level=logging.WARNING, format="%(levelname)s: %(message)s")
 def main() -> None:
     parser = argparse.ArgumentParser(description="Contrastive dataset example")
     parser.add_argument("--root", type=str, required=True, help="Dataset root directory")
+    parser.add_argument("--machine-type", type=str, default=None, help="Filter by machine type (e.g. pump)")
+    parser.add_argument("--machine-id", type=str, default=None, help="Filter by machine ID (e.g. id_00)")
+    parser.add_argument("--max-recordings", type=int, default=100, help="Maximum recordings to encode (default: 100)")
     args = parser.parse_args()
 
-    print("Building contrastive dataset — encoding all normal recordings...")
-    dataset = ContrastiveDataset(dataset_root=args.root)
+    print("Building contrastive dataset...")
+    dataset = ContrastiveDataset(
+        dataset_root=args.root,
+        machine_type=args.machine_type,
+        machine_id=args.machine_id,
+        max_recordings=args.max_recordings,
+    )
 
     print(f"\nMachine types          : {dataset.machine_types()}")
     print(f"Machine IDs            : {dataset.machine_ids()}")
@@ -36,10 +46,7 @@ def main() -> None:
     print(f"Negative pairs         : {len(dataset.negative_pairs)}")
 
     print("\n--- Example pairs ---")
-    examples = (
-        dataset.positive_pairs[:2]
-        + dataset.negative_pairs[:1]
-    )
+    examples = dataset.positive_pairs[:2] + dataset.negative_pairs[:1]
     for i, pair in enumerate(examples):
         kind = "positive" if pair.label == 1 else "negative"
         print(

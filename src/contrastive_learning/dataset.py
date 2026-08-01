@@ -27,6 +27,7 @@ from ..dataset.loader import DatasetLoader
 from ..dataset.metadata import AudioMetadata
 from ..feature_extraction.extractor import FeatureExtractor
 from ..feature_extraction.feature_vector import FeatureVectorBuilder
+from ..fusion.cache import FusionCache
 from ..fusion.fused_vector import FusedFeatureVector
 from ..fusion.fusion import FusionBuilder
 from ..preprocessing.pipeline import PreprocessingPipeline
@@ -70,25 +71,49 @@ class ContrastiveDataset:
         self,
         dataset_root: str | Path,
         checkpoint_path: str | Path | None = None,
+        cache_root: str | Path | None = None,
         seed: int = 42,
+        machine_type: str | None = None,
+        machine_id: str | None = None,
+        max_recordings: int | None = None,
     ) -> None:
         self._rng = random.Random(seed)
         checkpoint = Path(checkpoint_path) if checkpoint_path else _CHECKPOINT_REL
+        _cache_root = Path(cache_root) if cache_root else _CHECKPOINT_REL.parents[2] / "data" / "fusion_cache"
 
-        self._pipeline = PreprocessingPipeline(target_sr=16_000)
-        self._extractor = FeatureExtractor(sample_rate=16_000)
-        self._vec_builder = FeatureVectorBuilder()
-        self._encoder = BEATsEncoder(checkpoint)
-        self._fusion = FusionBuilder()
+        pipeline = PreprocessingPipeline(target_sr=16_000)
+        extractor = FeatureExtractor(sample_rate=16_000)
+        vec_builder = FeatureVectorBuilder()
+        encoder = BEATsEncoder(checkpoint)
+        fusion = FusionBuilder()
+
+        self._cache = FusionCache(
+            cache_root=_cache_root,
+            pipeline=pipeline,
+            extractor=extractor,
+            vec_builder=vec_builder,
+            encoder=encoder,
+            fusion=fusion,
+        )
 
         loader = DatasetLoader(dataset_root)
-        normal_records = loader.filter_by_label("normal")
-        logger.info("Normal recordings found: %d", len(normal_records))
+        records = loader.filter_by_label("normal")
+        if machine_type is not None:
+            records = [r for r in records if r.machine_type == machine_type]
+        if machine_id is not None:
+            records = [r for r in records if r.machine_id == machine_id]
+        if max_recordings is not None:
+            records = records[:max_recordings]
+
+        print(f"Machine type      : {machine_type or 'all'}")
+        print(f"Machine ID        : {machine_id or 'all'}")
+        print(f"Max recordings    : {max_recordings or 'all'}")
+        logger.info("Recordings after filtering: %d", len(records))
 
         # Encode all normal recordings once and cache by (machine_type, machine_id)
         self._fused_by_machine: dict[tuple[str, str], list[FusedFeatureVector]] = {}
         self._all_fused: list[FusedFeatureVector] = []
-        self._encode_all(normal_records)
+        self._encode_all(records)
 
         self._positive_pairs: list[ContrastivePair] = self._build_positive_pairs()
         self._negative_pairs: list[ContrastivePair] = self._build_negative_pairs()
@@ -138,17 +163,25 @@ class ContrastiveDataset:
     # ------------------------------------------------------------------
 
     def _encode_all(self, records: list[AudioMetadata]) -> None:
-        """Encode every record and populate the internal cache."""
+        """Load or compute fused vectors for every record via FusionCache."""
         total = len(records)
-        print(f"Encoding recordings...")
+        print("Encoding recordings...")
         t_start = time.perf_counter()
+        hits = 0
+        misses = 0
 
         for idx, rec in enumerate(records, start=1):
+            is_hit = self._cache.exists(rec)
             try:
-                fused = self._encode_one(rec)
+                fused = self._cache.load_or_create(rec)
             except Exception as exc:  # noqa: BLE001
                 logger.warning("Skipping %s — encoding failed: %s", rec.filename, exc)
                 continue
+
+            if is_hit:
+                hits += 1
+            else:
+                misses += 1
 
             key = (rec.machine_type, rec.machine_id)
             self._fused_by_machine.setdefault(key, []).append(fused)
@@ -160,32 +193,16 @@ class ContrastiveDataset:
         elapsed = time.perf_counter() - t_start
         encoded = len(self._all_fused)
         avg = elapsed / encoded if encoded else 0.0
+        print(f"Cache hits               : {hits}")
+        print(f"Cache misses             : {misses}")
         print(f"Total recordings encoded : {encoded}")
         print(f"Elapsed time             : {elapsed:.1f}s")
         print(f"Average time per recording: {avg:.3f}s")
 
         logger.info(
-            "Encoded %d recordings across %d machines.",
+            "Loaded/encoded %d recordings across %d machines.",
             encoded,
             len(self._fused_by_machine),
-        )
-
-    def _encode_one(self, rec: AudioMetadata) -> FusedFeatureVector:
-        result = self._pipeline.run(rec.absolute_path)
-        features = self._extractor.extract(result["waveform"])
-        dsp_vector, dsp_names = self._vec_builder.build(features)
-        embedding = self._encoder.encode(
-            waveform=result["waveform"],
-            sample_rate=result["sample_rate"],
-            filename=rec.filename,
-        )
-        return self._fusion.build(
-            dsp_vector=dsp_vector,
-            dsp_feature_names=dsp_names,
-            beats_embedding=embedding,
-            machine_type=rec.machine_type,
-            machine_id=rec.machine_id,
-            label=rec.label,
         )
 
     # ------------------------------------------------------------------
