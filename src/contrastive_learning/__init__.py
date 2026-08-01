@@ -14,19 +14,22 @@ Public API:
     ProjectionHead      — small trainable head over the Fusion Fingerprint
     ContrastiveTrainer  — training pipeline (fit, history, checkpointing)
     EpochResult         — per-epoch training/validation loss record
-    ContrastiveInference — generates learned fingerprints from a trained head
+    ContrastiveInference  — generates learned fingerprints from a trained head
+    ContrastiveSerializer  — single checkpoint save/load interface
 """
 
 from .dataset import ContrastiveDataset, ContrastivePair
 from .inference import ContrastiveInference
 from .loss import NTXentLoss
 from .model import ProjectionHead
+from .serializer import ContrastiveSerializer
 from .trainer import ContrastiveTrainer, EpochResult
 
 __all__ = [
     "ContrastiveDataset",
     "ContrastivePair",
     "ContrastiveInference",
+    "ContrastiveSerializer",
     "NTXentLoss",
     "ProjectionHead",
     "ContrastiveTrainer",
