@@ -13,6 +13,7 @@ Public API:
 """
 
 from .dataset import ContrastiveDataset, ContrastivePair
+from .loss import NTXentLoss
 from .model import ProjectionHead
 
-__all__ = ["ContrastiveDataset", "ContrastivePair", "ProjectionHead"]
+__all__ = ["ContrastiveDataset", "ContrastivePair", "NTXentLoss", "ProjectionHead"]
