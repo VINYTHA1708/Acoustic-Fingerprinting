@@ -13,5 +13,6 @@ Public API:
 """
 
 from .dataset import ContrastiveDataset, ContrastivePair
+from .model import ProjectionHead
 
-__all__ = ["ContrastiveDataset", "ContrastivePair"]
+__all__ = ["ContrastiveDataset", "ContrastivePair", "ProjectionHead"]
