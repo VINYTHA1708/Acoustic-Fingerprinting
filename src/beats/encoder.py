@@ -1,39 +1,37 @@
-"""BEATsEncoder — scaffold for the Microsoft BEATs pretrained audio encoder.
+"""BEATsEncoder — wraps the official Microsoft BEATs pretrained audio encoder.
 
 SDD v4 §4.1, §5:
     BEATs is used as a frozen pretrained encoder producing a 768-dim embedding
-    per audio clip. It is never fine-tuned; only the small contrastive head
-    trained in Version 3 is learnable.
+    per audio clip. It is never fine-tuned.
 
-Integration plan (Version 2):
-    1. Place the official Microsoft BEATs source files under third_party/beats/.
-       Repository: https://github.com/microsoft/unilm/tree/master/beats
-       Required files: BEATs.py, backbone.py, modules.py, tokenizers.py
-
-    2. Download the pretrained checkpoint (BEATs_iter3_plus_AS2M.pt or equivalent)
-       and place it under models/beats/.
-       Do NOT commit the checkpoint to version control.
-
-    3. Implement the _load_model() and encode() methods below.
-
-    4. Update src/beats/__init__.py to export BEATsEncoder.
-
-This file is a scaffold only. No inference code is written here yet.
+Integration:
+    - Official source: third_party/beats/
+    - Checkpoint:      models/beats/BEATs_iter3_plus_AS2M.pt
 """
 
 from __future__ import annotations
 
+import logging
+import sys
 from pathlib import Path
 
 import numpy as np
+import torch
 
-# TODO (V2): import BEATs from third_party once the source files are in place
-# import sys
-# sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "third_party" / "beats"))
-# from BEATs import BEATs, BEATsConfig
+# Make third_party/beats importable without modifying those files
+_THIRD_PARTY = Path(__file__).resolve().parents[2] / "third_party" / "beats"
+if str(_THIRD_PARTY) not in sys.path:
+    sys.path.insert(0, str(_THIRD_PARTY))
 
-_EMBEDDING_DIM = 768  # BEATs output dimensionality (fixed by the pretrained model)
-_EXPECTED_SAMPLE_RATE = 16_000  # BEATs expects 16 kHz mono audio
+from BEATs import BEATs, BEATsConfig  # noqa: E402  (third-party import)
+
+from .embedding import BEATsEmbedding
+from .utils import mean_pool_frames, resolve_checkpoint_path, validate_waveform
+
+logger = logging.getLogger(__name__)
+
+_EMBEDDING_DIM = 768
+_EXPECTED_SAMPLE_RATE = 16_000
 
 
 class BEATsEncoder:
@@ -46,53 +44,53 @@ class BEATsEncoder:
         checkpoint_path: Path to the pretrained BEATs checkpoint (.pt file).
                          Expected location: models/beats/<checkpoint>.pt
 
-    Example (once implemented)::
-
-        encoder = BEATsEncoder("models/beats/BEATs_iter3_plus_AS2M.pt")
-        embedding = encoder.encode(waveform, sample_rate=16000)
-        # embedding.vector.shape == (768,)
+    Raises:
+        FileNotFoundError: If the checkpoint file does not exist.
+        RuntimeError: If the checkpoint is incompatible with the BEATs model.
     """
 
     def __init__(self, checkpoint_path: str | Path) -> None:
-        self._checkpoint_path = Path(checkpoint_path)
-        self._model = None  # populated by _load_model() once implemented
-
-        # TODO (V2): call self._load_model() here once the implementation is ready
-        # self._load_model()
+        self._checkpoint_path = resolve_checkpoint_path(checkpoint_path)
+        self._model: BEATs = self._load_model()
 
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
 
-    def encode(self, waveform: np.ndarray, sample_rate: int) -> "BEATsEmbedding":  # noqa: F821
+    def encode(self, waveform: np.ndarray, sample_rate: int, filename: str = "") -> BEATsEmbedding:
         """Encode a waveform into a 768-dim BEATs embedding.
 
         Args:
-            waveform: Mono audio waveform as a float32 numpy array, shape ``(T,)``.
-                      Must be sampled at 16 kHz (use PreprocessingPipeline first).
-            sample_rate: Sample rate of the waveform. Must equal 16 000 Hz.
+            waveform: Mono float32 waveform, shape ``(T,)``, at 16 kHz.
+                      Pass the output of PreprocessingPipeline directly.
+            sample_rate: Sample rate of the waveform. Must be 16 000 Hz.
+            filename: Source filename for provenance metadata.
 
         Returns:
-            A :class:`BEATsEmbedding` containing the 768-dim feature vector.
+            :class:`BEATsEmbedding` with the 768-dim mean-pooled vector.
 
         Raises:
-            ValueError: If ``sample_rate`` is not 16 000 Hz.
-            RuntimeError: If the model has not been loaded yet.
-
-        TODO (V2): implement this method.
-            Steps:
-            1. Validate sample_rate == _EXPECTED_SAMPLE_RATE.
-            2. Convert waveform to a torch.Tensor of shape (1, T).
-            3. Pass through self._model with torch.no_grad().
-            4. Pool the frame-level outputs to a single 768-dim vector
-               (mean pooling over the time dimension is the standard approach).
-            5. Convert to float32 numpy array.
-            6. Return BEATsEmbedding(vector=..., embedding_dim=768).
+            ValueError: If ``waveform`` is not 1-D float32 or ``sample_rate`` != 16 000.
         """
-        # TODO (V2): replace this stub with the real implementation
-        raise NotImplementedError(
-            "BEATsEncoder.encode() is not yet implemented. "
-            "Complete the TODO steps in encoder.py (Version 2)."
+        validate_waveform(waveform, sample_rate)
+
+        audio_tensor = torch.from_numpy(waveform).unsqueeze(0)  # (1, T)
+        padding_mask = torch.zeros(1, waveform.shape[0], dtype=torch.bool)
+
+        with torch.no_grad():
+            frame_embeddings, _ = self._model.extract_features(audio_tensor, padding_mask=padding_mask)
+
+        # frame_embeddings: (1, T_frames, 768) → (T_frames, 768)
+        frames_np = frame_embeddings.squeeze(0).cpu().numpy()
+        vector = mean_pool_frames(frames_np)  # (768,) float32
+
+        return BEATsEmbedding(
+            vector=vector,
+            embedding_dim=_EMBEDDING_DIM,
+            filename=filename,
+            machine_type="",
+            machine_id="",
+            sample_rate=sample_rate,
         )
 
     @property
@@ -100,30 +98,50 @@ class BEATsEncoder:
         """Dimensionality of the BEATs output embedding (always 768)."""
         return _EMBEDDING_DIM
 
-    @property
-    def is_loaded(self) -> bool:
-        """True if the pretrained model has been loaded from the checkpoint."""
-        return self._model is not None
-
     # ------------------------------------------------------------------
     # Private helpers
     # ------------------------------------------------------------------
 
-    def _load_model(self) -> None:
+    def _load_model(self) -> BEATs:
         """Load the pretrained BEATs model from the checkpoint file.
 
-        TODO (V2): implement this method.
-            Steps:
-            1. Verify self._checkpoint_path exists; raise FileNotFoundError if not.
-            2. Load the checkpoint dict with torch.load(..., map_location="cpu").
-            3. Instantiate BEATsConfig from the checkpoint's cfg entry.
-            4. Instantiate BEATs(cfg) and call .load_state_dict().
-            5. Call .eval() and wrap with torch.no_grad() context where needed.
-            6. Assign to self._model.
-            7. Log the checkpoint path and embedding dim at INFO level.
+        Returns:
+            A BEATs model in eval mode with gradients disabled.
+
+        Raises:
+            FileNotFoundError: If the checkpoint does not exist (via resolve_checkpoint_path).
+            RuntimeError: If the checkpoint keys are incompatible with the model.
         """
-        # TODO (V2): replace this stub with the real implementation
-        raise NotImplementedError(
-            "BEATsEncoder._load_model() is not yet implemented. "
-            "Complete the TODO steps in encoder.py (Version 2)."
+        try:
+            checkpoint = torch.load(self._checkpoint_path, map_location="cpu")
+        except Exception as exc:
+            raise RuntimeError(
+                f"Failed to load BEATs checkpoint from {self._checkpoint_path}: {exc}"
+            ) from exc
+
+        if "cfg" not in checkpoint or "model" not in checkpoint:
+            raise RuntimeError(
+                f"Incompatible checkpoint at {self._checkpoint_path}: "
+                "expected keys 'cfg' and 'model'."
+            )
+
+        cfg = BEATsConfig(checkpoint["cfg"])
+        model = BEATs(cfg)
+
+        try:
+            model.load_state_dict(checkpoint["model"])
+        except RuntimeError as exc:
+            raise RuntimeError(
+                f"Checkpoint state dict is incompatible with BEATs model: {exc}"
+            ) from exc
+
+        model.eval()
+        for param in model.parameters():
+            param.requires_grad_(False)
+
+        logger.info(
+            "BEATs checkpoint loaded: %s | embedding_dim=%d",
+            self._checkpoint_path.name,
+            _EMBEDDING_DIM,
         )
+        return model

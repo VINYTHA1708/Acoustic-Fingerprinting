@@ -94,3 +94,7 @@ desktop.ini
 # ============================================
 
 .streamlit/secrets.toml
+
+# BEATs model checkpoint
+models/beats/*.pt
+models/beats/*.pth

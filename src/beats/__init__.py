@@ -13,8 +13,7 @@ Public API (available after implementation):
     BEATsEmbedding — dataclass holding one 768-dim embedding with metadata
 """
 
-# TODO: uncomment these exports once encoder.py and embedding.py are implemented
-# from .encoder import BEATsEncoder
-# from .embedding import BEATsEmbedding
+from .embedding import BEATsEmbedding
+from .encoder import BEATsEncoder
 
-__all__: list[str] = []
+__all__ = ["BEATsEncoder", "BEATsEmbedding"]
