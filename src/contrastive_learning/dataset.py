@@ -103,11 +103,17 @@ class ContrastiveDataset:
         if machine_id is not None:
             records = [r for r in records if r.machine_id == machine_id]
         if max_recordings is not None:
-            records = records[:max_recordings]
+            records = self._sample_evenly(records, max_recordings, pin_id=machine_id is not None)
 
         print(f"Machine type      : {machine_type or 'all'}")
         print(f"Machine ID        : {machine_id or 'all'}")
         print(f"Max recordings    : {max_recordings or 'all'}")
+        print("Selected recordings")
+        id_counts: dict[str, int] = {}
+        for r in records:
+            id_counts[r.machine_id] = id_counts.get(r.machine_id, 0) + 1
+        for mid, cnt in sorted(id_counts.items()):
+            print(f"  {mid} : {cnt}")
         logger.info("Recordings after filtering: %d", len(records))
 
         # Encode all normal recordings once and cache by (machine_type, machine_id)
@@ -161,6 +167,54 @@ class ContrastiveDataset:
     # ------------------------------------------------------------------
     # Encoding
     # ------------------------------------------------------------------
+
+    @staticmethod
+    def _sample_evenly(
+        records: list[AudioMetadata],
+        max_recordings: int,
+        pin_id: bool,
+    ) -> list[AudioMetadata]:
+        """Select up to max_recordings, distributed evenly across machine IDs.
+
+        When pin_id is True (machine_id was explicitly set) there is only one
+        group, so a simple truncation is used.  Otherwise the quota is spread
+        across all distinct machine IDs using a round-robin fill that handles
+        groups smaller than the per-ID quota by redistributing the remainder.
+        """
+        if pin_id:
+            return records[:max_recordings]
+
+        # Group by machine_id preserving original order within each group
+        groups: dict[str, list[AudioMetadata]] = {}
+        for r in records:
+            groups.setdefault(r.machine_id, []).append(r)
+
+        ids = sorted(groups.keys())
+        n_ids = len(ids)
+        if n_ids == 0:
+            return []
+
+        selected: list[AudioMetadata] = []
+        remaining = max_recordings
+
+        # Iteratively allocate quota; IDs with fewer recordings give back surplus
+        pending = list(ids)
+        while remaining > 0 and pending:
+            per_id = max(1, remaining // len(pending))
+            next_pending = []
+            for mid in pending:
+                take = min(per_id, len(groups[mid]))
+                selected.extend(groups[mid][:take])
+                groups[mid] = groups[mid][take:]  # consume taken entries
+                remaining -= take
+                if groups[mid] and remaining > 0:
+                    next_pending.append(mid)
+            # If no progress was made, stop to avoid infinite loop
+            if len(next_pending) == len(pending):
+                break
+            pending = next_pending
+
+        return selected
 
     def _encode_all(self, records: list[AudioMetadata]) -> None:
         """Load or compute fused vectors for every record via FusionCache."""
