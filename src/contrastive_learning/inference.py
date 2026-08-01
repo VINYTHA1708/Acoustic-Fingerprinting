@@ -5,13 +5,8 @@ SDD v4 §11 (Version 3):
     through the trained contrastive head to obtain the final embedding used
     for drift analysis.
 
-Checkpoint format (written by ContrastiveTrainer._save_checkpoint):
-    {
-        "epoch":                int,
-        "model_state_dict":     dict,
-        "optimizer_state_dict": dict,
-        "validation_loss":      float,
-    }
+Checkpoint loading is delegated to :class:`ContrastiveSerializer`, which is
+the single checkpoint interface for the entire contrastive learning module.
 """
 
 from __future__ import annotations
@@ -24,6 +19,7 @@ import torch
 
 from ..fusion.fused_vector import FusedFeatureVector
 from .model import ProjectionHead
+from .serializer import ContrastiveSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -55,16 +51,7 @@ class ContrastiveInference:
         projection_head: ProjectionHead,
         checkpoint_path: str | Path,
     ) -> None:
-        path = Path(checkpoint_path)
-        if not path.exists():
-            raise FileNotFoundError(f"Checkpoint not found: {path}")
-
-        checkpoint = torch.load(path, map_location="cpu")
-        if "model_state_dict" not in checkpoint:
-            raise KeyError(
-                f"Checkpoint at '{path}' is missing 'model_state_dict'. "
-                "Expected a checkpoint saved by ContrastiveTrainer."
-            )
+        checkpoint = ContrastiveSerializer.load_checkpoint(checkpoint_path)
 
         projection_head.load_state_dict(checkpoint["model_state_dict"])
         projection_head.eval()
@@ -72,9 +59,9 @@ class ContrastiveInference:
         self._head = projection_head
         logger.info(
             "Loaded checkpoint from '%s' (epoch=%s, val_loss=%s)",
-            path,
-            checkpoint.get("epoch", "?"),
-            checkpoint.get("validation_loss", "?"),
+            checkpoint_path,
+            checkpoint["epoch"],
+            checkpoint["validation_loss"],
         )
 
     # ------------------------------------------------------------------

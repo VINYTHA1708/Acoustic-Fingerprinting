@@ -14,9 +14,8 @@ from __future__ import annotations
 import logging
 import math
 import random
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import TypedDict
 
 import torch
 import torch.optim as optim
@@ -24,19 +23,9 @@ import torch.optim as optim
 from .dataset import ContrastiveDataset, ContrastivePair
 from .loss import NTXentLoss
 from .model import ProjectionHead
+from .serializer import ContrastiveSerializer
 
 logger = logging.getLogger(__name__)
-
-
-# ---------------------------------------------------------------------------
-# Checkpoint schema
-# ---------------------------------------------------------------------------
-
-class _CheckpointDict(TypedDict):
-    epoch: int
-    model_state_dict: dict
-    optimizer_state_dict: dict
-    validation_loss: float
 
 
 # ---------------------------------------------------------------------------
@@ -189,12 +178,15 @@ class ContrastiveTrainer:
         n_batches = 0
 
         for batch in self._make_batches(shuffled):
-            anchors = torch.tensor(
-                [p.anchor.fused_feature_vector for p in batch], dtype=torch.float32
-            )
-            paired = torch.tensor(
-                [p.paired.fused_feature_vector for p in batch], dtype=torch.float32
-            )
+            import numpy as np
+
+            anchors = torch.from_numpy(
+                np.stack([p.anchor.fused_feature_vector for p in batch])
+            ).float()
+
+            paired = torch.from_numpy(
+                np.stack([p.paired.fused_feature_vector for p in batch])
+            ).float()
 
             if training:
                 self._optimizer.zero_grad()
@@ -234,20 +226,16 @@ class ContrastiveTrainer:
         return batches
 
     def _save_checkpoint(self, epoch: int, val_loss: float) -> None:
-        """Persist the best checkpoint to disk.
-
-        Saves projection head weights, optimizer state, epoch index, and
-        validation loss into a single file via :func:`torch.save`.
+        """Persist the best checkpoint to disk via :class:`ContrastiveSerializer`.
 
         Args:
             epoch: Current epoch (1-based).
             val_loss: Validation loss that triggered this save.
         """
-        checkpoint: _CheckpointDict = {
-            "epoch": epoch,
-            "model_state_dict": self._head.state_dict(),
-            "optimizer_state_dict": self._optimizer.state_dict(),
-            "validation_loss": val_loss,
-        }
-        path = self._checkpoint_dir / "best_projection_head.pt"
-        torch.save(checkpoint, path)
+        ContrastiveSerializer.save_checkpoint(
+            path=self._checkpoint_dir / "best_projection_head.pt",
+            model_state_dict=self._head.state_dict(),
+            optimizer_state_dict=self._optimizer.state_dict(),
+            epoch=epoch,
+            validation_loss=val_loss,
+        )
