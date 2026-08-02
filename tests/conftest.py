@@ -4,6 +4,17 @@ All heavy resources (BEATs encoder, ProjectionHead checkpoint, FusionCache,
 LearnedFingerprintProfile) are constructed once per session and reused.
 Cached fusion vectors on disk are used wherever possible so no audio
 processing is repeated during the test run.
+
+Resource-gating
+---------------
+Three session-scoped fixtures (``require_beats``, ``require_contrastive``,
+``require_mimii``) call ``pytest.skip()`` when the corresponding file or
+directory is absent.  Every fixture that needs a resource declares it as a
+dependency, so pytest propagates the skip automatically to all tests that
+use those fixtures — no per-test boilerplate required.
+
+On a developer machine where all resources are present the behaviour is
+identical to before this change.
 """
 
 from __future__ import annotations
@@ -31,20 +42,54 @@ MACHINE_TYPE = "pump"
 MACHINE_ID = "id_00"
 
 # ---------------------------------------------------------------------------
+# Resource-availability guards
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="session")
+def require_beats():
+    """Skip the entire session fixture chain when the BEATs checkpoint is absent."""
+    if not BEATS_CHECKPOINT.exists():
+        pytest.skip(
+            "Skipping integration test: BEATs checkpoint not available "
+            f"({BEATS_CHECKPOINT})."
+        )
+
+
+@pytest.fixture(scope="session")
+def require_contrastive():
+    """Skip when the trained ProjectionHead checkpoint is absent."""
+    if not CONTRASTIVE_CHECKPOINT.exists():
+        pytest.skip(
+            "Skipping integration test: contrastive checkpoint not available "
+            f"({CONTRASTIVE_CHECKPOINT})."
+        )
+
+
+@pytest.fixture(scope="session")
+def require_mimii():
+    """Skip when the MIMII dataset directory is absent."""
+    if not DATASET_ROOT.exists():
+        pytest.skip(
+            "Skipping integration test: MIMII dataset not available "
+            f"({DATASET_ROOT})."
+        )
+
+
+# ---------------------------------------------------------------------------
 # Lazy imports (deferred so collection is fast even if torch is slow)
 # ---------------------------------------------------------------------------
 
 
 @pytest.fixture(scope="session")
-def beats_encoder():
-    # Direct submodule import — avoids beats/__init__.py eager chain
+def beats_encoder(require_beats):
     import importlib
     mod = importlib.import_module("src.beats.encoder")
     return mod.BEATsEncoder(BEATS_CHECKPOINT)
 
 
 @pytest.fixture(scope="session")
-def fusion_cache(beats_encoder):
+def fusion_cache(beats_encoder, require_mimii):
     import importlib
     FusionCache = importlib.import_module("src.fusion.cache").FusionCache
     FeatureExtractor = importlib.import_module("src.feature_extraction.extractor").FeatureExtractor
@@ -63,7 +108,7 @@ def fusion_cache(beats_encoder):
 
 
 @pytest.fixture(scope="session")
-def dataset_loader():
+def dataset_loader(require_mimii):
     import importlib
     DatasetLoader = importlib.import_module("src.dataset.loader").DatasetLoader
     return DatasetLoader(DATASET_ROOT)
@@ -91,7 +136,7 @@ def cached_fused_vector(fusion_cache, first_normal_record):
 
 
 @pytest.fixture(scope="session")
-def learned_profile(dataset_loader):
+def learned_profile(dataset_loader, require_contrastive):
     import importlib
     LearnedProfileBuilder = importlib.import_module("src.learned_profile.builder").LearnedProfileBuilder
 
@@ -105,7 +150,7 @@ def learned_profile(dataset_loader):
 
 
 @pytest.fixture(scope="session")
-def contrastive_inference():
+def contrastive_inference(require_contrastive):
     import importlib
     ContrastiveInference = importlib.import_module("src.contrastive_learning.inference").ContrastiveInference
     ProjectionHead = importlib.import_module("src.contrastive_learning.model").ProjectionHead
@@ -124,7 +169,7 @@ def sample_embedding(contrastive_inference, cached_fused_vector):
 
 
 @pytest.fixture(scope="session")
-def drift_result(first_normal_record, learned_profile):
+def drift_result(first_normal_record, learned_profile, require_contrastive):
     import importlib
     LearnedDriftAnalyzer = importlib.import_module("src.learned_drift.analyzer").LearnedDriftAnalyzer
 
@@ -133,7 +178,7 @@ def drift_result(first_normal_record, learned_profile):
 
 
 @pytest.fixture(scope="session")
-def health_result(first_normal_record, learned_profile):
+def health_result(first_normal_record, learned_profile, require_contrastive):
     import importlib
     LearnedHealthAnalyzer = importlib.import_module("src.learned_health_index.analyzer").LearnedHealthAnalyzer
 
