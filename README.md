@@ -1,35 +1,82 @@
 # Acoustic Fingerprinting of Industrial Machines
 
-An explainable acoustic fingerprinting system for industrial machine health monitoring, combining classical Digital Signal Processing (DSP) features with deep audio representations from BEATs and contrastive learning.
+![Python](https://img.shields.io/badge/python-3.11+-blue?logo=python&logoColor=white)
+![PyTorch](https://img.shields.io/badge/PyTorch-2.1-ee4c2c?logo=pytorch&logoColor=white)
+![Tests](https://github.com/VINYTHA1708/Acoustic-Fingerprinting/actions/workflows/tests.yml/badge.svg)
+![License](https://img.shields.io/badge/license-MIT-green)
 
----
+An acoustic fingerprinting system for industrial machine health monitoring that combines classical Digital Signal Processing (DSP) features with deep audio representations from BEATs and contrastive learning.
 
-## Overview
-
-Industrial machines produce unique acoustic signatures during normal operation. As components wear, loosen, or become damaged, these signatures gradually change. Traditional fault detection systems require labeled fault examples during training, which are expensive to collect and cover only known failure modes.
+Industrial machines produce unique acoustic signatures during normal operation. As components wear or become damaged, these signatures change. Traditional fault detection systems require labeled fault examples during training, which are expensive to collect and cover only known failure modes.
 
 This project takes a different approach. It learns only from healthy recordings and detects deviations by measuring how much a new recording has drifted from the machine's healthy acoustic reference profile.
 
-The core research question is:
+> **Core question:** How much has this specific recording drifted from this machine's healthy reference profile?
 
-> **How much has this specific recording drifted from this machine's healthy reference profile?**
+DSP features (MFCC, spectral centroid, spectral rolloff, RMS energy, harmonic salience) provide a 153-dimensional interpretable representation. BEATs (Bidirectional Encoder representation from Audio Transformers), a self-supervised audio encoder pretrained on AudioSet, contributes a frozen 768-dimensional embedding that captures rich timbral and spectral structure. The two are concatenated into a 921-dimensional Fusion Vector.
 
-### Why BEATs + DSP Fusion
+A small trainable ProjectionHead maps the Fusion Vector into a 256-dimensional L2-normalised learned fingerprint using NT-Xent contrastive loss. Positive pairs are recordings from the same machine; negative pairs are recordings from different machines. Only the ProjectionHead is trained — BEATs and all DSP extractors remain frozen.
 
-DSP features (MFCC, spectral centroid, spectral rolloff, RMS energy, harmonic salience) are computed directly from the audio signal. Every dimension has a named, human-interpretable meaning, which makes them the backbone of explainability. However, hand-designed features can miss subtle timbral and spectral structure.
+---
 
-BEATs (Bidirectional Encoder representation from Audio Transformers) is a self-supervised audio encoder pretrained on AudioSet. Its frozen 768-dimensional embeddings capture rich acoustic representations that complement the DSP features without requiring any labeled training data.
+## Features
 
-The two are concatenated into a 921-dimensional Fusion Vector, combining the interpretability of DSP with the representational power of deep audio embeddings.
+- **Audio preprocessing** — mono conversion, resampling to 16 kHz, amplitude normalisation, log-Mel spectrogram generation
+- **DSP feature extraction** — MFCC (20 coefficients, mean + std), spectral centroid, spectral rolloff, RMS energy, harmonic salience (153-dim vector)
+- **BEATs encoder** — frozen pretrained BEATs model producing a 768-dim mean-pooled embedding per recording
+- **Feature fusion** — concatenation of DSP and BEATs vectors into a 921-dim Fusion Vector
+- **Fusion cache** — compressed NPZ disk cache keyed by recording path; avoids recomputing the full pipeline on repeated runs
+- **Contrastive dataset** — automatic positive and negative pair construction from MIMII directory structure
+- **NT-Xent loss** — normalised temperature-scaled cross-entropy loss for contrastive training
+- **ProjectionHead** — trainable Linear → ReLU → Linear → L2-norm head mapping 921-dim to 256-dim
+- **Contrastive training** — full training loop with train/validation split, per-epoch loss reporting, and best-checkpoint saving
+- **Contrastive inference** — loads a trained checkpoint and generates 256-dim learned fingerprints
+- **Learned fingerprint profile** — per-machine healthy profile storing all embeddings, mean vector, and std vector
+- **Learned drift analysis** — raw and z-score normalised drift metrics (Euclidean, Manhattan, cosine) between a recording's embedding and the healthy profile
+- **Learned health index** — bounded health score [0, 100] and qualitative state (EXCELLENT / GOOD / WARNING / CRITICAL) derived from normalised drift
+- **End-to-end inference pipeline** — single `InferencePipeline.analyze()` call returning a structured `PipelineResult`
+- **Pipeline benchmark** — per-stage wall-clock timing (preprocessing, DSP, BEATs, fusion, projection, drift, health) with cache-hit detection
+- **Serialisation** — JSON and NPZ round-trip for profiles, drift results, health results, and pipeline results
+- **Unit tests** — pytest suite covering all major modules
 
-### Contrastive Learning
+---
 
-A small trainable ProjectionHead maps the 921-dimensional Fusion Vector into a 256-dimensional L2-normalised learned fingerprint. It is trained with NT-Xent (Normalized Temperature-scaled Cross Entropy) loss using a single objective:
+## Repository Structure
 
-- **Positive pairs**: recordings from the same machine
-- **Negative pairs**: recordings from different machines
-
-This encourages the learned fingerprint space to cluster by machine identity, making drift from a healthy profile a reliable anomaly signal. Only the ProjectionHead is trained; BEATs and all DSP extractors remain frozen.
+```
+Acoustic-Fingerprinting/
+│
+├── src/
+│   ├── preprocessing/          # Audio loading, resampling, normalisation, spectrogram
+│   ├── feature_extraction/     # DSP extractors: MFCC, spectral, temporal, harmonic
+│   ├── beats/                  # BEATsEncoder wrapper (frozen, pretrained)
+│   ├── fusion/                 # FusionBuilder, FusedFeatureVector, FusionCache
+│   ├── contrastive_learning/   # Dataset, ProjectionHead, NTXentLoss, Trainer, Inference
+│   ├── learned_profile/        # LearnedProfileBuilder, LearnedFingerprintProfile
+│   ├── learned_drift/          # LearnedDriftAnalyzer, LearnedDriftResult, metrics
+│   ├── learned_health_index/   # LearnedHealthAnalyzer, LearnedHealthCalculator
+│   ├── pipeline/               # InferencePipeline, MachineHealthPipeline, PipelineResult
+│   ├── benchmark/              # PipelineBenchmark, BenchmarkResult
+│   └── dataset/                # DatasetLoader, AudioMetadata, scanner
+│
+├── examples/                   # Standalone runnable scripts (one per module)
+├── tests/                      # pytest unit tests
+├── models/
+│   ├── beats/                  # BEATs checkpoint (not tracked by Git)
+│   └── contrastive/            # Trained ProjectionHead checkpoints
+├── data/
+│   ├── raw/MIMII/              # Raw MIMII dataset
+│   └── fusion_cache/           # Pre-computed FusionCache NPZ files
+├── outputs/
+│   └── learned_profiles/       # Saved LearnedFingerprintProfile files
+├── third_party/
+│   └── beats/                  # Official Microsoft BEATs source (unmodified)
+├── docs/
+│   └── sdd/                    # System Design Documents (v3, v4)
+├── requirements.txt
+├── PROJECT_CONTEXT.md
+└── README.md
+```
 
 ---
 
@@ -40,20 +87,17 @@ Machine Audio (.wav)
         │
         ▼
 Audio Preprocessing
-(mono, 16 kHz, normalize, trim, fixed-length)
-        │
-        ▼
-Log-Mel Spectrogram
+(mono, 16 kHz, normalise, log-Mel spectrogram)
         │
         ├─────────────────────────────────┐
         ▼                                 ▼
 DSP Feature Extraction              BEATs Encoder (frozen)
 MFCC (20 coeffs, mean+std)          768-dim embedding
-Spectral Centroid                         │
-Spectral Rolloff                          │
-RMS Energy                                │
-Harmonic Salience                         │
-(153-dim vector)                          │
+Spectral Centroid
+Spectral Rolloff
+RMS Energy
+Harmonic Salience
+(153-dim vector)
         │                                 │
         └──────────── Fusion ─────────────┘
                           │
@@ -63,24 +107,22 @@ Harmonic Salience                         │
                           │
                           ▼
               ProjectionHead (trainable)
-              Linear → BN → ReLU → Linear → L2-norm
+              Linear(921→512) → ReLU → Linear(512→256) → L2-norm
                           │
                           ▼
               Learned Fingerprint (256-dim, L2-normalised)
                           │
                 ┌─────────┴──────────┐
                 ▼                    ▼
-        Stored as              Computed per
-        Learned Profile        new recording
-        (healthy mean/std      (inference time)
-         + all embeddings)
+        Healthy Profile         New Recording
+        (mean + std of          (inference time)
+         normal embeddings)
                 │                    │
                 └────────┬───────────┘
                          ▼
                Drift Analysis
-               Raw Metrics (Euclidean, Manhattan, Cosine)
-               Statistical Normalization: z = (x − μ) / σ
-               Normalized Metrics (official anomaly scores)
+               Raw metrics: Euclidean, Manhattan, Cosine
+               Normalised metrics: z = (x − μ) / σ
                          │
                          ▼
                    Health Index
@@ -88,69 +130,18 @@ Harmonic Salience                         │
                Bounded [0, 100]
                          │
                          ▼
-              Machine Health Report
-              (dimensions, drift, health score, state)
+                  PipelineResult
+          (dimensions, drift metrics, health score, state)
 ```
 
 ### Health State Bands
 
-| Health Score | State     | Meaning                                          |
-|-------------|-----------|--------------------------------------------------|
-| 90 – 100    | EXCELLENT | Within normal healthy variation                  |
-| 75 – 89     | GOOD      | Slightly outside typical healthy variation       |
-| 50 – 74     | WARNING   | Statistically significant deviation              |
-| 0 – 49      | CRITICAL  | Extreme outlier relative to healthy distribution |
-
----
-
-## Repository Structure
-
-```
-Acoustic-Fingerprinting/
-│
-├── src/
-│   ├── dataset/              # MIMII dataset loader and audio metadata extraction
-│   ├── preprocessing/        # Audio cleaning: mono, resample, normalize, trim, clip
-│   ├── feature_extraction/   # DSP extraction: MFCC, centroid, rolloff, RMS, harmonic
-│   ├── beats/                # BEATs encoder wrapper (frozen, pretrained)
-│   ├── fusion/               # Fusion vector construction and disk cache (FusionCache)
-│   ├── contrastive_learning/ # ProjectionHead, NT-Xent loss, trainer, inference
-│   ├── learned_profile/      # LearnedFingerprintProfile builder and serializer
-│   ├── learned_drift/        # Raw and normalized drift metrics
-│   ├── learned_health_index/ # Health score calculator and analyzer
-│   └── pipeline/             # MachineHealthPipeline end-to-end orchestration
-│
-├── examples/                 # Standalone runnable scripts (see Examples section)
-├── models/
-│   ├── beats/                # BEATs checkpoint (BEATs_iter3_plus_AS2M.pt)
-│   └── contrastive/          # Trained ProjectionHead checkpoints
-├── data/
-│   ├── raw/MIMII/            # Raw MIMII dataset
-│   └── fusion_cache/         # Pre-computed FusionCache NPZ files
-├── outputs/                  # Saved profiles, drift results, health reports
-├── docs/sdd/                 # System Design Documents (v1–v4)
-├── configs/                  # YAML experiment configurations
-├── notebooks/                # Jupyter notebooks for exploration
-├── tests/                    # Unit tests
-├── requirements.txt
-├── PROJECT_CONTEXT.md
-└── README.md
-```
-
-### Key Source Modules
-
-| Module | Responsibility |
-|---|---|
-| `dataset/` | Scans MIMII directory tree, extracts `AudioMetadata` per recording |
-| `preprocessing/` | Converts raw audio to mono 16 kHz normalized fixed-length waveform |
-| `feature_extraction/` | Computes 153-dim DSP feature vector from waveform |
-| `beats/` | Wraps frozen BEATs model, produces 768-dim embedding |
-| `fusion/` | Concatenates DSP + BEATs into 921-dim vector; caches to disk |
-| `contrastive_learning/` | Trains and runs the 256-dim ProjectionHead |
-| `learned_profile/` | Builds per-machine healthy profile from all normal embeddings |
-| `learned_drift/` | Computes raw and z-score normalized drift metrics |
-| `learned_health_index/` | Converts normalized drift into bounded health score |
-| `pipeline/` | Single `MachineHealthPipeline.analyze()` call returns `MachineHealthReport` |
+| Score   | State     | Meaning                                          |
+|---------|-----------|--------------------------------------------------|
+| 90–100  | EXCELLENT | Within normal healthy variation                  |
+| 75–89   | GOOD      | Slightly outside typical healthy variation       |
+| 50–74   | WARNING   | Statistically significant deviation              |
+| 0–49    | CRITICAL  | Extreme outlier relative to healthy distribution |
 
 ---
 
@@ -185,29 +176,9 @@ pip install -r requirements.txt
 
 ---
 
-## Downloading the BEATs Checkpoint
-
-The BEATs encoder requires a pretrained checkpoint that is not included in this repository.
-
-Download `BEATs_iter3_plus_AS2M.pt` from the official Microsoft BEATs repository:
-
-```
-https://github.com/microsoft/unilm/tree/master/beats
-```
-
-Place the downloaded file at:
-
-```
-models/beats/BEATs_iter3_plus_AS2M.pt
-```
-
-The project resolves this path automatically. All modules that use BEATs default to this location.
-
----
-
 ## Dataset
 
-This project uses the **MIMII (Malfunctioning Industrial Machine Investigation and Inspection Dataset)**.
+This project uses the **MIMII (Malfunctioning Industrial Machine Investigation and Inspection) Dataset**.
 
 Download MIMII from:
 
@@ -225,31 +196,101 @@ data/raw/MIMII/
 │   │   │   ├── 00000000.wav
 │   │   │   └── ...
 │   │   └── abnormal/
-│   │       ├── 00000000.wav
 │   │       └── ...
 │   ├── id_02/
-│   ├── id_04/
-│   └── id_06/
+│   └── ...
 ├── pump/
-│   ├── id_00/
-│   └── ...
 ├── valve/
-│   └── ...
 └── slider/
-    └── ...
 ```
-
-Each machine type contains multiple machine IDs. Each machine ID contains `normal/` and `abnormal/` subdirectories of `.wav` recordings.
 
 Training uses only `normal/` recordings. `abnormal/` recordings are reserved exclusively for evaluation.
 
 ---
 
-## Training
+## BEATs Checkpoint
 
-Training the ProjectionHead requires the FusionCache to be populated first. The cache is built automatically on first use, but pre-populating it avoids recomputation during training.
+The BEATs encoder requires a pretrained checkpoint that is intentionally excluded from this repository due to its size.
 
-Run contrastive training:
+Download `BEATs_iter3_plus_AS2M.pt` from the official Microsoft BEATs repository:
+
+```
+https://github.com/microsoft/unilm/tree/master/beats
+```
+
+Place the downloaded file at:
+
+```
+models/beats/BEATs_iter3_plus_AS2M.pt
+```
+
+All modules that use BEATs resolve this path automatically.
+
+---
+
+## Running Examples
+
+All example scripts are run from the project root. Each script accepts `--help` for a full argument listing.
+
+### Dataset
+
+```bash
+python examples/dataset_example.py --root data/raw/MIMII
+```
+
+### Preprocessing
+
+```bash
+python examples/preprocessing_example.py --root data/raw/MIMII
+```
+
+### Feature Extraction
+
+```bash
+python examples/feature_extraction_example.py --root data/raw/MIMII
+```
+
+### BEATs Embedding
+
+```bash
+python examples/beats_example.py --root data/raw/MIMII
+# or pass a specific file
+python examples/beats_example.py --file path/to/audio.wav
+```
+
+### Fusion
+
+```bash
+python examples/fusion_example.py --root data/raw/MIMII
+```
+
+### Fusion Cache
+
+```bash
+python examples/fusion_cache_example.py --root data/raw/MIMII
+```
+
+Demonstrates cache miss (first run, computes and saves) vs cache hit (second run, loads from disk) with elapsed time for both.
+
+### Contrastive Dataset
+
+```bash
+python examples/contrastive_dataset_example.py --root data/raw/MIMII
+```
+
+### NT-Xent Loss
+
+```bash
+python examples/ntxent_loss_example.py --root data/raw/MIMII
+```
+
+### Projection Head
+
+```bash
+python examples/projection_head_example.py --root data/raw/MIMII
+```
+
+### Contrastive Training
 
 ```bash
 python examples/contrastive_training_example.py \
@@ -262,13 +303,7 @@ python examples/contrastive_training_example.py \
     --temperature 0.1
 ```
 
-The best checkpoint is saved automatically to:
-
-```
-models/contrastive/best_projection_head.pt
-```
-
-Training arguments:
+The best checkpoint is saved to `models/contrastive/best_projection_head.pt`.
 
 | Argument | Default | Description |
 |---|---|---|
@@ -281,73 +316,6 @@ Training arguments:
 | `--learning-rate` | `1e-3` | Adam learning rate |
 | `--temperature` | `0.1` | NT-Xent temperature |
 
----
-
-## Examples
-
-All example scripts are in `examples/` and are run from the project root.
-
-### Dataset
-
-```bash
-python examples/dataset_example.py --root data/raw/MIMII
-```
-
-Scans the dataset and prints a summary of machine types, machine IDs, and recording counts.
-
-### Preprocessing
-
-```bash
-python examples/preprocessing_example.py --root data/raw/MIMII
-```
-
-Runs the preprocessing pipeline on one recording and prints waveform statistics.
-
-### Feature Extraction
-
-```bash
-python examples/feature_extraction_example.py --root data/raw/MIMII
-```
-
-Extracts the 153-dim DSP feature vector from one recording and prints each named feature.
-
-### BEATs Embedding
-
-```bash
-python examples/beats_example.py --root data/raw/MIMII
-# or
-python examples/beats_example.py --file path/to/audio.wav
-```
-
-Encodes one recording with the frozen BEATs model and prints the 768-dim embedding shape.
-
-### Fusion
-
-```bash
-python examples/fusion_example.py --root data/raw/MIMII
-```
-
-Builds the 921-dim Fusion Vector (DSP + BEATs) for one recording and prints dimension breakdown.
-
-### Fusion Cache
-
-```bash
-python examples/fusion_cache_example.py --root data/raw/MIMII
-```
-
-Demonstrates cache miss (first run, computes and saves) vs cache hit (second run, loads from disk). Prints elapsed time for both.
-
-### Contrastive Training
-
-```bash
-python examples/contrastive_training_example.py \
-    --root data/raw/MIMII \
-    --machine-type pump \
-    --epochs 10
-```
-
-Trains the ProjectionHead and prints per-epoch training and validation loss. Saves the best checkpoint.
-
 ### Contrastive Inference
 
 ```bash
@@ -356,7 +324,12 @@ python examples/contrastive_inference_example.py \
     --checkpoint models/contrastive/best_projection_head.pt
 ```
 
-Runs the trained ProjectionHead on one recording and prints the 256-dim learned fingerprint.
+### Contrastive Serializer
+
+```bash
+python examples/contrastive_serializer_example.py \
+    --checkpoint models/contrastive/best_projection_head.pt
+```
 
 ### Learned Profile
 
@@ -368,7 +341,7 @@ python examples/learned_profile_example.py \
     --checkpoint models/contrastive/best_projection_head.pt
 ```
 
-Builds the healthy learned fingerprint profile for one machine and saves it to `outputs/learned_profiles/`.
+Builds the healthy learned fingerprint profile and saves it to `outputs/learned_profiles/`.
 
 ### Learned Drift
 
@@ -380,7 +353,7 @@ python examples/learned_drift_example.py \
     --checkpoint models/contrastive/best_projection_head.pt
 ```
 
-Analyzes one normal and one abnormal recording. Prints raw and normalized drift metrics for both and checks that abnormal drift is larger.
+Analyzes one normal and one abnormal recording. Prints raw and normalised drift metrics for both.
 
 ### Learned Health Index
 
@@ -393,9 +366,7 @@ python examples/learned_health_example.py \
     --max-recordings 100
 ```
 
-Evaluates up to 50 normal and 50 abnormal recordings. Reports mean health score and mean health percentage for each group, and checks that the normal average is higher.
-
-### Full Pipeline
+### End-to-End Pipeline
 
 ```bash
 python examples/pipeline_example.py \
@@ -405,11 +376,9 @@ python examples/pipeline_example.py \
     --checkpoint models/contrastive/best_projection_head.pt
 ```
 
-Evaluates up to 50 normal and 50 abnormal recordings through `MachineHealthPipeline.analyze()`. Reports mean health scores and a pass/fail summary.
+Runs `InferencePipeline.analyze()` on held-out normal and abnormal recordings and prints a full health report.
 
----
-
-## Benchmark
+### Pipeline Benchmark
 
 ```bash
 python examples/benchmark_pipeline.py \
@@ -420,22 +389,7 @@ python examples/benchmark_pipeline.py \
     --max-recordings 50
 ```
 
-Measures per-stage inference time over up to `--max-recordings` normal recordings.
-
-Each recording is timed across four stages:
-
-| Stage | What is measured |
-|---|---|
-| Cache retrieval | `FusionCache.load_or_create()` — disk load of pre-computed fusion vector |
-| Drift analysis | `LearnedDriftAnalyzer.analyze()` — ProjectionHead inference + drift metrics |
-| Health analysis | `LearnedHealthAnalyzer.analyze()` — health score computation |
-| Total pipeline | `MachineHealthPipeline.analyze()` — full end-to-end call |
-
-Output includes average, minimum, maximum, standard deviation, and recordings per second for the total pipeline time. All times are reported in milliseconds.
-
----
-
-## Final Evaluation
+### Final Evaluation
 
 ```bash
 python examples/final_evaluation.py \
@@ -445,75 +399,65 @@ python examples/final_evaluation.py \
     --max-recordings 100
 ```
 
-Runs a full evaluation across every machine ID for the specified machine type.
+Runs a full evaluation across every machine ID for the specified machine type. Reports normalised drift, health scores, separation ratio, and PASS/FAIL per machine ID.
 
-For each machine ID:
+---
 
-1. Builds a healthy learned profile from up to `--max-recordings` normal recordings.
-2. Evaluates up to 50 normal and 50 abnormal recordings through `MachineHealthPipeline`.
-3. Computes average raw Euclidean drift, normalized Euclidean drift, and health score for both groups.
-4. Computes the **Separation Ratio** = mean abnormal normalized drift / mean normal normalized drift.
-5. Measures average inference time per recording.
+## Unit Tests
 
-A machine ID **passes** if both conditions hold:
+Run the full test suite from the project root:
 
-- Average abnormal normalized drift > average normal normalized drift
-- Average normal health score > average abnormal health score
+```bash
+python -m pytest tests/
+```
 
-The per-machine table shows:
+The suite covers:
 
-| Column | Description |
+| File | Module under test |
 |---|---|
-| Normal Drift | Mean normalized Euclidean distance for normal recordings |
-| Abnormal Drift | Mean normalized Euclidean distance for abnormal recordings |
-| Normal Health | Mean health score for normal recordings |
-| Abnormal Health | Mean health score for abnormal recordings |
-| Separation Ratio | Abnormal drift / Normal drift (> 1.0 is correct ordering) |
-| Inf (ms) | Average inference time per recording in milliseconds |
-| Result | PASS or FAIL |
+| `test_beats.py` | BEATsEncoder — loading, embedding shape, NaN/Inf, invalid checkpoint |
+| `test_fusion.py` | FusionBuilder — output dimension, DSP/BEATs ordering, validation errors |
+| `test_projection.py` | ProjectionHead — output dimension, L2 normalisation, weight persistence |
+| `test_ntxent.py` | NTXentLoss — scalar output, finiteness, batch size and temperature validation |
+| `test_profile.py` | LearnedProfileBuilder and serializer — shape, JSON/NPZ round-trip, invalid machine |
+| `test_drift.py` | LearnedDriftAnalyzer and serializer — result type, finite metrics, machine mismatch |
+| `test_health.py` | LearnedHealthAnalyzer and serializer — score bounds, valid state, JSON/NPZ round-trip |
+| `test_pipeline.py` | InferencePipeline, PipelineResult, PipelineBenchmark — dimensions, bounds, serialisation |
 
-Overall results summarize PASS/FAIL counts, average separation ratio, average health scores, and average inference time across all machine IDs.
-
----
-
-## Results
-
-The system was validated on the MIMII Pump dataset (SDD v4 §12.4).
-
-**Key finding from validation experiments:**
-
-Raw DSP feature distances did not consistently separate healthy and abnormal recordings due to heterogeneous feature scales. Statistical normalization using the healthy profile's mean and standard deviation significantly improved separation:
-
-| Metric | Normal | Abnormal |
-|---|---|---|
-| Raw Euclidean (id_00) | 557.18 | 444.81 |
-| Normalized Euclidean (id_00) | 13.75 | 14.23 |
-
-Normalized drift metrics are the official anomaly representation used by the health index.
-
-**Expected behavior on a well-trained model:**
-
-- Normal recordings consistently receive higher health scores than abnormal recordings when averaged over 50 recordings per group.
-- Separation ratio > 1.0 for most machine IDs.
-- Health states for normal recordings cluster in GOOD to EXCELLENT; abnormal recordings cluster in WARNING to CRITICAL.
-
-Performance varies across machine IDs due to differences in operating conditions, which motivates the BEATs + contrastive learning approach over DSP-only baselines.
+Tests use session-scoped fixtures and the existing fusion cache on disk to avoid recomputing the full pipeline during the test run.
 
 ---
 
-## Future Work
+## Benchmark
 
-- **Streamlit Dashboard** — interactive per-machine health monitoring with spectrogram difference visualization and acoustic signature comparison.
-- **Explainability** — component-wise DSP attribution ranking the top drift contributor per recording with a labeled spectrogram difference overlay.
-- **Evaluation against baselines** — AUC, precision, recall, and F1 comparison against Autoencoder, Deep SVDD, and Isolation Forest.
-- **Fingerprint Stability metric** — cosine similarity between healthy embeddings of the same machine across different recording conditions.
-- **UMAP / t-SNE visualization** — fingerprint projection across machine types and fault conditions.
-- **Longitudinal drift tracking** — fingerprint evolution view plotting health score over successive recordings; designed to extend directly to real degradation datasets without architectural changes.
-- **Confidence score** — per-prediction confidence based on profile density near the current fingerprint, sample size, and DSP/BEATs agreement.
+`PipelineBenchmark` measures wall-clock time for each stage of the inference pipeline independently using `time.perf_counter()`:
+
+| Stage | What is timed |
+|---|---|
+| Preprocessing | Audio load → resample → normalise |
+| DSP Extraction | Feature extraction + vector construction |
+| BEATs | Frozen encoder forward pass |
+| Fusion | DSP + BEATs concatenation (or disk cache load) |
+| Projection | ProjectionHead forward pass |
+| Drift | Normalised drift metric computation |
+| Health | Health score calculation |
+| **Total** | **Full end-to-end wall-clock time** |
+
+When a fused vector is already cached on disk, preprocessing, DSP, and BEATs times are reported as 0 ms and the fusion time reflects only the disk-load duration. The `cache_hit` field records which path was taken.
+
+Run the benchmark example:
+
+```bash
+python examples/benchmark_pipeline.py \
+    --root data/raw/MIMII \
+    --machine-type pump \
+    --machine-id id_00 \
+    --checkpoint models/contrastive/best_projection_head.pt
+```
 
 ---
 
-## Technology Stack
+## Technologies Used
 
 | Component | Technology |
 |---|---|
@@ -523,12 +467,21 @@ Performance varies across machine IDs due to differences in operating conditions
 | DSP Features | librosa (MFCC, spectral centroid/rolloff, RMS, HPSS) |
 | Deep Audio Encoder | BEATs (Microsoft, pretrained frozen) |
 | Similarity Search | FAISS |
-| Visualization | matplotlib, UMAP, t-SNE |
-| Dashboard | Streamlit |
-| Evaluation | scikit-learn |
+| Numerical Computing | NumPy |
+| Testing | pytest |
+| Visualisation | matplotlib |
+
+---
+
+## References
+
+- **BEATs** — Sanyuan Chen et al., *BEATs: Audio Pre-Training with Acoustic Tokenizers*, ICML 2023. [arXiv:2212.09058](https://arxiv.org/abs/2212.09058)
+- **MIMII Dataset** — Harsh Purohit et al., *MIMII Dataset: Sound Dataset for Malfunctioning Industrial Machine Investigation and Inspection*, DCASE 2019. [Zenodo](https://zenodo.org/record/3384388)
+- **NT-Xent Loss** — Ting Chen et al., *A Simple Framework for Contrastive Learning of Visual Representations (SimCLR)*, ICML 2020. [arXiv:2002.05709](https://arxiv.org/abs/2002.05709)
+- **SimCLR** — Ting Chen et al., *Big Self-Supervised Models are Strong Semi-Supervised Learners*, NeurIPS 2020. [arXiv:2006.10029](https://arxiv.org/abs/2006.10029)
 
 ---
 
 ## License
 
-This project is developed for academic research purposes.
+This project is developed for academic research purposes. No license has been formally assigned. All rights reserved by the author.
