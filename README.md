@@ -37,6 +37,8 @@ A small trainable ProjectionHead maps the Fusion Vector into a 256-dimensional L
 - **End-to-end inference pipeline** — single `InferencePipeline.analyze()` call returning a structured `PipelineResult`
 - **Pipeline benchmark** — per-stage wall-clock timing (preprocessing, DSP, BEATs, fusion, projection, drift, health) with cache-hit detection
 - **Serialisation** — JSON and NPZ round-trip for profiles, drift results, health results, and pipeline results
+- **Visualization** — health score trends, drift trends, embedding PCA scatter, confusion matrix, and ROC curve plots saved as PNG figures
+- **Interactive dashboard** — Streamlit app for real-time upload, inference, health scoring, explanation, and visualization
 - **Unit tests** — pytest suite covering all major modules
 
 ---
@@ -57,9 +59,12 @@ Acoustic-Fingerprinting/
 │   ├── learned_health_index/   # LearnedHealthAnalyzer, LearnedHealthCalculator
 │   ├── pipeline/               # InferencePipeline, MachineHealthPipeline, PipelineResult
 │   ├── benchmark/              # PipelineBenchmark, BenchmarkResult
+│   ├── visualization/          # ResultVisualizer — health, drift, PCA, confusion matrix, ROC
+│   ├── explainability/         # ExplainabilityEngine, ExplanationResult
 │   └── dataset/                # DatasetLoader, AudioMetadata, scanner
 │
 ├── examples/                   # Standalone runnable scripts (one per module)
+│   └── visualize_results.py    # Generates five visualization PNG figures
 ├── tests/                      # pytest unit tests
 ├── models/
 │   ├── beats/                  # BEATs checkpoint (not tracked by Git)
@@ -68,11 +73,13 @@ Acoustic-Fingerprinting/
 │   ├── raw/MIMII/              # Raw MIMII dataset
 │   └── fusion_cache/           # Pre-computed FusionCache NPZ files
 ├── outputs/
-│   └── learned_profiles/       # Saved LearnedFingerprintProfile files
+│   ├── learned_profiles/       # Saved LearnedFingerprintProfile files
+│   └── visualizations/         # PNG figures produced by visualize_results.py
 ├── third_party/
 │   └── beats/                  # Official Microsoft BEATs source (unmodified)
 ├── docs/
 │   └── sdd/                    # System Design Documents (v3, v4)
+├── app.py                      # Streamlit dashboard
 ├── requirements.txt
 ├── PROJECT_CONTEXT.md
 └── README.md
@@ -401,6 +408,54 @@ python examples/final_evaluation.py \
 
 Runs a full evaluation across every machine ID for the specified machine type. Reports normalised drift, health scores, separation ratio, and PASS/FAIL per machine ID.
 
+### Visualization
+
+```bash
+python examples/visualize_results.py \
+    --root data/raw/MIMII \
+    --machine-type pump \
+    --machine-id id_00 \
+    --max-recordings 100 \
+    --checkpoint models/contrastive/best_projection_head.pt
+```
+
+Builds the healthy learned profile, runs inference on up to 50 healthy and 50 abnormal recordings, and saves five figures to `outputs/visualizations/`:
+
+- `health_scores.png`
+- `drift_scores.png`
+- `embedding_pca.png`
+- `confusion_matrix.png`
+- `roc_curve.png`
+
+---
+
+## Dashboard
+
+The project includes an interactive Streamlit dashboard for real-time acoustic fingerprint analysis.
+
+```bash
+streamlit run app.py
+```
+
+Features:
+
+- Upload a WAV recording
+- Generate a learned fingerprint
+- Compute drift and health score
+- View benchmark timings
+- Display explanation
+- Visualize embeddings and performance metrics
+
+### Dashboard
+
+![Dashboard](docs/images/dashboard.png)
+
+### Visualization
+
+![Health Trend](docs/images/health_scores.png)
+
+![Embedding PCA](docs/images/embedding_pca.png)
+
 ---
 
 ## Unit Tests
@@ -457,6 +512,44 @@ python examples/benchmark_pipeline.py \
 
 ---
 
+## Visualization
+
+### Health Score Trend
+
+Line chart showing the health score (0–100) across all evaluated recordings. Scores below 50 indicate a CRITICAL state.
+
+### Drift Score Trend
+
+Line chart showing the normalized Euclidean drift for each evaluated recording. Higher values indicate greater deviation from the healthy profile.
+
+### Embedding Distribution
+
+2D PCA projection of the learned 256-dimensional embeddings. Blue circles represent healthy recordings; red triangles represent abnormal recordings.
+
+### Confusion Matrix
+
+Annotated heatmap of predicted vs actual health labels (0 = healthy, 1 = abnormal), displaying TP, TN, FP, and FN counts.
+
+### ROC Curve
+
+Receiver Operating Characteristic curve with AUC annotation, using the anomaly score derived from the health index.
+
+---
+
+## Example Outputs
+
+![Health Scores](docs/images/health_scores.png)
+
+![Drift Scores](docs/images/drift_scores.png)
+
+![Embedding PCA](docs/images/embedding_pca.png)
+
+![Confusion Matrix](docs/images/confusion_matrix.png)
+
+![ROC Curve](docs/images/roc_curve.png)
+
+---
+
 ## Technologies Used
 
 | Component | Technology |
@@ -470,6 +563,9 @@ python examples/benchmark_pipeline.py \
 | Numerical Computing | NumPy |
 | Testing | pytest |
 | Visualisation | matplotlib |
+| Visualization Plots | matplotlib (health, drift, PCA, confusion matrix, ROC) |
+| Embedding Projection | scikit-learn PCA |
+| Dashboard | Streamlit |
 
 ---
 

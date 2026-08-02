@@ -1,0 +1,43 @@
+[33mtag v1.0.0[m
+Tagger: VINYTHA1708 <vinythavenkatachalam@gmail.com>
+Date:   Sun Aug 2 12:00:32 2026 +0530
+
+Complete acoustic fingerprinting pipeline
+
+[33mcommit 73f62acd746c730c743eaf627ddde081eb5d5411[m[33m ([m[1;33mtag: [m[1;33mv1.0.0[m[33m)[m
+Author: VINYTHA1708 <vinythavenkatachalam@gmail.com>
+Date:   Sun Aug 2 11:59:47 2026 +0530
+
+    Optimize tensor creation in NT-Xent example
+
+[1mdiff --git a/examples/ntxent_loss_example.py b/examples/ntxent_loss_example.py[m
+[1mindex 3150f9c..8bc0184 100644[m
+[1m--- a/examples/ntxent_loss_example.py[m
+[1m+++ b/examples/ntxent_loss_example.py[m
+[36m@@ -16,6 +16,7 @@[m [mimport logging[m
+ import sys[m
+ from pathlib import Path[m
+ [m
+[32m+[m[32mimport numpy as np[m
+ import torch[m
+ [m
+ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))[m
+[36m@@ -74,12 +75,12 @@[m [mdef main() -> None:[m
+         sys.exit(1)[m
+ [m
+     # Stack anchor and paired fused vectors into tensors[m
+[31m-    anchors = torch.tensor([m
+[31m-        [p.anchor.fused_feature_vector for p in pairs], dtype=torch.float32[m
+[31m-    )[m
+[31m-    paired = torch.tensor([m
+[31m-        [p.paired.fused_feature_vector for p in pairs], dtype=torch.float32[m
+[31m-    )[m
+[32m+[m[32m    anchors = torch.from_numpy([m
+[32m+[m[32m        np.stack([p.anchor.fused_feature_vector for p in pairs])[m
+[32m+[m[32m    ).float()[m
+[32m+[m[32m    paired = torch.from_numpy([m
+[32m+[m[32m        np.stack([p.paired.fused_feature_vector for p in pairs])[m
+[32m+[m[32m    ).float()[m
+ [m
+     # Project both batches through the shared ProjectionHead[m
+     head = ProjectionHead()[m
