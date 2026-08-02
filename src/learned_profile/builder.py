@@ -88,6 +88,7 @@ class LearnedProfileBuilder:
         machine_type: str,
         machine_id: str,
         max_recordings: int | None = None,
+        exclude_filenames: set[str] | None = None,
     ) -> LearnedFingerprintProfile:
         """Build a healthy learned fingerprint profile for one machine.
 
@@ -96,6 +97,10 @@ class LearnedProfileBuilder:
             machine_type: Machine type to filter on (e.g. ``"pump"``).
             machine_id: Machine ID to filter on (e.g. ``"id_00"``).
             max_recordings: If provided, limit the number of healthy recordings processed.
+            exclude_filenames: If provided, any recording whose filename is in this
+                               set is excluded from the profile. Use this to hold out
+                               inference recordings so they never appear in the profile
+                               mean/std. Defaults to ``None`` (no exclusions).
 
         Returns:
             :class:`LearnedFingerprintProfile` with all embeddings and statistics.
@@ -108,6 +113,7 @@ class LearnedProfileBuilder:
             if r.machine_type == machine_type
             and r.machine_id == machine_id
             and r.label == _NORMAL_LABEL
+            and (exclude_filenames is None or r.filename not in exclude_filenames)
         ]
 
         if not records:

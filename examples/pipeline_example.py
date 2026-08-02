@@ -1,8 +1,8 @@
-"""Machine health pipeline example.
+"""End-to-end inference pipeline example.
 
-Builds the healthy learned fingerprint profile, then evaluates up to 50 normal
-and 50 abnormal recordings using MachineHealthPipeline and reports mean health
-scores for each group.
+Builds a healthy learned fingerprint profile, holds out the first normal
+recording for inference, then runs InferencePipeline.analyze() and prints
+a formatted machine health report.
 
 Usage:
     python examples/pipeline_example.py \\
@@ -17,6 +17,12 @@ Usage:
         --machine-id id_00 \\
         --checkpoint models/contrastive/best_projection_head.pt \\
         --max-recordings 100
+
+Expected dimensions:
+    DSP Dimension       : 153
+    BEATs Dimension     : 768
+    Fusion Dimension    : 921
+    Embedding Dimension : 256
 """
 
 from __future__ import annotations
@@ -29,24 +35,67 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.dataset.loader import DatasetLoader
-from src.learned_drift.analyzer import LearnedDriftAnalyzer
-from src.learned_health_index.analyzer import LearnedHealthAnalyzer
 from src.learned_profile.builder import LearnedProfileBuilder
-from src.pipeline.pipeline import MachineHealthPipeline
+from src.pipeline.pipeline import InferencePipeline
+from src.pipeline.result import PipelineResult
 
 logging.basicConfig(level=logging.WARNING, format="%(levelname)s: %(message)s")
 
-_SEP = "===================================="
-_EVAL_LIMIT = 50
+
+def _print_report(result: PipelineResult) -> None:
+    sep = "=" * 40
+    thin = "-" * 40
+
+    print(sep)
+    print("Machine Health Report")
+    print(sep)
+    print()
+    print(f"Machine Type        : {result.machine_type}")
+    print(f"Machine ID          : {result.machine_id}")
+    print(f"Filename            : {result.filename}")
+    print()
+    print(f"DSP Dimension       : {result.dsp_dimension}")
+    print(f"BEATs Dimension     : {result.beats_dimension}")
+    print(f"Fusion Dimension    : {result.fusion_dimension}")
+    print(f"Embedding Dimension : {result.embedding_dimension}")
+    print()
+    print(thin)
+    print("Raw Drift")
+    print(thin)
+    print()
+    print(f"Euclidean           : {result.raw_euclidean:.6f}")
+    print(f"Manhattan           : {result.raw_manhattan:.6f}")
+    print(f"Cosine              : {result.raw_cosine:.6f}")
+    print()
+    print(thin)
+    print("Normalized Drift")
+    print(thin)
+    print()
+    print(f"Euclidean           : {result.normalized_euclidean:.6f}")
+    print(f"Manhattan           : {result.normalized_manhattan:.6f}")
+    print(f"Cosine              : {result.normalized_cosine:.6f}")
+    print()
+    print(thin)
+    print("Health")
+    print(thin)
+    print()
+    print(f"Score               : {result.health_score:.2f}")
+    print(f"Percentage          : {result.health_percentage}")
+    print(f"State               : {result.health_state}")
+    print()
+    print(sep)
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Machine health pipeline example")
+    parser = argparse.ArgumentParser(description="End-to-end inference pipeline example")
     parser.add_argument("--root", type=str, required=True, help="Dataset root directory")
     parser.add_argument("--machine-type", type=str, required=True, help="Machine type (e.g. pump)")
     parser.add_argument("--machine-id", type=str, required=True, help="Machine ID (e.g. id_00)")
     parser.add_argument("--checkpoint", type=str, required=True, help="Path to ProjectionHead checkpoint")
-    parser.add_argument("--max-recordings", type=int, default=100, help="Max healthy recordings for profile")
+    parser.add_argument(
+        "--max-recordings", type=int, default=100,
+        help="Max healthy recordings used to build the profile (default: 100)",
+    )
     args = parser.parse_args()
 
     loader = DatasetLoader(args.root)
@@ -57,79 +106,52 @@ def main() -> None:
         and r.machine_id == args.machine_id
         and r.label == "normal"
     ]
-    abnormal_records = [
-        r for r in loader.get_all_files()
-        if r.machine_type == args.machine_type
-        and r.machine_id == args.machine_id
-        and r.label == "abnormal"
-    ]
 
     if not normal_records:
-        print(f"ERROR: No normal recordings found for {args.machine_type}/{args.machine_id}.")
-        sys.exit(1)
-    if not abnormal_records:
-        print(f"ERROR: No abnormal recordings found for {args.machine_type}/{args.machine_id}.")
+        print(
+            f"ERROR: No normal recordings found for "
+            f"{args.machine_type}/{args.machine_id}."
+        )
         sys.exit(1)
 
-    print(f"Machine type : {args.machine_type}")
-    print(f"Machine ID   : {args.machine_id}")
-    print(f"Normal recordings available   : {len(normal_records)}")
-    print(f"Abnormal recordings available : {len(abnormal_records)}")
+    # Hold out the first normal recording for inference so it is never
+    # included in the profile.
+    inference_record = normal_records[0]
 
-    print(f"\nBuilding healthy learned profile from up to {args.max_recordings} recording(s)...")
+    if len(normal_records) == 1:
+        print(
+            "WARNING: Only one normal recording available. "
+            "It will be used for both the profile and inference — "
+            "drift will appear artificially small."
+        )
+
+    print(f"Machine type        : {args.machine_type}")
+    print(f"Machine ID          : {args.machine_id}")
+    print(f"Normal recordings   : {len(normal_records)}")
+    print(f"Inference recording : {inference_record.filename}")
+    print()
+
+    # --- Build healthy learned profile (excluding the held-out recording) ---
+    print(f"Building healthy learned profile (up to {args.max_recordings} recordings)...")
     builder = LearnedProfileBuilder(checkpoint_path=args.checkpoint)
     profile = builder.build(
         loader=loader,
         machine_type=args.machine_type,
         machine_id=args.machine_id,
         max_recordings=args.max_recordings,
+        exclude_filenames={inference_record.filename},
     )
+    print(f"Profile built — {len(profile.embeddings)} embeddings, dim={profile.embedding_dimension}")
+    print()
 
-    drift_analyzer = LearnedDriftAnalyzer(checkpoint_path=args.checkpoint)
-    health_analyzer = LearnedHealthAnalyzer(checkpoint_path=args.checkpoint)
-    pipeline = MachineHealthPipeline(
-        profile=profile,
-        drift_analyzer=drift_analyzer,
-        health_analyzer=health_analyzer,
-    )
+    # --- Run inference pipeline ---
+    print("Running inference pipeline...")
+    pipeline = InferencePipeline(checkpoint_path=args.checkpoint)
+    result = pipeline.analyze(inference_record, profile)
 
-    eval_normal = normal_records[:_EVAL_LIMIT]
-    eval_abnormal = abnormal_records[:_EVAL_LIMIT]
-
-    print(f"\nEvaluating {len(eval_normal)} normal recording(s)...")
-    normal_scores: list[float] = []
-    for rec in eval_normal:
-        report = pipeline.analyze(rec)
-        normal_scores.append(report.health_score)
-
-    print(f"Evaluating {len(eval_abnormal)} abnormal recording(s)...")
-    abnormal_scores: list[float] = []
-    for rec in eval_abnormal:
-        report = pipeline.analyze(rec)
-        abnormal_scores.append(report.health_score)
-
-    mean_normal = sum(normal_scores) / len(normal_scores)
-    mean_abnormal = sum(abnormal_scores) / len(abnormal_scores)
-
-    print(f"\n  {_SEP}")
-    print("  NORMAL (AVERAGE)")
-    print(f"  {_SEP}")
-    print(f"  Mean Health Score      : {mean_normal:.2f}")
-    print(f"  Mean Health Percentage : {mean_normal:.1f}%")
-
-    print(f"\n  {_SEP}")
-    print("  ABNORMAL (AVERAGE)")
-    print(f"  {_SEP}")
-    print(f"  Mean Health Score      : {mean_abnormal:.2f}")
-    print(f"  Mean Health Percentage : {mean_abnormal:.1f}%")
-
-    print(f"\n  {_SEP}")
-    print("  SUMMARY")
-    print(f"  {_SEP}")
-    passed = mean_normal > mean_abnormal
-    symbol = "✓" if passed else "✗"
-    msg = "Normal average health higher than abnormal" if passed else "Unexpected result"
-    print(f"  {symbol} {msg}")
+    # --- Print formatted report ---
+    print()
+    _print_report(result)
 
 
 if __name__ == "__main__":

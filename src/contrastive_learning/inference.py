@@ -89,7 +89,7 @@ class ContrastiveInference:
                 f"fused_feature_vector must have dimension {_FUSED_DIM}, got {raw.shape[0]}"
             )
 
-        x = torch.tensor(raw, dtype=torch.float32)
+        x = torch.from_numpy(raw).float()
 
         with torch.no_grad():
             embedding = self._head(x)  # ProjectionHead validates NaN/Inf/dim internally
