@@ -1,18 +1,7 @@
 """Pipeline benchmark example.
 
-Builds the healthy learned fingerprint profile, then evaluates up to
---max-recordings normal recordings through MachineHealthPipeline, measuring
-the runtime of each stage externally using time.perf_counter().
-
-Stages timed per recording:
-    1. FusionCache retrieval   — cache.load_or_create()
-    2. Drift analysis          — drift_analyzer.analyze()
-    3. Health analysis         — health_analyzer.analyze()
-    4. Total pipeline          — pipeline.analyze()
-
-The sub-stage calls use the same FusionCache, so the fused vector is already
-warm (on disk) by the time pipeline.analyze() runs — total time reflects the
-realistic steady-state cost of the full pipeline.
+Builds a healthy learned fingerprint profile, selects one normal recording,
+runs PipelineBenchmark, and prints a formatted per-stage timing report.
 
 Usage:
     python examples/benchmark_pipeline.py \\
@@ -33,41 +22,69 @@ from __future__ import annotations
 
 import argparse
 import logging
-import math
 import sys
-import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from src.benchmark.benchmark import PipelineBenchmark
+from src.benchmark.benchmark_result import BenchmarkResult
 from src.dataset.loader import DatasetLoader
-from src.learned_drift.analyzer import LearnedDriftAnalyzer
-from src.learned_health_index.analyzer import LearnedHealthAnalyzer
 from src.learned_profile.builder import LearnedProfileBuilder
-from src.pipeline.pipeline import MachineHealthPipeline
 
 logging.basicConfig(level=logging.WARNING, format="%(levelname)s: %(message)s")
 
-_SEP = "========================================"
 
+def _print_report(r: BenchmarkResult) -> None:
+    sep = "=" * 36
+    thin = "-" * 36
 
-def _mean(values: list[float]) -> float:
-    return sum(values) / len(values)
+    ms = lambda s: f"{s * 1000:.3f} ms"  # noqa: E731
 
-
-def _stddev(values: list[float]) -> float:
-    m = _mean(values)
-    variance = sum((v - m) ** 2 for v in values) / len(values)
-    return math.sqrt(variance)
+    print(sep)
+    print("Pipeline Benchmark")
+    print(sep)
+    print(f"Machine Type        : {r.machine_type}")
+    print(f"Machine ID          : {r.machine_id}")
+    print(f"Filename            : {r.filename}")
+    print(thin)
+    print("Stage Times")
+    print(thin)
+    print(f"Preprocessing       : {ms(r.preprocessing_time)}")
+    print(f"DSP Extraction      : {ms(r.dsp_time)}")
+    print(f"BEATs               : {ms(r.beats_time)}")
+    print(f"Fusion              : {ms(r.fusion_time)}")
+    print(f"Projection          : {ms(r.projection_time)}")
+    print(f"Drift               : {ms(r.drift_time)}")
+    print(f"Health              : {ms(r.health_time)}")
+    print(thin)
+    print("Dimensions")
+    print(thin)
+    print(f"DSP                 : {r.dsp_dimension}")
+    print(f"BEATs               : {r.beats_dimension}")
+    print(f"Fusion              : {r.fusion_dimension}")
+    print(f"Embedding           : {r.embedding_dimension}")
+    print(thin)
+    print("Cache")
+    print(thin)
+    print(f"Cache Hit           : {r.cache_hit}")
+    print(thin)
+    print("Total")
+    print(thin)
+    print(f"Total Time          : {ms(r.total_time)}")
+    print(sep)
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Pipeline benchmark")
+    parser = argparse.ArgumentParser(description="Pipeline benchmark example")
     parser.add_argument("--root", type=str, required=True, help="Dataset root directory")
     parser.add_argument("--machine-type", type=str, required=True, help="Machine type (e.g. pump)")
     parser.add_argument("--machine-id", type=str, required=True, help="Machine ID (e.g. id_00)")
     parser.add_argument("--checkpoint", type=str, required=True, help="Path to ProjectionHead checkpoint")
-    parser.add_argument("--max-recordings", type=int, default=100, help="Max normal recordings to benchmark")
+    parser.add_argument(
+        "--max-recordings", type=int, default=50,
+        help="Max healthy recordings used to build the profile (default: 50)",
+    )
     args = parser.parse_args()
 
     loader = DatasetLoader(args.root)
@@ -80,82 +97,41 @@ def main() -> None:
     ]
 
     if not normal_records:
-        print(f"ERROR: No normal recordings found for {args.machine_type}/{args.machine_id}.")
+        print(
+            f"ERROR: No normal recordings found for "
+            f"{args.machine_type}/{args.machine_id}."
+        )
         sys.exit(1)
 
-    records = normal_records[:args.max_recordings]
+    # Hold out the first normal recording for benchmarking.
+    benchmark_record = normal_records[0]
 
     print(f"Machine type        : {args.machine_type}")
     print(f"Machine ID          : {args.machine_id}")
-    print(f"Recordings to bench : {len(records)}")
+    print(f"Normal recordings   : {len(normal_records)}")
+    print(f"Benchmark recording : {benchmark_record.filename}")
+    print()
 
-    print(f"\nBuilding healthy learned profile from up to {args.max_recordings} recording(s)...")
+    # --- Build healthy learned profile (excluding the benchmark recording) ---
+    print(f"Building healthy learned profile (up to {args.max_recordings} recordings)...")
     builder = LearnedProfileBuilder(checkpoint_path=args.checkpoint)
     profile = builder.build(
         loader=loader,
         machine_type=args.machine_type,
         machine_id=args.machine_id,
         max_recordings=args.max_recordings,
+        exclude_filenames={benchmark_record.filename},
     )
+    print(f"Profile built — {len(profile.embeddings)} embeddings, dim={profile.embedding_dimension}")
+    print()
 
-    drift_analyzer = LearnedDriftAnalyzer(checkpoint_path=args.checkpoint)
-    health_analyzer = LearnedHealthAnalyzer(checkpoint_path=args.checkpoint)
-    pipeline = MachineHealthPipeline(
-        profile=profile,
-        drift_analyzer=drift_analyzer,
-        health_analyzer=health_analyzer,
-    )
+    # --- Run benchmark ---
+    print("Running benchmark...")
+    bench = PipelineBenchmark(checkpoint_path=args.checkpoint)
+    result = bench.benchmark(benchmark_record, profile)
 
-    # Access the shared FusionCache owned by the drift analyzer.
-    cache = drift_analyzer._cache
-
-    cache_times: list[float] = []
-    drift_times: list[float] = []
-    health_times: list[float] = []
-    total_times: list[float] = []
-
-    print(f"\nBenchmarking {len(records)} recording(s)...")
-    for idx, rec in enumerate(records, start=1):
-        # --- Stage 1: FusionCache retrieval ---
-        t0 = time.perf_counter()
-        cache.load_or_create(rec)
-        cache_times.append(time.perf_counter() - t0)
-
-        # --- Stage 2: Drift analysis ---
-        t0 = time.perf_counter()
-        drift_analyzer.analyze(rec, profile)
-        drift_times.append(time.perf_counter() - t0)
-
-        # --- Stage 3: Health analysis ---
-        t0 = time.perf_counter()
-        health_analyzer.analyze(rec, profile)
-        health_times.append(time.perf_counter() - t0)
-
-        # --- Stage 4: Total pipeline ---
-        t0 = time.perf_counter()
-        pipeline.analyze(rec)
-        total_times.append(time.perf_counter() - t0)
-
-        if idx % 10 == 0 or idx == len(records):
-            print(f"  Processed {idx}/{len(records)}")
-
-    n = len(total_times)
-    mean_total = _mean(total_times)
-    rps = 1.0 / mean_total if mean_total > 0 else 0.0
-
-    print(f"\n  {_SEP}")
-    print("  PIPELINE BENCHMARK")
-    print(f"  {_SEP}")
-    print(f"  Recordings evaluated          : {n}")
-    print(f"  Average cache retrieval time  : {_mean(cache_times) * 1000:.2f} ms")
-    print(f"  Average drift analysis time   : {_mean(drift_times) * 1000:.2f} ms")
-    print(f"  Average health analysis time  : {_mean(health_times) * 1000:.2f} ms")
-    print(f"  Average total pipeline time   : {mean_total * 1000:.2f} ms")
-    print(f"  Minimum total time            : {min(total_times) * 1000:.2f} ms")
-    print(f"  Maximum total time            : {max(total_times) * 1000:.2f} ms")
-    print(f"  Standard deviation            : {_stddev(total_times) * 1000:.2f} ms")
-    print(f"  Recordings per second         : {rps:.2f}")
-    print(f"  {_SEP}")
+    print()
+    _print_report(result)
 
 
 if __name__ == "__main__":
