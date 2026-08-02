@@ -16,6 +16,7 @@ import logging
 import sys
 from pathlib import Path
 
+import numpy as np
 import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -74,12 +75,12 @@ def main() -> None:
         sys.exit(1)
 
     # Stack anchor and paired fused vectors into tensors
-    anchors = torch.tensor(
-        [p.anchor.fused_feature_vector for p in pairs], dtype=torch.float32
-    )
-    paired = torch.tensor(
-        [p.paired.fused_feature_vector for p in pairs], dtype=torch.float32
-    )
+    anchors = torch.from_numpy(
+        np.stack([p.anchor.fused_feature_vector for p in pairs])
+    ).float()
+    paired = torch.from_numpy(
+        np.stack([p.paired.fused_feature_vector for p in pairs])
+    ).float()
 
     # Project both batches through the shared ProjectionHead
     head = ProjectionHead()
