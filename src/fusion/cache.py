@@ -69,6 +69,8 @@ class FusionCache:
         Args:
             rec: Audio metadata identifying the recording.
         """
+        if getattr(rec, "is_uploaded", False):
+            return False
         return self._cache_path(rec).exists()
 
     def save(self, fused: FusedFeatureVector, rec: AudioMetadata) -> None:
@@ -78,6 +80,9 @@ class FusionCache:
             fused: The fused vector to cache.
             rec: Audio metadata used to derive the cache file path.
         """
+        if getattr(rec, "is_uploaded", False):
+            logger.debug("Skipping cache save for uploaded recording: %s", rec.absolute_path)
+            return
         path = self._cache_path(rec)
         self._serializer.save_npz(fused, path)
         logger.debug("Cache saved: %s", path)
@@ -94,6 +99,8 @@ class FusionCache:
         Raises:
             FileNotFoundError: If no cache file exists for this recording.
         """
+        if getattr(rec, "is_uploaded", False):
+            raise FileNotFoundError(f"Uploaded recordings do not use the disk cache: {rec.absolute_path}")
         path = self._cache_path(rec)
         fused = self._serializer.load_npz(path)
         logger.debug("Cache loaded: %s", path)
@@ -109,6 +116,10 @@ class FusionCache:
         Returns:
             :class:`~fusion.fused_vector.FusedFeatureVector` for the recording.
         """
+        if getattr(rec, "is_uploaded", False):
+            fused = self._compute(rec)
+            return fused
+
         if self.exists(rec):
             if verbose:
                 print("Cache hit")

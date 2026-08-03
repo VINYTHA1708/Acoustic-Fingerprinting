@@ -3,17 +3,19 @@
 Pipeline (SDD v4 §11):
     record
     → LearnedDriftAnalyzer  (preprocessing + inference + drift metrics)
-    → LearnedHealthCalculator  (profile-derived scale)
+    → LearnedHealthCalculator  (profile-derived calibration)
     → LearnedHealthResult
 
 Reuses FusionCache and ContrastiveInference via LearnedDriftAnalyzer.
 No pipeline logic is duplicated.
 
-Profile-derived scale:
+Profile-derived calibration:
     For each healthy embedding e_i in profile.embeddings, compute
-    z_i = (e_i − mean_vector) / std_vector, then take mean ‖z_i‖.
-    This is the expected normalized Euclidean distance for a healthy
-    recording and is used as the machine-specific normalization scale.
+    z_i = (e_i − mean_vector) / std_vector, then collect the scalar norms
+    ‖z_i‖.  The mean (μ_norm) and standard deviation (σ_norm) of those norms
+    are passed to LearnedHealthCalculator, which uses them to compute a
+    second-order z-score and map it through a Gaussian survival function.
+    See LearnedHealthCalculator for the full mathematical derivation.
 """
 
 from __future__ import annotations
@@ -41,8 +43,8 @@ class LearnedHealthAnalyzer:
     then converts the normalized drift metrics into a health score via
     :class:`LearnedHealthCalculator`.
 
-    The normalization scale is derived per-machine from the profile embeddings:
-    it is the mean ‖z_i‖ of all healthy embeddings, where
+    The calibration is derived per-machine from the profile embeddings: the
+    mean and standard deviation of ‖z_i‖ over all healthy embeddings, where
     z_i = (embedding_i − mean_vector) / std_vector.
 
     Args:
@@ -69,11 +71,11 @@ class LearnedHealthAnalyzer:
         self._calculator = LearnedHealthCalculator(thresholds=thresholds)
 
     @staticmethod
-    def _profile_healthy_norm(profile: LearnedFingerprintProfile) -> float:
-        """Compute the mean ‖z_i‖ of all healthy embeddings in the profile.
+    def _profile_norm_stats(profile: LearnedFingerprintProfile) -> tuple[float, float]:
+        """Return (μ_norm, σ_norm) — mean and std of ‖z_i‖ over all healthy embeddings.
 
-        This is the expected normalized Euclidean distance for a healthy
-        recording and serves as the machine-specific scale.
+        z_i = (embedding_i − mean_vector) / std_vector for each healthy recording.
+        Dimensions where std_vector < _STD_FLOOR are treated as zero-contribution.
         """
         mean = profile.mean_vector.astype(np.float32)
         std = profile.std_vector.astype(np.float32)
@@ -82,9 +84,9 @@ class LearnedHealthAnalyzer:
             std < _STD_FLOOR,
             0.0,
             (profile.embeddings.astype(np.float32) - mean) / safe_std,
-        )  # shape (N, 256)
-        norms = np.linalg.norm(z, axis=1)  # shape (N,)
-        return float(norms.mean())
+        )  # (N, 256)
+        norms = np.linalg.norm(z, axis=1)  # (N,)
+        return float(norms.mean()), float(norms.std())
 
     def analyze(
         self,
@@ -102,13 +104,14 @@ class LearnedHealthAnalyzer:
             :class:`LearnedHealthResult` with health score, percentage, and state.
         """
         drift = self._drift_analyzer.analyze(record, profile)
-        healthy_norm = self._profile_healthy_norm(profile)
+        mu_norm, sigma_norm = self._profile_norm_stats(profile)
 
         health_score, health_percentage, health_state = self._calculator.calculate(
             normalized_euclidean=drift.norm_euclidean_distance,
             normalized_manhattan=drift.norm_manhattan_distance,
             normalized_cosine=drift.norm_cosine_similarity,
-            profile_healthy_norm=healthy_norm,
+            profile_healthy_norm=mu_norm,
+            profile_healthy_norm_std=sigma_norm,
         )
 
         result = LearnedHealthResult(

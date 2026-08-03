@@ -134,10 +134,11 @@ def _make_audio_metadata(
     return AudioMetadata(
         machine_type=machine_type,
         machine_id=machine_id,
-        label="normal",
+        label="upload",
         filename=wav_path.name,
         relative_path=wav_path,
         absolute_path=wav_path,
+        is_uploaded=True,
     )
 
 

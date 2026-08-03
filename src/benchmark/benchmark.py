@@ -16,7 +16,6 @@ from __future__ import annotations
 import time
 from pathlib import Path
 
-import numpy as np
 import torch
 
 from ..beats.encoder import BEATsEncoder
@@ -38,9 +37,6 @@ _BEATS_DEFAULT = (
     Path(__file__).resolve().parents[2] / "models" / "beats" / "BEATs_iter3_plus_AS2M.pt"
 )
 _CACHE_DEFAULT = Path(__file__).resolve().parents[2] / "data" / "fusion_cache"
-
-_STD_FLOOR = 1e-10
-
 
 class PipelineBenchmark:
     """Measures per-stage inference time for one recording.
@@ -179,12 +175,13 @@ class PipelineBenchmark:
 
         # --- Health score ---
         t0 = time.perf_counter()
-        healthy_norm = self._profile_healthy_norm(learned_profile)
+        mu_norm, sigma_norm = LearnedHealthAnalyzer._profile_norm_stats(learned_profile)
         self._health_calculator.calculate(
             normalized_euclidean=norm_euclid,
             normalized_manhattan=_norm_manhat,
             normalized_cosine=_norm_cosine,
-            profile_healthy_norm=healthy_norm,
+            profile_healthy_norm=mu_norm,
+            profile_healthy_norm_std=sigma_norm,
         )
         health_time = time.perf_counter() - t0
 
@@ -209,19 +206,3 @@ class PipelineBenchmark:
             embedding_dimension=int(learned_profile.embedding_dimension),
         )
 
-    # ------------------------------------------------------------------
-    # Private helpers
-    # ------------------------------------------------------------------
-
-    @staticmethod
-    def _profile_healthy_norm(profile: LearnedFingerprintProfile) -> float:
-        """Mean ‖z_i‖ of all healthy embeddings — machine-specific health scale."""
-        mean = profile.mean_vector.astype(np.float32)
-        std = profile.std_vector.astype(np.float32)
-        safe_std = np.where(std < _STD_FLOOR, 1.0, std)
-        z = np.where(
-            std < _STD_FLOOR,
-            0.0,
-            (profile.embeddings.astype(np.float32) - mean) / safe_std,
-        )
-        return float(np.linalg.norm(z, axis=1).mean())

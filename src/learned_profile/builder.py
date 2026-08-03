@@ -125,6 +125,11 @@ class LearnedProfileBuilder:
             records = records[:max_recordings]
 
         total = len(records)
+        # ===== DEBUG START =====
+        print(f"\n=== PROFILE BUILD DEBUG ===")
+        print(f"  num_healthy_recordings_used : {total}")
+        print(f"  exclude_filenames           : {exclude_filenames}")
+        # ===== DEBUG END =====
         print(f"Healthy recordings : {total}")
 
         embeddings: list[np.ndarray] = []

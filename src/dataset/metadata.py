@@ -27,6 +27,7 @@ class AudioMetadata:
         filename: Bare filename including extension.
         relative_path: Path relative to the dataset root.
         absolute_path: Fully resolved absolute path.
+        is_uploaded: True for temporary uploads that should bypass the dataset cache.
     """
 
     machine_type: str
@@ -35,6 +36,7 @@ class AudioMetadata:
     filename: str
     relative_path: Path
     absolute_path: Path
+    is_uploaded: bool = False
 
 
 def extract_metadata(file_path: Path, root: Path) -> AudioMetadata | None:
