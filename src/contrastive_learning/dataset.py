@@ -61,27 +61,44 @@ class ContrastivePair:
 class ContrastiveDataset:
     """Builds positive contrastive pairs from normal recordings in a MIMII-style dataset.
 
-    Encodes every normal recording once (PreprocessingPipeline → DSP → BEATs →
+    Encodes every normal recording once (PreprocessingPipeline -> DSP -> BEATs ->
     FusionBuilder), then performs a recording-level train/validation split per
     machine before generating positive pairs.  This guarantees that no recording
     appears in both the training and validation pair sets.
 
+    Accepts either an explicit list of ``AudioMetadata`` objects (preferred, no
+    data leakage) or a ``dataset_root`` path for backward compatibility.
+    When ``recordings`` is supplied, ``dataset_root`` must be ``None``.
+
     Args:
-        dataset_root: Path to the dataset root (passed to :class:`DatasetLoader`).
+        dataset_root: Path to the dataset root (backward-compat; mutually
+                      exclusive with ``recordings``).
+        recordings: Explicit list of :class:`~src.dataset.metadata.AudioMetadata`
+                    objects to use for training.  Must all have label ``'normal'``.
+                    When provided, ``dataset_root`` must be ``None``.
         checkpoint_path: Path to the BEATs checkpoint. Defaults to the project
                          standard location ``models/beats/BEATs_iter3_plus_AS2M.pt``.
         cache_root: Root directory for the FusionCache.
         seed: Random seed used for pair sampling and shuffling.
-        machine_type: If set, restrict to this machine type.
-        machine_id: If set, restrict to this machine ID.
-        max_recordings: Maximum total recordings to encode.
+        machine_type: If set, restrict to this machine type (only used with
+                      ``dataset_root``; ignored when ``recordings`` is supplied).
+        machine_id: If set, restrict to this machine ID (only used with
+                    ``dataset_root``; ignored when ``recordings`` is supplied).
+        max_recordings: Maximum total recordings to encode (only used with
+                        ``dataset_root``; ignored when ``recordings`` is supplied).
         val_split: Fraction of recordings per machine reserved for validation.
                    Defaults to ``0.2``.
+
+    Raises:
+        ValueError: If both ``dataset_root`` and ``recordings`` are provided,
+                    if neither is provided, if ``recordings`` is empty, if any
+                    item in ``recordings`` is not an :class:`AudioMetadata`, or
+                    if any recording has a label other than ``'normal'``.
     """
 
     def __init__(
         self,
-        dataset_root: str | Path,
+        dataset_root: str | Path | None = None,
         checkpoint_path: str | Path | None = None,
         cache_root: str | Path | None = None,
         seed: int = 42,
@@ -89,9 +106,19 @@ class ContrastiveDataset:
         machine_id: str | None = None,
         max_recordings: int | None = None,
         val_split: float = 0.2,
+        recordings: list[AudioMetadata] | None = None,
     ) -> None:
         if not (0 < val_split < 1):
             raise ValueError(f"val_split must be in (0, 1), got {val_split}")
+
+        if recordings is not None and dataset_root is not None:
+            raise ValueError("Provide either 'recordings' or 'dataset_root', not both.")
+        if recordings is None and dataset_root is None:
+            raise ValueError("Either 'recordings' or 'dataset_root' must be provided.")
+
+        # Validate explicit recordings before constructing any heavy objects.
+        if recordings is not None:
+            self._validate_explicit_recordings(recordings)
 
         self._rng = random.Random(seed)
         self._val_split = val_split
@@ -113,18 +140,21 @@ class ContrastiveDataset:
             fusion=fusion,
         )
 
-        loader = DatasetLoader(dataset_root)
-        records = loader.filter_by_label("normal")
-        if machine_type is not None:
-            records = [r for r in records if r.machine_type == machine_type]
-        if machine_id is not None:
-            records = [r for r in records if r.machine_id == machine_id]
-        if max_recordings is not None:
-            records = self._sample_evenly(records, max_recordings, pin_id=machine_id is not None)
+        if recordings is not None:
+            records = recordings
+        else:
+            loader = DatasetLoader(dataset_root)  # type: ignore[arg-type]
+            records = loader.filter_by_label("normal")
+            if machine_type is not None:
+                records = [r for r in records if r.machine_type == machine_type]
+            if machine_id is not None:
+                records = [r for r in records if r.machine_id == machine_id]
+            if max_recordings is not None:
+                records = self._sample_evenly(records, max_recordings, pin_id=machine_id is not None)
+            print(f"Machine type      : {machine_type or 'all'}")
+            print(f"Machine ID        : {machine_id or 'all'}")
+            print(f"Max recordings    : {max_recordings or 'all'}")
 
-        print(f"Machine type      : {machine_type or 'all'}")
-        print(f"Machine ID        : {machine_id or 'all'}")
-        print(f"Max recordings    : {max_recordings or 'all'}")
         print("Selected recordings")
         id_counts: dict[str, int] = {}
         for r in records:
@@ -183,6 +213,41 @@ class ContrastiveDataset:
 
     def __len__(self) -> int:
         return len(self.positive_pairs)
+
+    # ------------------------------------------------------------------
+    # Validation
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _validate_explicit_recordings(
+        recordings: list[AudioMetadata],
+    ) -> list[AudioMetadata]:
+        """Validate an explicitly supplied recordings list.
+
+        Args:
+            recordings: Caller-supplied list of AudioMetadata objects.
+
+        Returns:
+            The validated list (unchanged).
+
+        Raises:
+            ValueError: If the list is empty, contains non-AudioMetadata items,
+                        or contains any recording with a label other than
+                        ``'normal'``.
+        """
+        if not recordings:
+            raise ValueError("'recordings' must not be empty.")
+        for i, rec in enumerate(recordings):
+            if not hasattr(rec, "label") or not hasattr(rec, "machine_type") or not hasattr(rec, "machine_id"):
+                raise ValueError(
+                    f"recordings[{i}] is {type(rec).__name__!r}, expected AudioMetadata."
+                )
+            if rec.label != "normal":
+                raise ValueError(
+                    f"recordings[{i}] has label {rec.label!r}; "
+                    "only 'normal' recordings may be used for contrastive training."
+                )
+        return recordings
 
     # ------------------------------------------------------------------
     # Encoding
@@ -319,26 +384,26 @@ class ContrastiveDataset:
             len(self._val_positive_pairs),
         )
 
-    @staticmethod
-    def _pairs_from_recordings(recordings: list[FusedFeatureVector]) -> list[ContrastivePair]:
+    def _pairs_from_recordings(
+        self,
+        recordings: list[FusedFeatureVector],
+    ) -> list[ContrastivePair]:
         """Build one positive pair per anchor from a list of recordings.
 
-        Each anchor is paired with a randomly chosen different recording from
-        the same list.  Requires at least 2 recordings; returns an empty list
-        for smaller inputs.
+        Uses ``self._rng`` (seeded at construction) so that the same seed
+        always produces the same pair assignments.
 
         Args:
             recordings: Fused vectors all belonging to the same machine.
 
         Returns:
-            One :class:`ContrastivePair` per recording in *recordings*.
+            One ContrastivePair per recording.
         """
         if len(recordings) < 2:
             return []
-        rng = random.Random()  # stateless helper; caller controls shuffle order
         pairs: list[ContrastivePair] = []
         for anchor in recordings:
             pool = [f for f in recordings if f.filename != anchor.filename]
-            paired = rng.choice(pool)
+            paired = self._rng.choice(pool)
             pairs.append(ContrastivePair(anchor=anchor, paired=paired, label=1))
         return pairs
