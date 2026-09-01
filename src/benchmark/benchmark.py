@@ -168,9 +168,19 @@ class PipelineBenchmark:
         # --- Drift metrics ---
         t0 = time.perf_counter()
         (
-            _euclid, _manhat, _cosine,
-            norm_euclid, _norm_manhat, _norm_cosine, _norm_vec,
-        ) = self._drift_metrics.compute(current_embedding, learned_profile)
+             _cosine,
+    _euclid,
+    _manhat,
+    _z_score_vector,
+    _absolute_difference_vector,
+    norm_euclid,
+    _norm_manhat,
+    _norm_cosine,
+    _norm_vec,
+) = self._drift_metrics.compute(
+    current_embedding,
+    learned_profile,
+)
         drift_time = time.perf_counter() - t0
 
         # --- Health score ---
