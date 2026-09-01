@@ -1,12 +1,21 @@
 """ContrastiveTrainer — training pipeline for contrastive fingerprint learning.
 
-SDD v4 §10 (Version 3):
+SDD v4 §10 (Version 4):
     Train a small contrastive head over the Fusion Fingerprint.
     Positive pairs: same machine, different recordings.
     Single NT-Xent objective — no identity/health split.
 
-Only positive pairs are used during training: the anchor and paired embeddings
-from each ContrastivePair form the two views fed to NTXentLoss.
+Machine-aware batching
+-----------------------
+Each batch contains at most ONE positive pair per (machine_type, machine_id).
+This ensures that every non-positive embedding in the batch belongs to a
+different machine, eliminating false negatives in the NT-Xent loss.
+
+Recording-level train/validation split
+---------------------------------------
+The split is performed inside ContrastiveDataset before pair generation.
+ContrastiveTrainer consumes dataset.train_positive_pairs and
+dataset.val_positive_pairs directly — it never re-splits pairs itself.
 """
 
 from __future__ import annotations
@@ -17,6 +26,7 @@ import random
 from dataclasses import dataclass
 from pathlib import Path
 
+import numpy as np
 import torch
 import torch.optim as optim
 
@@ -57,14 +67,18 @@ class ContrastiveTrainer:
     Args:
         head: The :class:`ProjectionHead` to train.
         criterion: The :class:`NTXentLoss` instance.
-        learning_rate: Adam learning rate. Defaults to ``1e-3``.
-        batch_size: Number of pairs per mini-batch. Defaults to ``32``.
-        epochs: Number of full passes over the training pairs. Defaults to ``5``.
+        learning_rate: Adam learning rate. Must be > 0. Defaults to ``1e-3``.
+        batch_size: Number of pairs per mini-batch. Must be >= 2. Defaults to ``32``.
+        epochs: Number of full passes over the training pairs. Must be > 0.
+                Defaults to ``5``.
         checkpoint_dir: Directory where the best checkpoint is saved.
                         Defaults to ``models/contrastive``.
         val_split: Fraction of positive pairs reserved for validation.
-                   Defaults to ``0.2``.
-        seed: Random seed for pair shuffling and split. Defaults to ``42``.
+                   Must be in (0, 1). Defaults to ``0.2``.
+        seed: Random seed for pair shuffling. Defaults to ``42``.
+
+    Raises:
+        ValueError: If any parameter is outside its valid range.
     """
 
     def __init__(
@@ -78,6 +92,15 @@ class ContrastiveTrainer:
         val_split: float = 0.2,
         seed: int = 42,
     ) -> None:
+        if learning_rate <= 0:
+            raise ValueError(f"learning_rate must be > 0, got {learning_rate}")
+        if batch_size < 2:
+            raise ValueError(f"batch_size must be >= 2, got {batch_size}")
+        if epochs <= 0:
+            raise ValueError(f"epochs must be > 0, got {epochs}")
+        if not (0 < val_split < 1):
+            raise ValueError(f"val_split must be in (0, 1), got {val_split}")
+
         self._head = head
         self._criterion = criterion
         self._batch_size = batch_size
@@ -97,32 +120,36 @@ class ContrastiveTrainer:
     def fit(self, dataset: ContrastiveDataset) -> None:
         """Train the projection head on positive pairs from *dataset*.
 
-        Splits positive pairs into train/validation sets, runs for
-        ``self._epochs`` epochs, prints per-epoch losses, and saves a
-        checkpoint whenever validation loss improves.
+        Consumes ``dataset.train_positive_pairs`` and
+        ``dataset.val_positive_pairs`` (recording-level split already applied
+        inside :class:`ContrastiveDataset`).  Runs for ``self._epochs`` epochs,
+        prints per-epoch losses, and saves a checkpoint whenever validation
+        loss improves.
 
         Args:
             dataset: A fully-constructed :class:`ContrastiveDataset`.
-        """
-        pairs = list(dataset.positive_pairs)
-        if len(pairs) < 2:
-            raise ValueError(
-                f"Need at least 2 positive pairs to train, got {len(pairs)}."
-            )
 
-        self._rng.shuffle(pairs)
-        n_val = max(1, int(len(pairs) * self._val_split))
-        val_pairs = pairs[:n_val]
-        train_pairs = pairs[n_val:]
+        Raises:
+            ValueError: If there are fewer than 2 training or validation pairs.
+        """
+        train_pairs = dataset.train_positive_pairs
+        val_pairs = dataset.val_positive_pairs
 
         if len(train_pairs) < 2:
             raise ValueError(
-                f"Too few training pairs after validation split: {len(train_pairs)}. "
+                f"Need at least 2 training pairs, got {len(train_pairs)}. "
+                "Increase max_recordings or reduce val_split."
+            )
+        if len(val_pairs) < 2:
+            raise ValueError(
+                f"Need at least 2 validation pairs, got {len(val_pairs)}. "
                 "Increase max_recordings or reduce val_split."
             )
 
         logger.info(
-            "Training pairs: %d  |  Validation pairs: %d", len(train_pairs), len(val_pairs)
+            "Training pairs: %d  |  Validation pairs: %d",
+            len(train_pairs),
+            len(val_pairs),
         )
 
         self._checkpoint_dir.mkdir(parents=True, exist_ok=True)
@@ -162,6 +189,10 @@ class ContrastiveTrainer:
     def _run_epoch(self, pairs: list[ContrastivePair], *, training: bool) -> float:
         """Run one full pass over *pairs* and return the mean loss.
 
+        Batches are constructed with machine-aware sampling: each batch
+        contains at most one positive pair per (machine_type, machine_id),
+        eliminating false negatives in the NT-Xent loss.
+
         Args:
             pairs: List of :class:`ContrastivePair` objects to iterate over.
             training: If True, performs backprop and optimizer step.
@@ -170,6 +201,7 @@ class ContrastiveTrainer:
             Mean NT-Xent loss across all batches in this pass.
         """
         self._head.train(training)
+
         shuffled = list(pairs)
         if training:
             self._rng.shuffle(shuffled)
@@ -177,9 +209,7 @@ class ContrastiveTrainer:
         total_loss = 0.0
         n_batches = 0
 
-        for batch in self._make_batches(shuffled):
-            import numpy as np
-
+        for batch in self._make_machine_aware_batches(shuffled):
             anchors = torch.from_numpy(
                 np.stack([p.anchor.fused_feature_vector for p in batch])
             ).float()
@@ -206,23 +236,60 @@ class ContrastiveTrainer:
 
         return total_loss / n_batches if n_batches > 0 else 0.0
 
-    def _make_batches(self, pairs: list[ContrastivePair]) -> list[list[ContrastivePair]]:
-        """Partition *pairs* into mini-batches of size ``self._batch_size``.
+    def _make_machine_aware_batches(
+        self, pairs: list[ContrastivePair]
+    ) -> list[list[ContrastivePair]]:
+        """Partition *pairs* into batches with at most one pair per machine.
 
-        The final batch is dropped if it would contain fewer than 2 pairs,
-        since NTXentLoss requires batch_size >= 2.
+        Algorithm:
+          1. Group pairs by (machine_type, machine_id).
+          2. Round-robin across machines, taking one pair per machine per
+             batch slot, until ``batch_size`` slots are filled or all
+             machines are exhausted for this batch.
+          3. Repeat until all pairs are consumed.
+          4. Drop the final batch if it contains fewer than 2 pairs
+             (NTXentLoss requires batch_size >= 2).
 
         Args:
-            pairs: Flat list of pairs to partition.
+            pairs: Flat list of :class:`ContrastivePair` objects.
 
         Returns:
             List of batches, each a list of :class:`ContrastivePair`.
         """
-        batches = []
-        for start in range(0, len(pairs), self._batch_size):
-            batch = pairs[start : start + self._batch_size]
+        # Group by machine key, preserving the shuffled order within each group
+        groups: dict[tuple[str, str], list[ContrastivePair]] = {}
+        for p in pairs:
+            key = (p.anchor.machine_type, p.anchor.machine_id)
+            groups.setdefault(key, []).append(p)
+
+        # Ordered list of machine keys for round-robin
+        machine_keys = list(groups.keys())
+        # Per-machine cursor
+        cursors: dict[tuple[str, str], int] = {k: 0 for k in machine_keys}
+
+        batches: list[list[ContrastivePair]] = []
+
+        while True:
+            batch: list[ContrastivePair] = []
+            # Round-robin: one pair per machine until batch is full
+            for key in machine_keys:
+                if len(batch) >= self._batch_size:
+                    break
+                idx = cursors[key]
+                if idx < len(groups[key]):
+                    batch.append(groups[key][idx])
+                    cursors[key] = idx + 1
+
+            if not batch:
+                break  # all pairs consumed
+
             if len(batch) >= 2:
                 batches.append(batch)
+
+            # Stop if every machine's cursor is exhausted
+            if all(cursors[k] >= len(groups[k]) for k in machine_keys):
+                break
+
         return batches
 
     def _save_checkpoint(self, epoch: int, val_loss: float) -> None:

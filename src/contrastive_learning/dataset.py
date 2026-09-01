@@ -1,14 +1,20 @@
-"""ContrastiveDataset — builds positive and negative pairs for contrastive learning.
+"""ContrastiveDataset — builds positive pairs for contrastive learning.
 
-SDD v4 §2 (Version 3):
-    Positive pairs: same machine, different recordings.
-    Negative pairs: different machine_id or different machine_type.
+SDD v4 §2 (Version 4):
+    Positive pairs: same machine (machine_type + machine_id), different recordings.
     Only normal recordings are used.
+    NT-Xent treats all other batch samples as negatives implicitly — no explicit
+    negative pairs are constructed.
+
+Recording-level train/validation split
+---------------------------------------
+The split is performed on *recordings* (not pairs) before any pair is generated.
+A recording assigned to the validation set never appears in any training pair,
+preventing data leakage.
 
 Each item returned is:
     (anchor_fused_vector, paired_fused_vector, label)
     label = 1  →  positive pair (same machine)
-    label = 0  →  negative pair (different machine)
 """
 
 from __future__ import annotations
@@ -44,27 +50,33 @@ class ContrastivePair:
     Attributes:
         anchor: Fused feature vector of the anchor recording.
         paired: Fused feature vector of the paired recording.
-        label: 1 for positive (same machine), 0 for negative (different machine).
+        label: Always 1 (positive — same machine, different recording).
     """
 
     anchor: FusedFeatureVector
     paired: FusedFeatureVector
-    label: int  # 1 = positive, 0 = negative
+    label: int  # 1 = positive (same machine)
 
 
 class ContrastiveDataset:
-    """Builds contrastive pairs from normal recordings in a MIMII-style dataset.
+    """Builds positive contrastive pairs from normal recordings in a MIMII-style dataset.
 
     Encodes every normal recording once (PreprocessingPipeline → DSP → BEATs →
-    FusionBuilder), then enumerates positive and negative pairs from the cached
-    fused vectors.  Pairs are balanced: ``len(positive_pairs) == len(negative_pairs)``
-    where possible.
+    FusionBuilder), then performs a recording-level train/validation split per
+    machine before generating positive pairs.  This guarantees that no recording
+    appears in both the training and validation pair sets.
 
     Args:
         dataset_root: Path to the dataset root (passed to :class:`DatasetLoader`).
         checkpoint_path: Path to the BEATs checkpoint. Defaults to the project
                          standard location ``models/beats/BEATs_iter3_plus_AS2M.pt``.
-        seed: Random seed used for negative-pair sampling and shuffling.
+        cache_root: Root directory for the FusionCache.
+        seed: Random seed used for pair sampling and shuffling.
+        machine_type: If set, restrict to this machine type.
+        machine_id: If set, restrict to this machine ID.
+        max_recordings: Maximum total recordings to encode.
+        val_split: Fraction of recordings per machine reserved for validation.
+                   Defaults to ``0.2``.
     """
 
     def __init__(
@@ -76,8 +88,13 @@ class ContrastiveDataset:
         machine_type: str | None = None,
         machine_id: str | None = None,
         max_recordings: int | None = None,
+        val_split: float = 0.2,
     ) -> None:
+        if not (0 < val_split < 1):
+            raise ValueError(f"val_split must be in (0, 1), got {val_split}")
+
         self._rng = random.Random(seed)
+        self._val_split = val_split
         checkpoint = Path(checkpoint_path) if checkpoint_path else _CHECKPOINT_REL
         _cache_root = Path(cache_root) if cache_root else _CHECKPOINT_REL.parents[2] / "data" / "fusion_cache"
 
@@ -121,8 +138,10 @@ class ContrastiveDataset:
         self._all_fused: list[FusedFeatureVector] = []
         self._encode_all(records)
 
-        self._positive_pairs: list[ContrastivePair] = self._build_positive_pairs()
-        self._negative_pairs: list[ContrastivePair] = self._build_negative_pairs()
+        # Recording-level split → pair generation
+        self._train_positive_pairs: list[ContrastivePair] = []
+        self._val_positive_pairs: list[ContrastivePair] = []
+        self._build_split_pairs()
 
     # ------------------------------------------------------------------
     # Public API
@@ -130,21 +149,22 @@ class ContrastiveDataset:
 
     @property
     def positive_pairs(self) -> list[ContrastivePair]:
-        """All positive pairs (same machine, different recordings)."""
-        return self._positive_pairs
+        """All positive pairs across both train and validation sets."""
+        return self._train_positive_pairs + self._val_positive_pairs
 
     @property
-    def negative_pairs(self) -> list[ContrastivePair]:
-        """All negative pairs (different machine_id or machine_type)."""
-        return self._negative_pairs
+    def train_positive_pairs(self) -> list[ContrastivePair]:
+        """Positive pairs built exclusively from training recordings."""
+        return self._train_positive_pairs
 
     @property
-    def all_pairs(self) -> list[ContrastivePair]:
-        """Balanced interleaving of positive and negative pairs."""
-        n = min(len(self._positive_pairs), len(self._negative_pairs))
-        pairs = self._positive_pairs[:n] + self._negative_pairs[:n]
-        self._rng.shuffle(pairs)
-        return pairs
+    def val_positive_pairs(self) -> list[ContrastivePair]:
+        """Positive pairs built exclusively from validation recordings."""
+        return self._val_positive_pairs
+
+    def machine_keys(self) -> list[tuple[str, str]]:
+        """Sorted (machine_type, machine_id) keys present in the encoded recordings."""
+        return sorted(self._fused_by_machine.keys())
 
     def machine_types(self) -> list[str]:
         """Sorted unique machine types present in the normal recordings."""
@@ -159,10 +179,10 @@ class ContrastiveDataset:
         return len(self._all_fused)
 
     def __iter__(self) -> Iterator[ContrastivePair]:
-        return iter(self.all_pairs)
+        return iter(self.positive_pairs)
 
     def __len__(self) -> int:
-        return len(self.all_pairs)
+        return len(self.positive_pairs)
 
     # ------------------------------------------------------------------
     # Encoding
@@ -184,20 +204,17 @@ class ContrastiveDataset:
         if pin_id:
             return records[:max_recordings]
 
-        # Group by machine_id preserving original order within each group
         groups: dict[str, list[AudioMetadata]] = {}
         for r in records:
             groups.setdefault(r.machine_id, []).append(r)
 
         ids = sorted(groups.keys())
-        n_ids = len(ids)
-        if n_ids == 0:
+        if not ids:
             return []
 
         selected: list[AudioMetadata] = []
         remaining = max_recordings
 
-        # Iteratively allocate quota; IDs with fewer recordings give back surplus
         pending = list(ids)
         while remaining > 0 and pending:
             per_id = max(1, remaining // len(pending))
@@ -205,11 +222,10 @@ class ContrastiveDataset:
             for mid in pending:
                 take = min(per_id, len(groups[mid]))
                 selected.extend(groups[mid][:take])
-                groups[mid] = groups[mid][take:]  # consume taken entries
+                groups[mid] = groups[mid][take:]
                 remaining -= take
                 if groups[mid] and remaining > 0:
                     next_pending.append(mid)
-            # If no progress was made, stop to avoid infinite loop
             if len(next_pending) == len(pending):
                 break
             pending = next_pending
@@ -260,38 +276,69 @@ class ContrastiveDataset:
         )
 
     # ------------------------------------------------------------------
-    # Pair construction
+    # Pair construction (recording-level split)
     # ------------------------------------------------------------------
 
-    def _build_positive_pairs(self) -> list[ContrastivePair]:
-        """One positive pair per anchor: same machine, one randomly sampled partner."""
-        pairs: list[ContrastivePair] = []
+    def _build_split_pairs(self) -> None:
+        """Split recordings per machine, then build positive pairs within each split.
 
-        for fused_list in self._fused_by_machine.values():
-            if len(fused_list) < 2:
-                continue
-            for anchor in fused_list:
-                pool = [f for f in fused_list if f.filename != anchor.filename]
-                positive = self._rng.choice(pool)
-                pairs.append(ContrastivePair(anchor=anchor, paired=positive, label=1))
+        For each (machine_type, machine_id) key:
+          1. Shuffle the recordings with the shared RNG.
+          2. Reserve the last ``val_split`` fraction as validation recordings.
+          3. Build positive pairs only within the training recordings.
+          4. Build positive pairs only within the validation recordings.
 
-        logger.info("Positive pairs built: %d", len(pairs))
-        return pairs
-
-    def _build_negative_pairs(self) -> list[ContrastivePair]:
-        """Three negative pairs per anchor: different machine_id or machine_type."""
-        pairs: list[ContrastivePair] = []
-
+        This guarantees that no recording appears in both train and val pairs.
+        """
         for key, fused_list in self._fused_by_machine.items():
-            negatives_pool = [
-                f for k, fv in self._fused_by_machine.items() if k != key for f in fv
-            ]
-            if not negatives_pool:
+            if len(fused_list) < 2:
+                logger.warning(
+                    "Machine %s has only %d recording(s) — skipping pair generation.",
+                    key,
+                    len(fused_list),
+                )
                 continue
-            for anchor in fused_list:
-                k = min(3, len(negatives_pool))
-                for negative in self._rng.sample(negatives_pool, k):
-                    pairs.append(ContrastivePair(anchor=anchor, paired=negative, label=0))
 
-        logger.info("Negative pairs built: %d", len(pairs))
+            shuffled = list(fused_list)
+            self._rng.shuffle(shuffled)
+
+            n_val = max(1, int(len(shuffled) * self._val_split))
+            val_recordings = shuffled[:n_val]
+            train_recordings = shuffled[n_val:]
+
+            self._train_positive_pairs.extend(
+                self._pairs_from_recordings(train_recordings)
+            )
+            self._val_positive_pairs.extend(
+                self._pairs_from_recordings(val_recordings)
+            )
+
+        logger.info(
+            "Train positive pairs: %d  |  Val positive pairs: %d",
+            len(self._train_positive_pairs),
+            len(self._val_positive_pairs),
+        )
+
+    @staticmethod
+    def _pairs_from_recordings(recordings: list[FusedFeatureVector]) -> list[ContrastivePair]:
+        """Build one positive pair per anchor from a list of recordings.
+
+        Each anchor is paired with a randomly chosen different recording from
+        the same list.  Requires at least 2 recordings; returns an empty list
+        for smaller inputs.
+
+        Args:
+            recordings: Fused vectors all belonging to the same machine.
+
+        Returns:
+            One :class:`ContrastivePair` per recording in *recordings*.
+        """
+        if len(recordings) < 2:
+            return []
+        rng = random.Random()  # stateless helper; caller controls shuffle order
+        pairs: list[ContrastivePair] = []
+        for anchor in recordings:
+            pool = [f for f in recordings if f.filename != anchor.filename]
+            paired = rng.choice(pool)
+            pairs.append(ContrastivePair(anchor=anchor, paired=paired, label=1))
         return pairs

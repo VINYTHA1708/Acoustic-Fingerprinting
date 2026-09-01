@@ -113,7 +113,7 @@ class LearnedDriftAnalyzer:
         fused = self._cache.load_or_create(record)
         embedding = self._inference.generate_fingerprint(fused)
 
-        euclid, manhat, cosine, norm_euclid, norm_manhat, norm_cosine, norm_vec = (
+        cosine, euclid, manhat, _z, _abs_diff, norm_euclid, norm_manhat, norm_cosine, norm_vec = (
             self._metrics.compute(embedding, profile)
         )
 
