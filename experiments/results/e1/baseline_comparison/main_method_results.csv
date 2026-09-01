@@ -1,0 +1,5 @@
+baseline_id,baseline_name,machine_id,n_normal,n_abnormal,auroc,separation_ratio
+contrastive_main,Contrastive Acoustic Fingerprinting,id_00,152,143,0.7836,2.3389
+contrastive_main,Contrastive Acoustic Fingerprinting,id_02,152,111,0.8046,1.7205
+contrastive_main,Contrastive Acoustic Fingerprinting,id_04,106,100,0.9578,4.0659
+contrastive_main,Contrastive Acoustic Fingerprinting,id_06,156,102,0.6851,2.1632

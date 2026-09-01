@@ -1,0 +1,13 @@
+machine_id,metric,n_normal,n_abnormal,rank_biserial_correlation
+id_00,normalized_euclidean,152,143,0.5576923076923077
+id_00,normalized_manhattan,152,143,0.5599006256900994
+id_00,normalized_cosine,152,143,-0.43568273831431736
+id_02,normalized_euclidean,152,111,0.6185395922238027
+id_02,normalized_manhattan,152,111,0.6058558558558558
+id_02,normalized_cosine,152,111,-0.45969653864390714
+id_04,normalized_euclidean,106,100,0.9013207547169811
+id_04,normalized_manhattan,106,100,0.8903773584905661
+id_04,normalized_cosine,106,100,0.5035849056603774
+id_06,normalized_euclidean,156,102,0.37745098039215685
+id_06,normalized_manhattan,156,102,0.38624937154348915
+id_06,normalized_cosine,156,102,0.22197083961789843

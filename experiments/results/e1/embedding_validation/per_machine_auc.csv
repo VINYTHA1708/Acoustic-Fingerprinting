@@ -1,0 +1,13 @@
+machine_type,machine_id,metric,roc_auc,cohens_d
+pump,id_00,normalized_euclidean,0.778846,1.066851
+pump,id_00,normalized_manhattan,0.77995,1.075372
+pump,id_00,normalized_cosine,0.717841,-0.600232
+pump,id_02,normalized_euclidean,0.80927,1.180713
+pump,id_02,normalized_manhattan,0.802928,1.161668
+pump,id_02,normalized_cosine,0.729848,-0.646869
+pump,id_04,normalized_euclidean,0.95066,2.098078
+pump,id_04,normalized_manhattan,0.945189,2.074872
+pump,id_04,normalized_cosine,0.248208,1.053515
+pump,id_06,normalized_euclidean,0.688725,0.979136
+pump,id_06,normalized_manhattan,0.693125,0.965702
+pump,id_06,normalized_cosine,0.389015,0.348887

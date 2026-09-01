@@ -1,0 +1,4 @@
+metric,roc_auc,cohens_d,expected_abnormal_direction
+normalized_euclidean,0.802721,1.172993,larger
+normalized_manhattan,0.80028,1.167885,larger
+normalized_cosine,0.562915,-0.142557,smaller

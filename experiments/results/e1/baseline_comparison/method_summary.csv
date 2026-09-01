@@ -1,0 +1,5 @@
+baseline_id,baseline_name,mean_auroc,mean_separation_ratio,auroc_improvement_over_best_baseline
+B1_mfcc_distance,Raw MFCC Distance,0.5742,1.2083,
+B2_stat_distance,Statistical Audio Feature Distance,0.5401,1.1349,
+B3_random_projection,Non-Contrastive (Random) Projection Embedding,0.5253,1.0005,
+contrastive_main,Contrastive Acoustic Fingerprinting,0.8078,2.5721,0.2296

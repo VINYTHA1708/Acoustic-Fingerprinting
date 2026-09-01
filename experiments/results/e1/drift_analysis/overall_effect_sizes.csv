@@ -1,0 +1,4 @@
+metric,n_normal,n_abnormal,rank_biserial_correlation
+normalized_euclidean,566,456,0.6054413861508896
+normalized_manhattan,566,456,0.6005594817432274
+normalized_cosine,566,456,-0.125829148843841

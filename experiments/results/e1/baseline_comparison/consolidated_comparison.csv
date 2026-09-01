@@ -1,0 +1,17 @@
+baseline_id,baseline_name,machine_id,n_normal,n_abnormal,auroc,separation_ratio,auroc_delta_vs_best_baseline
+B1_mfcc_distance,Raw MFCC Distance,id_00,152,143,0.5068,1.0155,
+B1_mfcc_distance,Raw MFCC Distance,id_02,152,111,0.667,1.6148,
+B1_mfcc_distance,Raw MFCC Distance,id_04,106,100,0.5816,1.2087,
+B1_mfcc_distance,Raw MFCC Distance,id_06,156,102,0.5416,0.9942,
+B2_stat_distance,Statistical Audio Feature Distance,id_00,152,143,0.4581,0.921,
+B2_stat_distance,Statistical Audio Feature Distance,id_02,152,111,0.6316,1.5113,
+B2_stat_distance,Statistical Audio Feature Distance,id_04,106,100,0.5441,1.1763,
+B2_stat_distance,Statistical Audio Feature Distance,id_06,156,102,0.5265,0.9312,
+B3_random_projection,Non-Contrastive (Random) Projection Embedding,id_00,152,143,0.5198,1.0002,
+B3_random_projection,Non-Contrastive (Random) Projection Embedding,id_02,152,111,0.5145,1.0003,
+B3_random_projection,Non-Contrastive (Random) Projection Embedding,id_04,106,100,0.5228,1.0005,
+B3_random_projection,Non-Contrastive (Random) Projection Embedding,id_06,156,102,0.5442,1.0009,
+contrastive_main,Contrastive Acoustic Fingerprinting,id_00,152,143,0.7836,2.3389,0.2638
+contrastive_main,Contrastive Acoustic Fingerprinting,id_02,152,111,0.8046,1.7205,0.1376
+contrastive_main,Contrastive Acoustic Fingerprinting,id_04,106,100,0.9578,4.0659,0.3762
+contrastive_main,Contrastive Acoustic Fingerprinting,id_06,156,102,0.6851,2.1632,0.1409

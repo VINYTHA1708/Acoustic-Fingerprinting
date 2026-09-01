@@ -20,6 +20,7 @@ from ..beats.encoder import BEATsEncoder
 from ..contrastive_learning.inference import ContrastiveInference
 from ..contrastive_learning.model import ProjectionHead
 from ..dataset.loader import DatasetLoader
+from ..dataset.metadata import AudioMetadata
 from ..feature_extraction.extractor import FeatureExtractor
 from ..feature_extraction.feature_vector import FeatureVectorBuilder
 from ..fusion.cache import FusionCache
@@ -84,42 +85,84 @@ class LearnedProfileBuilder:
 
     def build(
         self,
-        loader: DatasetLoader,
         machine_type: str,
         machine_id: str,
+        loader: DatasetLoader | None = None,
+        recordings: list[AudioMetadata] | None = None,
         max_recordings: int | None = None,
         exclude_filenames: set[str] | None = None,
     ) -> LearnedFingerprintProfile:
         """Build a healthy learned fingerprint profile for one machine.
 
+        Exactly one of *loader* or *recordings* must be supplied.
+
         Args:
+            machine_type: Machine type (e.g. ``"pump"``).
+            machine_id: Machine ID (e.g. ``"id_00"``).
             loader: A :class:`~dataset.loader.DatasetLoader` pointing at the dataset root.
-            machine_type: Machine type to filter on (e.g. ``"pump"``).
-            machine_id: Machine ID to filter on (e.g. ``"id_00"``).
-            max_recordings: If provided, limit the number of healthy recordings processed.
-            exclude_filenames: If provided, any recording whose filename is in this
-                               set is excluded from the profile. Use this to hold out
-                               inference recordings so they never appear in the profile
-                               mean/std. Defaults to ``None`` (no exclusions).
+                    Mutually exclusive with *recordings*.
+            recordings: Explicit list of :class:`~dataset.metadata.AudioMetadata` objects
+                        to use as the healthy profile.  All items must be normal recordings
+                        belonging to *machine_type* / *machine_id*.
+                        Mutually exclusive with *loader*.
+            max_recordings: If provided, limit the number of recordings processed.
+            exclude_filenames: Filenames to exclude (loader path only).
 
         Returns:
             :class:`LearnedFingerprintProfile` with all embeddings and statistics.
 
         Raises:
-            ValueError: If no normal recordings are found for the given machine.
+            ValueError: If both or neither of *loader* / *recordings* are supplied,
+                        or if validation of the supplied recordings fails.
         """
-        records = [
-            r for r in loader.get_all_files()
-            if r.machine_type == machine_type
-            and r.machine_id == machine_id
-            and r.label == _NORMAL_LABEL
-            and (exclude_filenames is None or r.filename not in exclude_filenames)
-        ]
-
-        if not records:
+        if loader is not None and recordings is not None:
             raise ValueError(
-                f"No normal recordings found for {machine_type}/{machine_id}."
+                "Supply either 'loader' or 'recordings', not both."
             )
+        if loader is None and recordings is None:
+            raise ValueError(
+                "One of 'loader' or 'recordings' must be supplied."
+            )
+
+        if recordings is not None:
+            # --- explicit recordings path ---
+            if not recordings:
+                raise ValueError("'recordings' must not be empty.")
+            for r in recordings:
+                if not isinstance(r, AudioMetadata):
+                    raise ValueError(
+                        f"All items in 'recordings' must be AudioMetadata, got {type(r)}."
+                    )
+                if r.label != _NORMAL_LABEL:
+                    raise ValueError(
+                        f"Recording '{r.filename}' has label '{r.label}'; "
+                        "only 'normal' recordings are allowed in the profile."
+                    )
+                if r.machine_type != machine_type:
+                    raise ValueError(
+                        f"Recording '{r.filename}' has machine_type '{r.machine_type}'; "
+                        f"expected '{machine_type}'."
+                    )
+                if r.machine_id != machine_id:
+                    raise ValueError(
+                        f"Recording '{r.filename}' has machine_id '{r.machine_id}'; "
+                        f"expected '{machine_id}'."
+                    )
+            records = list(recordings)
+        else:
+            # --- DatasetLoader path (original behaviour) ---
+            records = [
+                r for r in loader.get_all_files()  # type: ignore[union-attr]
+                if r.machine_type == machine_type
+                and r.machine_id == machine_id
+                and r.label == _NORMAL_LABEL
+                and (exclude_filenames is None or r.filename not in exclude_filenames)
+            ]
+
+            if not records:
+                raise ValueError(
+                    f"No normal recordings found for {machine_type}/{machine_id}."
+                )
 
         if max_recordings is not None:
             records = records[:max_recordings]

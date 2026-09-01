@@ -1,0 +1,4 @@
+metric,n_normal,n_abnormal,u_statistic,p_value
+normalized_euclidean,566,456,50917.0,2.7162199646523672e-62
+normalized_manhattan,566,456,51547.0,2.5415536082684147e-61
+normalized_cosine,566,456,145286.0,0.0005369038150882861

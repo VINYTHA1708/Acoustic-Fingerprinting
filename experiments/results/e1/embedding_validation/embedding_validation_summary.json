@@ -1,0 +1,94 @@
+{
+  "experiment_id": "E1",
+  "machine_type": "pump",
+  "input_csv": "experiments\\results\\e1\\evaluation_results.csv",
+  "total_recordings": 1022,
+  "normal_count": 566,
+  "abnormal_count": 456,
+  "machine_ids": [
+    "id_00",
+    "id_02",
+    "id_04",
+    "id_06"
+  ],
+  "metrics_analyzed": [
+    "normalized_euclidean",
+    "normalized_manhattan",
+    "normalized_cosine"
+  ],
+  "overall_results": {
+    "normalized_euclidean": {
+      "roc_auc": 0.802721,
+      "cohens_d": 1.172993,
+      "expected_abnormal_direction": "larger"
+    },
+    "normalized_manhattan": {
+      "roc_auc": 0.80028,
+      "cohens_d": 1.167885,
+      "expected_abnormal_direction": "larger"
+    },
+    "normalized_cosine": {
+      "roc_auc": 0.562915,
+      "cohens_d": -0.142557,
+      "expected_abnormal_direction": "smaller"
+    }
+  },
+  "per_machine_results": {
+    "id_00": {
+      "normalized_euclidean": {
+        "roc_auc": 0.778846,
+        "cohens_d": 1.066851
+      },
+      "normalized_manhattan": {
+        "roc_auc": 0.77995,
+        "cohens_d": 1.075372
+      },
+      "normalized_cosine": {
+        "roc_auc": 0.717841,
+        "cohens_d": -0.600232
+      }
+    },
+    "id_02": {
+      "normalized_euclidean": {
+        "roc_auc": 0.80927,
+        "cohens_d": 1.180713
+      },
+      "normalized_manhattan": {
+        "roc_auc": 0.802928,
+        "cohens_d": 1.161668
+      },
+      "normalized_cosine": {
+        "roc_auc": 0.729848,
+        "cohens_d": -0.646869
+      }
+    },
+    "id_04": {
+      "normalized_euclidean": {
+        "roc_auc": 0.95066,
+        "cohens_d": 2.098078
+      },
+      "normalized_manhattan": {
+        "roc_auc": 0.945189,
+        "cohens_d": 2.074872
+      },
+      "normalized_cosine": {
+        "roc_auc": 0.248208,
+        "cohens_d": 1.053515
+      }
+    },
+    "id_06": {
+      "normalized_euclidean": {
+        "roc_auc": 0.688725,
+        "cohens_d": 0.979136
+      },
+      "normalized_manhattan": {
+        "roc_auc": 0.693125,
+        "cohens_d": 0.965702
+      },
+      "normalized_cosine": {
+        "roc_auc": 0.389015,
+        "cohens_d": 0.348887
+      }
+    }
+  }
+}
