@@ -65,39 +65,45 @@ def _set_seeds(seed: int) -> None:
 # Validation
 # ---------------------------------------------------------------------------
 
-def _validate_split(split, train_normal_ids: set[str]) -> None:
-    """Pre-training data leakage and integrity checks."""
-    # A: train_normal contains only normal recordings
+def _validate_labels(split) -> None:
     assert all(r.label == "normal" for r in split.train_normal), \
         "FAIL A: train_normal contains non-normal recordings"
 
-    # B/C/D: profile/test sets are not passed to ContrastiveDataset (enforced
-    # structurally — validated here by confirming they are non-empty and disjoint)
+
+def _validate_disjoint_sets(split) -> None:
     train_paths = {r.absolute_path for r in split.train_normal}
-    profile_paths = {r.absolute_path for r in split.profile_normal}
-    test_normal_paths = {r.absolute_path for r in split.test_normal}
-    test_abnormal_paths = {r.absolute_path for r in split.test_abnormal}
+    assert not train_paths & {r.absolute_path for r in split.profile_normal}, \
+        "FAIL B: train_normal ∩ profile_normal non-empty"
+    assert not train_paths & {r.absolute_path for r in split.test_normal}, \
+        "FAIL C: train_normal ∩ test_normal non-empty"
+    assert not train_paths & {r.absolute_path for r in split.test_abnormal}, \
+        "FAIL D: train_normal ∩ test_abnormal non-empty"
 
-    assert not train_paths & profile_paths, "FAIL B: train_normal ∩ profile_normal non-empty"
-    assert not train_paths & test_normal_paths, "FAIL C: train_normal ∩ test_normal non-empty"
-    assert not train_paths & test_abnormal_paths, "FAIL D: train_normal ∩ test_abnormal non-empty"
 
-    # E: All four machine IDs represented in train_normal
+def _validate_machine_coverage(split) -> None:
     ids_in_train = {r.machine_id for r in split.train_normal}
     missing = set(MACHINE_IDS) - ids_in_train
     assert not missing, f"FAIL E: machine IDs missing from train_normal: {missing}"
 
-    # F: Only pump in train_normal
     types_in_train = {r.machine_type for r in split.train_normal}
     assert types_in_train == {"pump"}, f"FAIL F: unexpected machine types: {types_in_train}"
 
-    # G/H: At least 2 recordings per machine in train (internal split will further divide)
+
+def _validate_min_recordings(split) -> None:
     for mid in MACHINE_IDS:
         count = sum(1 for r in split.train_normal if r.machine_id == mid)
         assert count >= 4, (
             f"FAIL G/H: machine {mid} has only {count} train_normal recordings "
             "(need ≥4 to guarantee ≥2 internal train and ≥2 internal val)"
         )
+
+
+def _validate_split(split, train_normal_ids: set[str]) -> None:
+    """Pre-training data leakage and integrity checks."""
+    _validate_labels(split)
+    _validate_disjoint_sets(split)
+    _validate_machine_coverage(split)
+    _validate_min_recordings(split)
 
 
 # ---------------------------------------------------------------------------

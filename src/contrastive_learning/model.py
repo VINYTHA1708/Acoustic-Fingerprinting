@@ -72,7 +72,7 @@ class ProjectionHead(nn.Module):
         Args:
             path: Destination file path (e.g. ``models/projection_head.pt``).
         """
-        path = Path(path)
+        path = Path(path).resolve()
         path.parent.mkdir(parents=True, exist_ok=True)
         torch.save(self.state_dict(), path)
 
@@ -85,10 +85,10 @@ class ProjectionHead(nn.Module):
         Raises:
             FileNotFoundError: If *path* does not exist.
         """
-        path = Path(path)
+        path = Path(path).resolve()
         if not path.exists():
             raise FileNotFoundError(f"Weights file not found: {path}")
-        self.load_state_dict(torch.load(path, map_location="cpu"))
+        self.load_state_dict(torch.load(path, map_location="cpu", weights_only=True))
 
     # ------------------------------------------------------------------
     # Private helpers

@@ -31,13 +31,13 @@ SEED = 42
 # ---------------------------------------------------------------------------
 
 def _make_meta(machine_id: str, label: str, idx: int) -> AudioMetadata:
-    p = Path(f"/fake/pump/{machine_id}/{label}/{idx:08d}.wav")
+    p = Path("fake") / "pump" / machine_id / label / f"{idx:08d}.wav"
     return AudioMetadata(
         machine_type="pump",
         machine_id=machine_id,
         label=label,
         filename=p.name,
-        relative_path=Path(f"pump/{machine_id}/{label}/{idx:08d}.wav"),
+        relative_path=Path("pump") / machine_id / label / f"{idx:08d}.wav",
         absolute_path=p,
     )
 
@@ -67,8 +67,8 @@ class TestMachineTypeFiltering:
         fan_rec = AudioMetadata(
             machine_type="fan", machine_id="id_00", label="normal",
             filename="00000000.wav",
-            relative_path=Path("fan/id_00/normal/00000000.wav"),
-            absolute_path=Path("/fake/fan/id_00/normal/00000000.wav"),
+            relative_path=Path("fan") / "id_00" / "normal" / "00000000.wav",
+            absolute_path=Path("fake") / "fan" / "id_00" / "normal" / "00000000.wav",
         )
         all_recs = pump_recs + [fan_rec]
         filtered = [r for r in all_recs if r.machine_type == MACHINE_TYPE]

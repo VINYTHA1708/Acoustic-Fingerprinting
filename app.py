@@ -476,7 +476,8 @@ def main() -> None:
     # ------------------------------------------------------------------
     # Save uploaded file to a temp path so existing modules can read it
     # ------------------------------------------------------------------
-    tmp_wav = _VIZ_TMP / uploaded_file.name
+    _safe_stem = Path(uploaded_file.name).stem[:64]
+    tmp_wav = _VIZ_TMP / f"{_safe_stem}.wav"
     tmp_wav.write_bytes(uploaded_file.read())
 
     audio_record = _make_audio_metadata(tmp_wav, machine_type, machine_id)

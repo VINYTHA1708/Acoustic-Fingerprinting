@@ -113,7 +113,11 @@ class BEATsEncoder:
             RuntimeError: If the checkpoint keys are incompatible with the model.
         """
         try:
-            checkpoint = torch.load(self._checkpoint_path, map_location="cpu")
+            # weights_only=False is required: the BEATs checkpoint stores a
+            # cfg dict with custom Python objects that cannot be loaded with
+            # weights_only=True.  This file is a fixed, trusted pretrained
+            # checkpoint from Microsoft — not user-supplied input.
+            checkpoint = torch.load(self._checkpoint_path, map_location="cpu")  # noqa: S614
         except Exception as exc:
             raise RuntimeError(
                 f"Failed to load BEATs checkpoint from {self._checkpoint_path}: {exc}"

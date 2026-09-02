@@ -20,6 +20,7 @@ dataset.val_positive_pairs directly — it never re-splits pairs itself.
 
 from __future__ import annotations
 
+import itertools
 import logging
 import math
 import random
@@ -105,9 +106,15 @@ class ContrastiveTrainer:
         self._criterion = criterion
         self._batch_size = batch_size
         self._epochs = epochs
-        self._checkpoint_dir = Path(checkpoint_dir)
+        self._checkpoint_dir = Path(checkpoint_dir).resolve()
         self._val_split = val_split
         self._rng = random.Random(seed)
+        random.seed(seed)
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
 
         self._optimizer = optim.Adam(head.parameters(), lr=learning_rate)
         self._best_val_loss: float = math.inf
@@ -209,30 +216,30 @@ class ContrastiveTrainer:
         total_loss = 0.0
         n_batches = 0
 
-        for batch in self._make_machine_aware_batches(shuffled):
-            anchors = torch.from_numpy(
-                np.stack([p.anchor.fused_feature_vector for p in batch])
-            ).float()
+        with torch.set_grad_enabled(training):
+            for batch in self._make_machine_aware_batches(shuffled):
+                anchors = torch.from_numpy(
+                    np.stack([p.anchor.fused_feature_vector for p in batch])
+                ).float()
 
-            paired = torch.from_numpy(
-                np.stack([p.paired.fused_feature_vector for p in batch])
-            ).float()
+                paired = torch.from_numpy(
+                    np.stack([p.paired.fused_feature_vector for p in batch])
+                ).float()
 
-            if training:
-                self._optimizer.zero_grad()
-                emb_a = self._head(anchors)
-                emb_b = self._head(paired)
-                loss = self._criterion(emb_a, emb_b)
-                loss.backward()
-                self._optimizer.step()
-            else:
-                with torch.no_grad():
+                if training:
+                    self._optimizer.zero_grad()
+                    emb_a = self._head(anchors)
+                    emb_b = self._head(paired)
+                    loss = self._criterion(emb_a, emb_b)
+                    loss.backward()
+                    self._optimizer.step()
+                else:
                     emb_a = self._head(anchors)
                     emb_b = self._head(paired)
                     loss = self._criterion(emb_a, emb_b)
 
-            total_loss += loss.item()
-            n_batches += 1
+                total_loss += loss.item()
+                n_batches += 1
 
         return total_loss / n_batches if n_batches > 0 else 0.0
 
@@ -262,33 +269,19 @@ class ContrastiveTrainer:
             key = (p.anchor.machine_type, p.anchor.machine_id)
             groups.setdefault(key, []).append(p)
 
-        # Ordered list of machine keys for round-robin
-        machine_keys = list(groups.keys())
-        # Per-machine cursor
-        cursors: dict[tuple[str, str], int] = {k: 0 for k in machine_keys}
-
+        # Build batches by round-robin across machines, one pair per machine per batch.
+        # Each batch is filled until batch_size slots are taken OR all machines are
+        # exhausted for this round — whichever comes first.
+        queues = [list(v) for v in groups.values()]
         batches: list[list[ContrastivePair]] = []
 
-        while True:
+        while any(queues):
             batch: list[ContrastivePair] = []
-            # Round-robin: one pair per machine until batch is full
-            for key in machine_keys:
-                if len(batch) >= self._batch_size:
-                    break
-                idx = cursors[key]
-                if idx < len(groups[key]):
-                    batch.append(groups[key][idx])
-                    cursors[key] = idx + 1
-
-            if not batch:
-                break  # all pairs consumed
-
+            for q in queues:
+                if q and len(batch) < self._batch_size:
+                    batch.append(q.pop(0))
             if len(batch) >= 2:
                 batches.append(batch)
-
-            # Stop if every machine's cursor is exhausted
-            if all(cursors[k] >= len(groups[k]) for k in machine_keys):
-                break
 
         return batches
 

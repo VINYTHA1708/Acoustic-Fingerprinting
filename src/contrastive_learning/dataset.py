@@ -122,46 +122,16 @@ class ContrastiveDataset:
 
         self._rng = random.Random(seed)
         self._val_split = val_split
-        checkpoint = Path(checkpoint_path) if checkpoint_path else _CHECKPOINT_REL
-        _cache_root = Path(cache_root) if cache_root else _CHECKPOINT_REL.parents[2] / "data" / "fusion_cache"
-
-        pipeline = PreprocessingPipeline(target_sr=16_000)
-        extractor = FeatureExtractor(sample_rate=16_000)
-        vec_builder = FeatureVectorBuilder()
-        encoder = BEATsEncoder(checkpoint)
-        fusion = FusionBuilder()
-
-        self._cache = FusionCache(
-            cache_root=_cache_root,
-            pipeline=pipeline,
-            extractor=extractor,
-            vec_builder=vec_builder,
-            encoder=encoder,
-            fusion=fusion,
-        )
+        self._cache = self._build_cache(checkpoint_path, cache_root)
 
         if recordings is not None:
             records = recordings
         else:
-            loader = DatasetLoader(dataset_root)  # type: ignore[arg-type]
-            records = loader.filter_by_label("normal")
-            if machine_type is not None:
-                records = [r for r in records if r.machine_type == machine_type]
-            if machine_id is not None:
-                records = [r for r in records if r.machine_id == machine_id]
-            if max_recordings is not None:
-                records = self._sample_evenly(records, max_recordings, pin_id=machine_id is not None)
-            print(f"Machine type      : {machine_type or 'all'}")
-            print(f"Machine ID        : {machine_id or 'all'}")
-            print(f"Max recordings    : {max_recordings or 'all'}")
+            records = self._load_from_root(
+                dataset_root, machine_type, machine_id, max_recordings
+            )
 
-        print("Selected recordings")
-        id_counts: dict[str, int] = {}
-        for r in records:
-            id_counts[r.machine_id] = id_counts.get(r.machine_id, 0) + 1
-        for mid, cnt in sorted(id_counts.items()):
-            print(f"  {mid} : {cnt}")
-        logger.info("Recordings after filtering: %d", len(records))
+        self._log_selected_recordings(records)
 
         # Encode all normal recordings once and cache by (machine_type, machine_id)
         self._fused_by_machine: dict[tuple[str, str], list[FusedFeatureVector]] = {}
@@ -217,6 +187,67 @@ class ContrastiveDataset:
     # ------------------------------------------------------------------
     # Validation
     # ------------------------------------------------------------------
+
+    def _build_cache(
+        self,
+        checkpoint_path: str | Path | None,
+        cache_root: str | Path | None,
+    ) -> FusionCache:
+        """Construct the FusionCache used to encode recordings."""
+        beats_ckpt = Path(checkpoint_path) if checkpoint_path else _CHECKPOINT_REL
+        _cache_root = Path(cache_root) if cache_root else Path(__file__).resolve().parents[2] / "data" / "fusion_cache"
+        pipeline = PreprocessingPipeline(target_sr=16_000)
+        extractor = FeatureExtractor(sample_rate=16_000)
+        vec_builder = FeatureVectorBuilder()
+        encoder = BEATsEncoder(beats_ckpt)
+        fusion = FusionBuilder()
+        return FusionCache(
+            cache_root=_cache_root,
+            pipeline=pipeline,
+            extractor=extractor,
+            vec_builder=vec_builder,
+            encoder=encoder,
+            fusion=fusion,
+        )
+
+    def _load_from_root(
+        self,
+        dataset_root: str | Path,
+        machine_type: str | None,
+        machine_id: str | None,
+        max_recordings: int | None,
+    ) -> list[AudioMetadata]:
+        """Resolve, validate, and load normal recordings from dataset_root."""
+        _resolved_root = Path(dataset_root).resolve()
+        _project_root = Path(__file__).resolve().parents[2]
+        if not _resolved_root.is_relative_to(_project_root):
+            raise ValueError(f"dataset_root must be inside the project directory: {_resolved_root}")
+        if not _resolved_root.is_dir():
+            raise ValueError(f"dataset_root is not a directory: {_resolved_root}")
+
+        records = DatasetLoader(_resolved_root).filter_by_label("normal")
+        if machine_type is not None:
+            records = [r for r in records if r.machine_type == machine_type]
+        if machine_id is not None:
+            records = [r for r in records if r.machine_id == machine_id]
+        if max_recordings is not None:
+            records = self._sample_evenly(records, max_recordings, pin_id=machine_id is not None)
+
+        print(f"Machine type      : {machine_type or 'all'}")
+        print(f"Machine ID        : {machine_id or 'all'}")
+        print(f"Max recordings    : {max_recordings or 'all'}")
+        return records
+
+    @staticmethod
+    def _log_selected_recordings(records: list[AudioMetadata]) -> None:
+        """Print per-machine-ID recording counts and log total."""
+        print("Selected recordings")
+        id_counts: dict[str, int] = {}
+        for r in records:
+            id_counts[r.machine_id] = id_counts.get(r.machine_id, 0) + 1
+        for mid, cnt in sorted(id_counts.items()):
+            print(f"  {mid} : {cnt}")
+        logger.info("Recordings after filtering: %d", len(records))
 
     @staticmethod
     def _validate_explicit_recordings(

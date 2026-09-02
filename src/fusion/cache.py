@@ -141,7 +141,10 @@ class FusionCache:
     def _cache_path(self, rec: AudioMetadata) -> Path:
         """Derive the NPZ cache path for a recording."""
         stem = Path(rec.filename).stem
-        return self._root / rec.machine_type / rec.machine_id / rec.label / f"{stem}.npz"
+        candidate = (self._root / rec.machine_type / rec.machine_id / rec.label / f"{stem}.npz").resolve()
+        if not str(candidate).startswith(str(self._root.resolve())):
+            raise ValueError(f"Path traversal detected in cache path: {candidate}")
+        return candidate
 
     def _compute(self, rec: AudioMetadata) -> FusedFeatureVector:
         """Run the full pipeline and return a FusedFeatureVector."""

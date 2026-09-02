@@ -24,6 +24,17 @@ def _stub(name: str) -> types.ModuleType:
     return m
 
 
+# Pre-import real librosa so the stub loop below does not shadow it.
+# librosa is installed in this environment; importing it here ensures
+# sys.modules already contains the real module before the guard check.
+try:
+    import librosa as _librosa_real          # noqa: F401
+    import librosa.feature as _lf_real       # noqa: F401
+    import librosa.effects as _le_real       # noqa: F401
+    import librosa.core as _lc_real          # noqa: F401
+except ImportError:
+    pass  # not installed — stubs will be used as before
+
 for _name in [
     "librosa", "librosa.feature", "librosa.effects", "librosa.core",
     "torch", "torch.nn", "torch.nn.functional", "torch.optim",

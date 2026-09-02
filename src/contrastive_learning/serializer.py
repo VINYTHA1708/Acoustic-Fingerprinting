@@ -111,7 +111,7 @@ class ContrastiveSerializer:
         if not path.exists():
             raise FileNotFoundError(f"Checkpoint not found: '{path}'")
 
-        checkpoint: dict[str, Any] = torch.load(path, map_location="cpu")
+        checkpoint: dict[str, Any] = torch.load(path, map_location="cpu", weights_only=True)
 
         missing = _REQUIRED_KEYS - checkpoint.keys()
         if missing:

@@ -1,0 +1,1499 @@
+........F...................FF..F....................................... [  9%]
+......................................F................................. [ 18%]
+........................................................................ [ 27%]
+........................................................................ [ 36%]
+........................................................................ [ 45%]
+........................................................................ [ 54%]
+........................................................................ [ 63%]
+........................................................................ [ 72%]
+........................................................................ [ 81%]
+........................................................................ [ 90%]
+..................................F.....................F....FFFEEEEEEEF [ 99%]
+FEEEEFF                                                                  [100%]
+=================================== ERRORS ====================================
+______ ERROR at setup of TestLossValues.test_training_losses_are_finite _______
+
+cls = <class 'test_trainer.TestLossValues'>
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x00000181546A76F0>, _basetemp=WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def trained_history(cls, tmp_path_factory):
+        tmp = tmp_path_factory.mktemp("loss")
+>       trainer = _make_trainer(tmp, epochs=2)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_trainer.py:225: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_trainer.py:144: in _make_trainer
+    return ContrastiveTrainer(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <src.contrastive_learning.trainer.ContrastiveTrainer object at 0x00000181499582D0>
+head = ProjectionHead(
+  (net): Sequential(
+    (0): Linear(in_features=921, out_features=512, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=512, out_features=256, bias=True)
+  )
+)
+criterion = NTXentLoss(), learning_rate = 0.001, batch_size = 4, epochs = 2
+checkpoint_dir = WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50/loss0')
+val_split = 0.2, seed = 42
+
+    def __init__(
+        self,
+        head: ProjectionHead,
+        criterion: NTXentLoss,
+        learning_rate: float = 1e-3,
+        batch_size: int = 32,
+        epochs: int = 5,
+        checkpoint_dir: str | Path = Path("models") / "contrastive",
+        val_split: float = 0.2,
+        seed: int = 42,
+    ) -> None:
+        if learning_rate <= 0:
+            raise ValueError(f"learning_rate must be > 0, got {learning_rate}")
+        if batch_size < 2:
+            raise ValueError(f"batch_size must be >= 2, got {batch_size}")
+        if epochs <= 0:
+            raise ValueError(f"epochs must be > 0, got {epochs}")
+        if not (0 < val_split < 1):
+            raise ValueError(f"val_split must be in (0, 1), got {val_split}")
+    
+        self._head = head
+        self._criterion = criterion
+        self._batch_size = batch_size
+        self._epochs = epochs
+        _resolved_dir = Path(checkpoint_dir).resolve()
+        _project_root = Path(__file__).resolve().parents[2]
+        if not _resolved_dir.is_relative_to(_project_root):
+>           raise ValueError(f"checkpoint_dir must be inside the project directory: {_resolved_dir}")
+E           ValueError: checkpoint_dir must be inside the project directory: C:\Users\vinyt\AppData\Local\Temp\pytest-of-vinyt\pytest-50\loss0
+
+src\contrastive_learning\trainer.py:112: ValueError
+_____ ERROR at setup of TestLossValues.test_validation_losses_are_finite ______
+
+cls = <class 'test_trainer.TestLossValues'>
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x00000181546A76F0>, _basetemp=WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def trained_history(cls, tmp_path_factory):
+        tmp = tmp_path_factory.mktemp("loss")
+>       trainer = _make_trainer(tmp, epochs=2)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_trainer.py:225: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_trainer.py:144: in _make_trainer
+    return ContrastiveTrainer(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <src.contrastive_learning.trainer.ContrastiveTrainer object at 0x00000181499582D0>
+head = ProjectionHead(
+  (net): Sequential(
+    (0): Linear(in_features=921, out_features=512, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=512, out_features=256, bias=True)
+  )
+)
+criterion = NTXentLoss(), learning_rate = 0.001, batch_size = 4, epochs = 2
+checkpoint_dir = WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50/loss0')
+val_split = 0.2, seed = 42
+
+    def __init__(
+        self,
+        head: ProjectionHead,
+        criterion: NTXentLoss,
+        learning_rate: float = 1e-3,
+        batch_size: int = 32,
+        epochs: int = 5,
+        checkpoint_dir: str | Path = Path("models") / "contrastive",
+        val_split: float = 0.2,
+        seed: int = 42,
+    ) -> None:
+        if learning_rate <= 0:
+            raise ValueError(f"learning_rate must be > 0, got {learning_rate}")
+        if batch_size < 2:
+            raise ValueError(f"batch_size must be >= 2, got {batch_size}")
+        if epochs <= 0:
+            raise ValueError(f"epochs must be > 0, got {epochs}")
+        if not (0 < val_split < 1):
+            raise ValueError(f"val_split must be in (0, 1), got {val_split}")
+    
+        self._head = head
+        self._criterion = criterion
+        self._batch_size = batch_size
+        self._epochs = epochs
+        _resolved_dir = Path(checkpoint_dir).resolve()
+        _project_root = Path(__file__).resolve().parents[2]
+        if not _resolved_dir.is_relative_to(_project_root):
+>           raise ValueError(f"checkpoint_dir must be inside the project directory: {_resolved_dir}")
+E           ValueError: checkpoint_dir must be inside the project directory: C:\Users\vinyt\AppData\Local\Temp\pytest-of-vinyt\pytest-50\loss0
+
+src\contrastive_learning\trainer.py:112: ValueError
+________ ERROR at setup of TestCheckpoint.test_checkpoint_file_exists _________
+
+cls = <class 'test_trainer.TestCheckpoint'>
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x00000181546A76F0>, _basetemp=WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def checkpoint_path(cls, tmp_path_factory):
+        tmp = tmp_path_factory.mktemp("ckpt")
+>       trainer = _make_trainer(tmp, epochs=2)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_trainer.py:241: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_trainer.py:144: in _make_trainer
+    return ContrastiveTrainer(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <src.contrastive_learning.trainer.ContrastiveTrainer object at 0x0000018149959270>
+head = ProjectionHead(
+  (net): Sequential(
+    (0): Linear(in_features=921, out_features=512, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=512, out_features=256, bias=True)
+  )
+)
+criterion = NTXentLoss(), learning_rate = 0.001, batch_size = 4, epochs = 2
+checkpoint_dir = WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50/ckpt0')
+val_split = 0.2, seed = 42
+
+    def __init__(
+        self,
+        head: ProjectionHead,
+        criterion: NTXentLoss,
+        learning_rate: float = 1e-3,
+        batch_size: int = 32,
+        epochs: int = 5,
+        checkpoint_dir: str | Path = Path("models") / "contrastive",
+        val_split: float = 0.2,
+        seed: int = 42,
+    ) -> None:
+        if learning_rate <= 0:
+            raise ValueError(f"learning_rate must be > 0, got {learning_rate}")
+        if batch_size < 2:
+            raise ValueError(f"batch_size must be >= 2, got {batch_size}")
+        if epochs <= 0:
+            raise ValueError(f"epochs must be > 0, got {epochs}")
+        if not (0 < val_split < 1):
+            raise ValueError(f"val_split must be in (0, 1), got {val_split}")
+    
+        self._head = head
+        self._criterion = criterion
+        self._batch_size = batch_size
+        self._epochs = epochs
+        _resolved_dir = Path(checkpoint_dir).resolve()
+        _project_root = Path(__file__).resolve().parents[2]
+        if not _resolved_dir.is_relative_to(_project_root):
+>           raise ValueError(f"checkpoint_dir must be inside the project directory: {_resolved_dir}")
+E           ValueError: checkpoint_dir must be inside the project directory: C:\Users\vinyt\AppData\Local\Temp\pytest-of-vinyt\pytest-50\ckpt0
+
+src\contrastive_learning\trainer.py:112: ValueError
+_______ ERROR at setup of TestCheckpoint.test_checkpoint_required_keys ________
+
+cls = <class 'test_trainer.TestCheckpoint'>
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x00000181546A76F0>, _basetemp=WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def checkpoint_path(cls, tmp_path_factory):
+        tmp = tmp_path_factory.mktemp("ckpt")
+>       trainer = _make_trainer(tmp, epochs=2)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_trainer.py:241: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_trainer.py:144: in _make_trainer
+    return ContrastiveTrainer(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <src.contrastive_learning.trainer.ContrastiveTrainer object at 0x0000018149959270>
+head = ProjectionHead(
+  (net): Sequential(
+    (0): Linear(in_features=921, out_features=512, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=512, out_features=256, bias=True)
+  )
+)
+criterion = NTXentLoss(), learning_rate = 0.001, batch_size = 4, epochs = 2
+checkpoint_dir = WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50/ckpt0')
+val_split = 0.2, seed = 42
+
+    def __init__(
+        self,
+        head: ProjectionHead,
+        criterion: NTXentLoss,
+        learning_rate: float = 1e-3,
+        batch_size: int = 32,
+        epochs: int = 5,
+        checkpoint_dir: str | Path = Path("models") / "contrastive",
+        val_split: float = 0.2,
+        seed: int = 42,
+    ) -> None:
+        if learning_rate <= 0:
+            raise ValueError(f"learning_rate must be > 0, got {learning_rate}")
+        if batch_size < 2:
+            raise ValueError(f"batch_size must be >= 2, got {batch_size}")
+        if epochs <= 0:
+            raise ValueError(f"epochs must be > 0, got {epochs}")
+        if not (0 < val_split < 1):
+            raise ValueError(f"val_split must be in (0, 1), got {val_split}")
+    
+        self._head = head
+        self._criterion = criterion
+        self._batch_size = batch_size
+        self._epochs = epochs
+        _resolved_dir = Path(checkpoint_dir).resolve()
+        _project_root = Path(__file__).resolve().parents[2]
+        if not _resolved_dir.is_relative_to(_project_root):
+>           raise ValueError(f"checkpoint_dir must be inside the project directory: {_resolved_dir}")
+E           ValueError: checkpoint_dir must be inside the project directory: C:\Users\vinyt\AppData\Local\Temp\pytest-of-vinyt\pytest-50\ckpt0
+
+src\contrastive_learning\trainer.py:112: ValueError
+___ ERROR at setup of TestCheckpoint.test_checkpoint_optimizer_state_exists ___
+
+cls = <class 'test_trainer.TestCheckpoint'>
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x00000181546A76F0>, _basetemp=WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def checkpoint_path(cls, tmp_path_factory):
+        tmp = tmp_path_factory.mktemp("ckpt")
+>       trainer = _make_trainer(tmp, epochs=2)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_trainer.py:241: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_trainer.py:144: in _make_trainer
+    return ContrastiveTrainer(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <src.contrastive_learning.trainer.ContrastiveTrainer object at 0x0000018149959270>
+head = ProjectionHead(
+  (net): Sequential(
+    (0): Linear(in_features=921, out_features=512, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=512, out_features=256, bias=True)
+  )
+)
+criterion = NTXentLoss(), learning_rate = 0.001, batch_size = 4, epochs = 2
+checkpoint_dir = WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50/ckpt0')
+val_split = 0.2, seed = 42
+
+    def __init__(
+        self,
+        head: ProjectionHead,
+        criterion: NTXentLoss,
+        learning_rate: float = 1e-3,
+        batch_size: int = 32,
+        epochs: int = 5,
+        checkpoint_dir: str | Path = Path("models") / "contrastive",
+        val_split: float = 0.2,
+        seed: int = 42,
+    ) -> None:
+        if learning_rate <= 0:
+            raise ValueError(f"learning_rate must be > 0, got {learning_rate}")
+        if batch_size < 2:
+            raise ValueError(f"batch_size must be >= 2, got {batch_size}")
+        if epochs <= 0:
+            raise ValueError(f"epochs must be > 0, got {epochs}")
+        if not (0 < val_split < 1):
+            raise ValueError(f"val_split must be in (0, 1), got {val_split}")
+    
+        self._head = head
+        self._criterion = criterion
+        self._batch_size = batch_size
+        self._epochs = epochs
+        _resolved_dir = Path(checkpoint_dir).resolve()
+        _project_root = Path(__file__).resolve().parents[2]
+        if not _resolved_dir.is_relative_to(_project_root):
+>           raise ValueError(f"checkpoint_dir must be inside the project directory: {_resolved_dir}")
+E           ValueError: checkpoint_dir must be inside the project directory: C:\Users\vinyt\AppData\Local\Temp\pytest-of-vinyt\pytest-50\ckpt0
+
+src\contrastive_learning\trainer.py:112: ValueError
+_______ ERROR at setup of TestCheckpoint.test_checkpoint_epoch_is_valid _______
+
+cls = <class 'test_trainer.TestCheckpoint'>
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x00000181546A76F0>, _basetemp=WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def checkpoint_path(cls, tmp_path_factory):
+        tmp = tmp_path_factory.mktemp("ckpt")
+>       trainer = _make_trainer(tmp, epochs=2)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_trainer.py:241: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_trainer.py:144: in _make_trainer
+    return ContrastiveTrainer(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <src.contrastive_learning.trainer.ContrastiveTrainer object at 0x0000018149959270>
+head = ProjectionHead(
+  (net): Sequential(
+    (0): Linear(in_features=921, out_features=512, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=512, out_features=256, bias=True)
+  )
+)
+criterion = NTXentLoss(), learning_rate = 0.001, batch_size = 4, epochs = 2
+checkpoint_dir = WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50/ckpt0')
+val_split = 0.2, seed = 42
+
+    def __init__(
+        self,
+        head: ProjectionHead,
+        criterion: NTXentLoss,
+        learning_rate: float = 1e-3,
+        batch_size: int = 32,
+        epochs: int = 5,
+        checkpoint_dir: str | Path = Path("models") / "contrastive",
+        val_split: float = 0.2,
+        seed: int = 42,
+    ) -> None:
+        if learning_rate <= 0:
+            raise ValueError(f"learning_rate must be > 0, got {learning_rate}")
+        if batch_size < 2:
+            raise ValueError(f"batch_size must be >= 2, got {batch_size}")
+        if epochs <= 0:
+            raise ValueError(f"epochs must be > 0, got {epochs}")
+        if not (0 < val_split < 1):
+            raise ValueError(f"val_split must be in (0, 1), got {val_split}")
+    
+        self._head = head
+        self._criterion = criterion
+        self._batch_size = batch_size
+        self._epochs = epochs
+        _resolved_dir = Path(checkpoint_dir).resolve()
+        _project_root = Path(__file__).resolve().parents[2]
+        if not _resolved_dir.is_relative_to(_project_root):
+>           raise ValueError(f"checkpoint_dir must be inside the project directory: {_resolved_dir}")
+E           ValueError: checkpoint_dir must be inside the project directory: C:\Users\vinyt\AppData\Local\Temp\pytest-of-vinyt\pytest-50\ckpt0
+
+src\contrastive_learning\trainer.py:112: ValueError
+_ ERROR at setup of TestCheckpoint.test_checkpoint_validation_loss_is_finite __
+
+cls = <class 'test_trainer.TestCheckpoint'>
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x00000181546A76F0>, _basetemp=WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def checkpoint_path(cls, tmp_path_factory):
+        tmp = tmp_path_factory.mktemp("ckpt")
+>       trainer = _make_trainer(tmp, epochs=2)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_trainer.py:241: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_trainer.py:144: in _make_trainer
+    return ContrastiveTrainer(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <src.contrastive_learning.trainer.ContrastiveTrainer object at 0x0000018149959270>
+head = ProjectionHead(
+  (net): Sequential(
+    (0): Linear(in_features=921, out_features=512, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=512, out_features=256, bias=True)
+  )
+)
+criterion = NTXentLoss(), learning_rate = 0.001, batch_size = 4, epochs = 2
+checkpoint_dir = WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50/ckpt0')
+val_split = 0.2, seed = 42
+
+    def __init__(
+        self,
+        head: ProjectionHead,
+        criterion: NTXentLoss,
+        learning_rate: float = 1e-3,
+        batch_size: int = 32,
+        epochs: int = 5,
+        checkpoint_dir: str | Path = Path("models") / "contrastive",
+        val_split: float = 0.2,
+        seed: int = 42,
+    ) -> None:
+        if learning_rate <= 0:
+            raise ValueError(f"learning_rate must be > 0, got {learning_rate}")
+        if batch_size < 2:
+            raise ValueError(f"batch_size must be >= 2, got {batch_size}")
+        if epochs <= 0:
+            raise ValueError(f"epochs must be > 0, got {epochs}")
+        if not (0 < val_split < 1):
+            raise ValueError(f"val_split must be in (0, 1), got {val_split}")
+    
+        self._head = head
+        self._criterion = criterion
+        self._batch_size = batch_size
+        self._epochs = epochs
+        _resolved_dir = Path(checkpoint_dir).resolve()
+        _project_root = Path(__file__).resolve().parents[2]
+        if not _resolved_dir.is_relative_to(_project_root):
+>           raise ValueError(f"checkpoint_dir must be inside the project directory: {_resolved_dir}")
+E           ValueError: checkpoint_dir must be inside the project directory: C:\Users\vinyt\AppData\Local\Temp\pytest-of-vinyt\pytest-50\ckpt0
+
+src\contrastive_learning\trainer.py:112: ValueError
+______ ERROR at setup of TestMakeBatches.test_batches_respect_batch_size ______
+
+cls = <class 'test_trainer.TestMakeBatches'>
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x00000181546A76F0>, _basetemp=WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def trainer(cls, tmp_path_factory):
+        tmp = tmp_path_factory.mktemp("batches")
+>       return _make_trainer(tmp, batch_size=4)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_trainer.py:301: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_trainer.py:144: in _make_trainer
+    return ContrastiveTrainer(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <src.contrastive_learning.trainer.ContrastiveTrainer object at 0x000001814995A8F0>
+head = ProjectionHead(
+  (net): Sequential(
+    (0): Linear(in_features=921, out_features=512, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=512, out_features=256, bias=True)
+  )
+)
+criterion = NTXentLoss(), learning_rate = 0.001, batch_size = 4, epochs = 2
+checkpoint_dir = WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50/batches0')
+val_split = 0.2, seed = 42
+
+    def __init__(
+        self,
+        head: ProjectionHead,
+        criterion: NTXentLoss,
+        learning_rate: float = 1e-3,
+        batch_size: int = 32,
+        epochs: int = 5,
+        checkpoint_dir: str | Path = Path("models") / "contrastive",
+        val_split: float = 0.2,
+        seed: int = 42,
+    ) -> None:
+        if learning_rate <= 0:
+            raise ValueError(f"learning_rate must be > 0, got {learning_rate}")
+        if batch_size < 2:
+            raise ValueError(f"batch_size must be >= 2, got {batch_size}")
+        if epochs <= 0:
+            raise ValueError(f"epochs must be > 0, got {epochs}")
+        if not (0 < val_split < 1):
+            raise ValueError(f"val_split must be in (0, 1), got {val_split}")
+    
+        self._head = head
+        self._criterion = criterion
+        self._batch_size = batch_size
+        self._epochs = epochs
+        _resolved_dir = Path(checkpoint_dir).resolve()
+        _project_root = Path(__file__).resolve().parents[2]
+        if not _resolved_dir.is_relative_to(_project_root):
+>           raise ValueError(f"checkpoint_dir must be inside the project directory: {_resolved_dir}")
+E           ValueError: checkpoint_dir must be inside the project directory: C:\Users\vinyt\AppData\Local\Temp\pytest-of-vinyt\pytest-50\batches0
+
+src\contrastive_learning\trainer.py:112: ValueError
+__________ ERROR at setup of TestMakeBatches.test_all_pairs_covered ___________
+
+cls = <class 'test_trainer.TestMakeBatches'>
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x00000181546A76F0>, _basetemp=WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def trainer(cls, tmp_path_factory):
+        tmp = tmp_path_factory.mktemp("batches")
+>       return _make_trainer(tmp, batch_size=4)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_trainer.py:301: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_trainer.py:144: in _make_trainer
+    return ContrastiveTrainer(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <src.contrastive_learning.trainer.ContrastiveTrainer object at 0x000001814995A8F0>
+head = ProjectionHead(
+  (net): Sequential(
+    (0): Linear(in_features=921, out_features=512, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=512, out_features=256, bias=True)
+  )
+)
+criterion = NTXentLoss(), learning_rate = 0.001, batch_size = 4, epochs = 2
+checkpoint_dir = WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50/batches0')
+val_split = 0.2, seed = 42
+
+    def __init__(
+        self,
+        head: ProjectionHead,
+        criterion: NTXentLoss,
+        learning_rate: float = 1e-3,
+        batch_size: int = 32,
+        epochs: int = 5,
+        checkpoint_dir: str | Path = Path("models") / "contrastive",
+        val_split: float = 0.2,
+        seed: int = 42,
+    ) -> None:
+        if learning_rate <= 0:
+            raise ValueError(f"learning_rate must be > 0, got {learning_rate}")
+        if batch_size < 2:
+            raise ValueError(f"batch_size must be >= 2, got {batch_size}")
+        if epochs <= 0:
+            raise ValueError(f"epochs must be > 0, got {epochs}")
+        if not (0 < val_split < 1):
+            raise ValueError(f"val_split must be in (0, 1), got {val_split}")
+    
+        self._head = head
+        self._criterion = criterion
+        self._batch_size = batch_size
+        self._epochs = epochs
+        _resolved_dir = Path(checkpoint_dir).resolve()
+        _project_root = Path(__file__).resolve().parents[2]
+        if not _resolved_dir.is_relative_to(_project_root):
+>           raise ValueError(f"checkpoint_dir must be inside the project directory: {_resolved_dir}")
+E           ValueError: checkpoint_dir must be inside the project directory: C:\Users\vinyt\AppData\Local\Temp\pytest-of-vinyt\pytest-50\batches0
+
+src\contrastive_learning\trainer.py:112: ValueError
+_ ERROR at setup of TestMakeBatches.test_final_batch_with_one_pair_is_dropped _
+
+cls = <class 'test_trainer.TestMakeBatches'>
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x00000181546A76F0>, _basetemp=WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def trainer(cls, tmp_path_factory):
+        tmp = tmp_path_factory.mktemp("batches")
+>       return _make_trainer(tmp, batch_size=4)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_trainer.py:301: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_trainer.py:144: in _make_trainer
+    return ContrastiveTrainer(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <src.contrastive_learning.trainer.ContrastiveTrainer object at 0x000001814995A8F0>
+head = ProjectionHead(
+  (net): Sequential(
+    (0): Linear(in_features=921, out_features=512, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=512, out_features=256, bias=True)
+  )
+)
+criterion = NTXentLoss(), learning_rate = 0.001, batch_size = 4, epochs = 2
+checkpoint_dir = WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50/batches0')
+val_split = 0.2, seed = 42
+
+    def __init__(
+        self,
+        head: ProjectionHead,
+        criterion: NTXentLoss,
+        learning_rate: float = 1e-3,
+        batch_size: int = 32,
+        epochs: int = 5,
+        checkpoint_dir: str | Path = Path("models") / "contrastive",
+        val_split: float = 0.2,
+        seed: int = 42,
+    ) -> None:
+        if learning_rate <= 0:
+            raise ValueError(f"learning_rate must be > 0, got {learning_rate}")
+        if batch_size < 2:
+            raise ValueError(f"batch_size must be >= 2, got {batch_size}")
+        if epochs <= 0:
+            raise ValueError(f"epochs must be > 0, got {epochs}")
+        if not (0 < val_split < 1):
+            raise ValueError(f"val_split must be in (0, 1), got {val_split}")
+    
+        self._head = head
+        self._criterion = criterion
+        self._batch_size = batch_size
+        self._epochs = epochs
+        _resolved_dir = Path(checkpoint_dir).resolve()
+        _project_root = Path(__file__).resolve().parents[2]
+        if not _resolved_dir.is_relative_to(_project_root):
+>           raise ValueError(f"checkpoint_dir must be inside the project directory: {_resolved_dir}")
+E           ValueError: checkpoint_dir must be inside the project directory: C:\Users\vinyt\AppData\Local\Temp\pytest-of-vinyt\pytest-50\batches0
+
+src\contrastive_learning\trainer.py:112: ValueError
+__ ERROR at setup of TestMakeBatches.test_final_batch_with_two_pairs_is_kept __
+
+cls = <class 'test_trainer.TestMakeBatches'>
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x00000181546A76F0>, _basetemp=WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def trainer(cls, tmp_path_factory):
+        tmp = tmp_path_factory.mktemp("batches")
+>       return _make_trainer(tmp, batch_size=4)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_trainer.py:301: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_trainer.py:144: in _make_trainer
+    return ContrastiveTrainer(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <src.contrastive_learning.trainer.ContrastiveTrainer object at 0x000001814995A8F0>
+head = ProjectionHead(
+  (net): Sequential(
+    (0): Linear(in_features=921, out_features=512, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=512, out_features=256, bias=True)
+  )
+)
+criterion = NTXentLoss(), learning_rate = 0.001, batch_size = 4, epochs = 2
+checkpoint_dir = WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50/batches0')
+val_split = 0.2, seed = 42
+
+    def __init__(
+        self,
+        head: ProjectionHead,
+        criterion: NTXentLoss,
+        learning_rate: float = 1e-3,
+        batch_size: int = 32,
+        epochs: int = 5,
+        checkpoint_dir: str | Path = Path("models") / "contrastive",
+        val_split: float = 0.2,
+        seed: int = 42,
+    ) -> None:
+        if learning_rate <= 0:
+            raise ValueError(f"learning_rate must be > 0, got {learning_rate}")
+        if batch_size < 2:
+            raise ValueError(f"batch_size must be >= 2, got {batch_size}")
+        if epochs <= 0:
+            raise ValueError(f"epochs must be > 0, got {epochs}")
+        if not (0 < val_split < 1):
+            raise ValueError(f"val_split must be in (0, 1), got {val_split}")
+    
+        self._head = head
+        self._criterion = criterion
+        self._batch_size = batch_size
+        self._epochs = epochs
+        _resolved_dir = Path(checkpoint_dir).resolve()
+        _project_root = Path(__file__).resolve().parents[2]
+        if not _resolved_dir.is_relative_to(_project_root):
+>           raise ValueError(f"checkpoint_dir must be inside the project directory: {_resolved_dir}")
+E           ValueError: checkpoint_dir must be inside the project directory: C:\Users\vinyt\AppData\Local\Temp\pytest-of-vinyt\pytest-50\batches0
+
+src\contrastive_learning\trainer.py:112: ValueError
+================================== FAILURES ===================================
+_____ TestMachineAwareBatching.test_single_machine_batches_one_pair_each ______
+
+self = <test_contrastive.TestMachineAwareBatching object at 0x000001816F798510>
+
+    def test_single_machine_batches_one_pair_each(self):
+        """With one machine, each batch contains exactly one pair."""
+        t = _trainer(batch_size=4)
+        pairs = _make_pairs([("pump", "id_00")], pairs_per_machine=6)
+        batches = t._make_machine_aware_batches(pairs)
+        for batch in batches:
+>           assert len(batch) == 1
+E           AssertionError: assert 4 == 1
+E            +  where 4 = len([ContrastivePair(anchor=FusedFeatureVector(machine_type='pump', machine_id='id_00', label='normal', filename='pump_id_...e-01, 7.05729783e-01,\n       6.87141657e-01], dtype=float32), created_at='2026-09-01T19:30:21.199425+00:00'), label=1)])
+
+tests\test_contrastive.py:222: AssertionError
+______ TestCheckpointSaving.test_checkpoint_is_saved_on_val_improvement _______
+
+self = <test_contrastive.TestCheckpointSaving object at 0x0000018172FA8A50>
+
+    def test_checkpoint_is_saved_on_val_improvement(self):
+        """fit() saves a checkpoint when validation loss improves."""
+        machines = [
+            ("pump", "id_00"), ("pump", "id_02"),
+            ("pump", "id_04"), ("pump", "id_06"),
+        ]
+        dataset = self._mock_dataset(machines)
+    
+        with tempfile.TemporaryDirectory() as tmp:
+>           t = ContrastiveTrainer(
+                head=_fresh_head(),
+                criterion=_criterion(),
+                learning_rate=1e-3,
+                batch_size=4,
+                epochs=2,
+                checkpoint_dir=tmp,
+                val_split=0.2,
+                seed=0,
+            )
+
+tests\test_contrastive.py:445: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <src.contrastive_learning.trainer.ContrastiveTrainer object at 0x000001817231B7D0>
+head = ProjectionHead(
+  (net): Sequential(
+    (0): Linear(in_features=921, out_features=512, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=512, out_features=256, bias=True)
+  )
+)
+criterion = NTXentLoss(), learning_rate = 0.001, batch_size = 4, epochs = 2
+checkpoint_dir = 'C:\\Users\\vinyt\\AppData\\Local\\Temp\\tmpvqm4w2yy'
+val_split = 0.2, seed = 0
+
+    def __init__(
+        self,
+        head: ProjectionHead,
+        criterion: NTXentLoss,
+        learning_rate: float = 1e-3,
+        batch_size: int = 32,
+        epochs: int = 5,
+        checkpoint_dir: str | Path = Path("models") / "contrastive",
+        val_split: float = 0.2,
+        seed: int = 42,
+    ) -> None:
+        if learning_rate <= 0:
+            raise ValueError(f"learning_rate must be > 0, got {learning_rate}")
+        if batch_size < 2:
+            raise ValueError(f"batch_size must be >= 2, got {batch_size}")
+        if epochs <= 0:
+            raise ValueError(f"epochs must be > 0, got {epochs}")
+        if not (0 < val_split < 1):
+            raise ValueError(f"val_split must be in (0, 1), got {val_split}")
+    
+        self._head = head
+        self._criterion = criterion
+        self._batch_size = batch_size
+        self._epochs = epochs
+        _resolved_dir = Path(checkpoint_dir).resolve()
+        _project_root = Path(__file__).resolve().parents[2]
+        if not _resolved_dir.is_relative_to(_project_root):
+>           raise ValueError(f"checkpoint_dir must be inside the project directory: {_resolved_dir}")
+E           ValueError: checkpoint_dir must be inside the project directory: C:\Users\vinyt\AppData\Local\Temp\tmpvqm4w2yy
+
+src\contrastive_learning\trainer.py:112: ValueError
+____________ TestCheckpointSaving.test_history_has_correct_length _____________
+
+self = <test_contrastive.TestCheckpointSaving object at 0x0000018172FA8B90>
+
+    def test_history_has_correct_length(self):
+        """history() returns one entry per epoch."""
+        machines = [("pump", "id_00"), ("pump", "id_02"), ("pump", "id_04"), ("pump", "id_06")]
+        dataset = self._mock_dataset(machines)
+    
+        with tempfile.TemporaryDirectory() as tmp:
+            n_epochs = 3
+>           t = ContrastiveTrainer(
+                head=_fresh_head(),
+                criterion=_criterion(),
+                learning_rate=1e-3,
+                batch_size=4,
+                epochs=n_epochs,
+                checkpoint_dir=tmp,
+                val_split=0.2,
+                seed=0,
+            )
+
+tests\test_contrastive.py:473: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <src.contrastive_learning.trainer.ContrastiveTrainer object at 0x00000181158DB750>
+head = ProjectionHead(
+  (net): Sequential(
+    (0): Linear(in_features=921, out_features=512, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=512, out_features=256, bias=True)
+  )
+)
+criterion = NTXentLoss(), learning_rate = 0.001, batch_size = 4, epochs = 3
+checkpoint_dir = 'C:\\Users\\vinyt\\AppData\\Local\\Temp\\tmp33oefn_6'
+val_split = 0.2, seed = 0
+
+    def __init__(
+        self,
+        head: ProjectionHead,
+        criterion: NTXentLoss,
+        learning_rate: float = 1e-3,
+        batch_size: int = 32,
+        epochs: int = 5,
+        checkpoint_dir: str | Path = Path("models") / "contrastive",
+        val_split: float = 0.2,
+        seed: int = 42,
+    ) -> None:
+        if learning_rate <= 0:
+            raise ValueError(f"learning_rate must be > 0, got {learning_rate}")
+        if batch_size < 2:
+            raise ValueError(f"batch_size must be >= 2, got {batch_size}")
+        if epochs <= 0:
+            raise ValueError(f"epochs must be > 0, got {epochs}")
+        if not (0 < val_split < 1):
+            raise ValueError(f"val_split must be in (0, 1), got {val_split}")
+    
+        self._head = head
+        self._criterion = criterion
+        self._batch_size = batch_size
+        self._epochs = epochs
+        _resolved_dir = Path(checkpoint_dir).resolve()
+        _project_root = Path(__file__).resolve().parents[2]
+        if not _resolved_dir.is_relative_to(_project_root):
+>           raise ValueError(f"checkpoint_dir must be inside the project directory: {_resolved_dir}")
+E           ValueError: checkpoint_dir must be inside the project directory: C:\Users\vinyt\AppData\Local\Temp\tmp33oefn_6
+
+src\contrastive_learning\trainer.py:112: ValueError
+___ TestExplicitRecordingsInterface.test_only_supplied_recordings_are_used ____
+
+self = <test_contrastive.TestExplicitRecordingsInterface object at 0x0000018172FA8F50>
+
+    def test_only_supplied_recordings_are_used(self):
+        # Use globally unique filenames so there is no filename collision
+        # between the two groups.
+        train = [_meta("pump", "id_00", "normal", f"train_{i:08d}.wav") for i in range(10)]
+        other = [_meta("pump", "id_02", "normal", f"other_{i:08d}.wav") for i in range(10)]
+    
+>       ds = self._make_dataset_with_mock_cache(train)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_contrastive.py:677: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_contrastive.py:663: in _make_dataset_with_mock_cache
+    ds = _ContrastiveDataset(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <src.contrastive_learning.dataset.ContrastiveDataset object at 0x00000181158A6120>
+dataset_root = None, checkpoint_path = '/fake/beats.pt'
+cache_root = '/fake/cache', seed = 42, machine_type = None, machine_id = None
+max_recordings = None, val_split = 0.2
+recordings = [AudioMetadata(machine_type='pump', machine_id='id_00', label='normal', filename='train_00000000.wav', relative_path=W...train_00000005.wav'), absolute_path=WindowsPath('/fake/pump/id_00/normal/train_00000005.wav'), is_uploaded=False), ...]
+
+    def __init__(
+        self,
+        dataset_root: str | Path | None = None,
+        checkpoint_path: str | Path | None = None,
+        cache_root: str | Path | None = None,
+        seed: int = 42,
+        machine_type: str | None = None,
+        machine_id: str | None = None,
+        max_recordings: int | None = None,
+        val_split: float = 0.2,
+        recordings: list[AudioMetadata] | None = None,
+    ) -> None:
+        if not (0 < val_split < 1):
+            raise ValueError(f"val_split must be in (0, 1), got {val_split}")
+    
+        if recordings is not None and dataset_root is not None:
+            raise ValueError("Provide either 'recordings' or 'dataset_root', not both.")
+        if recordings is None and dataset_root is None:
+            raise ValueError("Either 'recordings' or 'dataset_root' must be provided.")
+    
+        # Validate explicit recordings before constructing any heavy objects.
+        if recordings is not None:
+            self._validate_explicit_recordings(recordings)
+    
+        self._rng = random.Random(seed)
+        self._val_split = val_split
+>       self._cache = self._build_cache(checkpoint_path, cache_root)
+                      ^^^^^^^^^^^^^^^^^
+E       AttributeError: 'ContrastiveDataset' object has no attribute '_build_cache'
+
+src\contrastive_learning\dataset.py:125: AttributeError
+_____ TestProtocolAlignment.test_stat_keys_are_subset_of_extractor_output _____
+
+self = <test_e1_baseline_evaluation.TestProtocolAlignment object at 0x000001817423C050>
+
+    def test_stat_keys_are_subset_of_extractor_output(self):
+        """B2 stat keys must exist in FeatureExtractor output."""
+        from src.feature_extraction.extractor import FeatureExtractor
+        import numpy as np
+    
+        extractor = FeatureExtractor(sample_rate=16_000)
+        dummy_waveform = np.zeros(16_000, dtype=np.float32)
+>       features = extractor.extract(dummy_waveform)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_e1_baseline_evaluation.py:424: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\feature_extraction\extractor.py:56: in extract
+    features.update(self._mfcc.extract(waveform))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <src.feature_extraction.mfcc.MFCCExtractor object at 0x0000018115B37890>
+waveform = array([0., 0., 0., ..., 0., 0., 0.], shape=(16000,), dtype=float32)
+
+    def extract(self, waveform: np.ndarray) -> dict[str, float]:
+        """Extract MFCC-family statistics from a waveform.
+    
+        Args:
+            waveform: 1-D float32 audio waveform.
+    
+        Returns:
+            Flat dict of ``n_mfcc * 2 * 3`` named float values covering
+            mean and std for MFCC, delta-MFCC, and delta-delta-MFCC.
+        """
+>       mfcc = librosa.feature.mfcc(y=waveform, sr=self._sr, n_mfcc=self._n_mfcc)
+               ^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'librosa.feature' has no attribute 'mfcc'
+
+src\feature_extraction\mfcc.py:51: AttributeError
+______ TestProjectionHead.test_save_and_load_weights_preserve_parameters ______
+
+self = <test_projection.TestProjectionHead object at 0x000001810FBBA780>
+fresh_head = ProjectionHead(
+  (net): Sequential(
+    (0): Linear(in_features=921, out_features=512, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=512, out_features=256, bias=True)
+  )
+)
+sample_input = tensor([[-1.1258, -1.1524, -0.2506,  ..., -0.5896,  1.0007, -1.3174],
+        [ 0.0056,  0.5679, -1.4192,  ..., -0.116...3796, -0.0114,  ..., -0.9629,  0.2956, -0.5183],
+        [ 1.9964, -0.3472,  1.0322,  ...,  1.2694,  0.0927,  0.0979]])
+
+    def test_save_and_load_weights_preserve_parameters(self, fresh_head, sample_input):
+        """save_weights / load_weights round-trip preserves all parameters."""
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "head.pt"
+>           fresh_head.save_weights(path)
+
+tests\test_projection.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = ProjectionHead(
+  (net): Sequential(
+    (0): Linear(in_features=921, out_features=512, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=512, out_features=256, bias=True)
+  )
+)
+path = WindowsPath('C:/Users/vinyt/AppData/Local/Temp/tmpeofaxsw7/head.pt')
+
+    def save_weights(self, path: str | Path) -> None:
+        """Save model weights to *path* using :func:`torch.save`.
+    
+        Args:
+            path: Destination file path (e.g. ``models/projection_head.pt``).
+        """
+        path = Path(path).resolve()
+        _project_root = Path(__file__).resolve().parents[2]
+        if not path.is_relative_to(_project_root):
+>           raise ValueError(f"save path must be inside the project directory: {path}")
+E           ValueError: save path must be inside the project directory: C:\Users\vinyt\AppData\Local\Temp\tmpeofaxsw7\head.pt
+
+src\contrastive_learning\model.py:78: ValueError
+___________ TestTrainerInitialization.test_initialization_succeeds ____________
+
+self = <test_trainer.TestTrainerInitialization object at 0x000001810FC1F4D0>
+tmp_path = WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50/test_initialization_succeeds0')
+
+    def test_initialization_succeeds(self, tmp_path):
+>       trainer = _make_trainer(tmp_path)
+                  ^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_trainer.py:179: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_trainer.py:144: in _make_trainer
+    return ContrastiveTrainer(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <src.contrastive_learning.trainer.ContrastiveTrainer object at 0x000001811C5FC9F0>
+head = ProjectionHead(
+  (net): Sequential(
+    (0): Linear(in_features=921, out_features=512, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=512, out_features=256, bias=True)
+  )
+)
+criterion = NTXentLoss(), learning_rate = 0.001, batch_size = 4, epochs = 2
+checkpoint_dir = WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50/test_initialization_succeeds0')
+val_split = 0.2, seed = 42
+
+    def __init__(
+        self,
+        head: ProjectionHead,
+        criterion: NTXentLoss,
+        learning_rate: float = 1e-3,
+        batch_size: int = 32,
+        epochs: int = 5,
+        checkpoint_dir: str | Path = Path("models") / "contrastive",
+        val_split: float = 0.2,
+        seed: int = 42,
+    ) -> None:
+        if learning_rate <= 0:
+            raise ValueError(f"learning_rate must be > 0, got {learning_rate}")
+        if batch_size < 2:
+            raise ValueError(f"batch_size must be >= 2, got {batch_size}")
+        if epochs <= 0:
+            raise ValueError(f"epochs must be > 0, got {epochs}")
+        if not (0 < val_split < 1):
+            raise ValueError(f"val_split must be in (0, 1), got {val_split}")
+    
+        self._head = head
+        self._criterion = criterion
+        self._batch_size = batch_size
+        self._epochs = epochs
+        _resolved_dir = Path(checkpoint_dir).resolve()
+        _project_root = Path(__file__).resolve().parents[2]
+        if not _resolved_dir.is_relative_to(_project_root):
+>           raise ValueError(f"checkpoint_dir must be inside the project directory: {_resolved_dir}")
+E           ValueError: checkpoint_dir must be inside the project directory: C:\Users\vinyt\AppData\Local\Temp\pytest-of-vinyt\pytest-50\test_initialization_succeeds0
+
+src\contrastive_learning\trainer.py:112: ValueError
+__________________ TestTrainingCompletes.test_fit_completes ___________________
+
+self = <test_trainer.TestTrainingCompletes object at 0x000001810FC1F890>
+tmp_path = WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50/test_fit_completes0')
+
+    def test_fit_completes(self, tmp_path):
+>       trainer = _make_trainer(tmp_path)
+                  ^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_trainer.py:201: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_trainer.py:144: in _make_trainer
+    return ContrastiveTrainer(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <src.contrastive_learning.trainer.ContrastiveTrainer object at 0x000001811C7E4410>
+head = ProjectionHead(
+  (net): Sequential(
+    (0): Linear(in_features=921, out_features=512, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=512, out_features=256, bias=True)
+  )
+)
+criterion = NTXentLoss(), learning_rate = 0.001, batch_size = 4, epochs = 2
+checkpoint_dir = WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50/test_fit_completes0')
+val_split = 0.2, seed = 42
+
+    def __init__(
+        self,
+        head: ProjectionHead,
+        criterion: NTXentLoss,
+        learning_rate: float = 1e-3,
+        batch_size: int = 32,
+        epochs: int = 5,
+        checkpoint_dir: str | Path = Path("models") / "contrastive",
+        val_split: float = 0.2,
+        seed: int = 42,
+    ) -> None:
+        if learning_rate <= 0:
+            raise ValueError(f"learning_rate must be > 0, got {learning_rate}")
+        if batch_size < 2:
+            raise ValueError(f"batch_size must be >= 2, got {batch_size}")
+        if epochs <= 0:
+            raise ValueError(f"epochs must be > 0, got {epochs}")
+        if not (0 < val_split < 1):
+            raise ValueError(f"val_split must be in (0, 1), got {val_split}")
+    
+        self._head = head
+        self._criterion = criterion
+        self._batch_size = batch_size
+        self._epochs = epochs
+        _resolved_dir = Path(checkpoint_dir).resolve()
+        _project_root = Path(__file__).resolve().parents[2]
+        if not _resolved_dir.is_relative_to(_project_root):
+>           raise ValueError(f"checkpoint_dir must be inside the project directory: {_resolved_dir}")
+E           ValueError: checkpoint_dir must be inside the project directory: C:\Users\vinyt\AppData\Local\Temp\pytest-of-vinyt\pytest-50\test_fit_completes0
+
+src\contrastive_learning\trainer.py:112: ValueError
+___________________ TestTrainingCompletes.test_history_keys ___________________
+
+self = <test_trainer.TestTrainingCompletes object at 0x000001810FC1FC50>
+tmp_path = WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50/test_history_keys0')
+
+    def test_history_keys(self, tmp_path):
+>       trainer = _make_trainer(tmp_path)
+                  ^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_trainer.py:205: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_trainer.py:144: in _make_trainer
+    return ContrastiveTrainer(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <src.contrastive_learning.trainer.ContrastiveTrainer object at 0x0000018143C713B0>
+head = ProjectionHead(
+  (net): Sequential(
+    (0): Linear(in_features=921, out_features=512, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=512, out_features=256, bias=True)
+  )
+)
+criterion = NTXentLoss(), learning_rate = 0.001, batch_size = 4, epochs = 2
+checkpoint_dir = WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50/test_history_keys0')
+val_split = 0.2, seed = 42
+
+    def __init__(
+        self,
+        head: ProjectionHead,
+        criterion: NTXentLoss,
+        learning_rate: float = 1e-3,
+        batch_size: int = 32,
+        epochs: int = 5,
+        checkpoint_dir: str | Path = Path("models") / "contrastive",
+        val_split: float = 0.2,
+        seed: int = 42,
+    ) -> None:
+        if learning_rate <= 0:
+            raise ValueError(f"learning_rate must be > 0, got {learning_rate}")
+        if batch_size < 2:
+            raise ValueError(f"batch_size must be >= 2, got {batch_size}")
+        if epochs <= 0:
+            raise ValueError(f"epochs must be > 0, got {epochs}")
+        if not (0 < val_split < 1):
+            raise ValueError(f"val_split must be in (0, 1), got {val_split}")
+    
+        self._head = head
+        self._criterion = criterion
+        self._batch_size = batch_size
+        self._epochs = epochs
+        _resolved_dir = Path(checkpoint_dir).resolve()
+        _project_root = Path(__file__).resolve().parents[2]
+        if not _resolved_dir.is_relative_to(_project_root):
+>           raise ValueError(f"checkpoint_dir must be inside the project directory: {_resolved_dir}")
+E           ValueError: checkpoint_dir must be inside the project directory: C:\Users\vinyt\AppData\Local\Temp\pytest-of-vinyt\pytest-50\test_history_keys0
+
+src\contrastive_learning\trainer.py:112: ValueError
+___________ TestTrainingCompletes.test_history_length_equals_epochs ___________
+
+self = <test_trainer.TestTrainingCompletes object at 0x000001810FBBB5C0>
+tmp_path = WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50/test_history_length_equals_epo0')
+
+    def test_history_length_equals_epochs(self, tmp_path):
+        epochs = 3
+>       trainer = _make_trainer(tmp_path, epochs=epochs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_trainer.py:213: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_trainer.py:144: in _make_trainer
+    return ContrastiveTrainer(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <src.contrastive_learning.trainer.ContrastiveTrainer object at 0x00000181482ED810>
+head = ProjectionHead(
+  (net): Sequential(
+    (0): Linear(in_features=921, out_features=512, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=512, out_features=256, bias=True)
+  )
+)
+criterion = NTXentLoss(), learning_rate = 0.001, batch_size = 4, epochs = 3
+checkpoint_dir = WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50/test_history_length_equals_epo0')
+val_split = 0.2, seed = 42
+
+    def __init__(
+        self,
+        head: ProjectionHead,
+        criterion: NTXentLoss,
+        learning_rate: float = 1e-3,
+        batch_size: int = 32,
+        epochs: int = 5,
+        checkpoint_dir: str | Path = Path("models") / "contrastive",
+        val_split: float = 0.2,
+        seed: int = 42,
+    ) -> None:
+        if learning_rate <= 0:
+            raise ValueError(f"learning_rate must be > 0, got {learning_rate}")
+        if batch_size < 2:
+            raise ValueError(f"batch_size must be >= 2, got {batch_size}")
+        if epochs <= 0:
+            raise ValueError(f"epochs must be > 0, got {epochs}")
+        if not (0 < val_split < 1):
+            raise ValueError(f"val_split must be in (0, 1), got {val_split}")
+    
+        self._head = head
+        self._criterion = criterion
+        self._batch_size = batch_size
+        self._epochs = epochs
+        _resolved_dir = Path(checkpoint_dir).resolve()
+        _project_root = Path(__file__).resolve().parents[2]
+        if not _resolved_dir.is_relative_to(_project_root):
+>           raise ValueError(f"checkpoint_dir must be inside the project directory: {_resolved_dir}")
+E           ValueError: checkpoint_dir must be inside the project directory: C:\Users\vinyt\AppData\Local\Temp\pytest-of-vinyt\pytest-50\test_history_length_equals_epo0
+
+src\contrastive_learning\trainer.py:112: ValueError
+________________ TestEdgeCases.test_too_few_train_pairs_raises ________________
+
+self = <test_trainer.TestEdgeCases object at 0x000001810FCB42D0>
+tmp_path = WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50/test_too_few_train_pairs_raise0')
+
+    def test_too_few_train_pairs_raises(self, tmp_path):
+        dataset = FakeContrastiveDataset(
+            train_positive_pairs=_make_pairs(1),
+            val_positive_pairs=_make_pairs(4),
+        )
+>       trainer = _make_trainer(tmp_path)
+                  ^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_trainer.py:275: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_trainer.py:144: in _make_trainer
+    return ContrastiveTrainer(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <src.contrastive_learning.trainer.ContrastiveTrainer object at 0x000001814995A2B0>
+head = ProjectionHead(
+  (net): Sequential(
+    (0): Linear(in_features=921, out_features=512, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=512, out_features=256, bias=True)
+  )
+)
+criterion = NTXentLoss(), learning_rate = 0.001, batch_size = 4, epochs = 2
+checkpoint_dir = WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50/test_too_few_train_pairs_raise0')
+val_split = 0.2, seed = 42
+
+    def __init__(
+        self,
+        head: ProjectionHead,
+        criterion: NTXentLoss,
+        learning_rate: float = 1e-3,
+        batch_size: int = 32,
+        epochs: int = 5,
+        checkpoint_dir: str | Path = Path("models") / "contrastive",
+        val_split: float = 0.2,
+        seed: int = 42,
+    ) -> None:
+        if learning_rate <= 0:
+            raise ValueError(f"learning_rate must be > 0, got {learning_rate}")
+        if batch_size < 2:
+            raise ValueError(f"batch_size must be >= 2, got {batch_size}")
+        if epochs <= 0:
+            raise ValueError(f"epochs must be > 0, got {epochs}")
+        if not (0 < val_split < 1):
+            raise ValueError(f"val_split must be in (0, 1), got {val_split}")
+    
+        self._head = head
+        self._criterion = criterion
+        self._batch_size = batch_size
+        self._epochs = epochs
+        _resolved_dir = Path(checkpoint_dir).resolve()
+        _project_root = Path(__file__).resolve().parents[2]
+        if not _resolved_dir.is_relative_to(_project_root):
+>           raise ValueError(f"checkpoint_dir must be inside the project directory: {_resolved_dir}")
+E           ValueError: checkpoint_dir must be inside the project directory: C:\Users\vinyt\AppData\Local\Temp\pytest-of-vinyt\pytest-50\test_too_few_train_pairs_raise0
+
+src\contrastive_learning\trainer.py:112: ValueError
+_________________ TestEdgeCases.test_too_few_val_pairs_raises _________________
+
+self = <test_trainer.TestEdgeCases object at 0x000001810FCB4410>
+tmp_path = WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50/test_too_few_val_pairs_raises0')
+
+    def test_too_few_val_pairs_raises(self, tmp_path):
+        dataset = FakeContrastiveDataset(
+            train_positive_pairs=_make_pairs(10),
+            val_positive_pairs=_make_pairs(1),
+        )
+>       trainer = _make_trainer(tmp_path)
+                  ^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_trainer.py:284: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_trainer.py:144: in _make_trainer
+    return ContrastiveTrainer(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <src.contrastive_learning.trainer.ContrastiveTrainer object at 0x000001814995A170>
+head = ProjectionHead(
+  (net): Sequential(
+    (0): Linear(in_features=921, out_features=512, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=512, out_features=256, bias=True)
+  )
+)
+criterion = NTXentLoss(), learning_rate = 0.001, batch_size = 4, epochs = 2
+checkpoint_dir = WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50/test_too_few_val_pairs_raises0')
+val_split = 0.2, seed = 42
+
+    def __init__(
+        self,
+        head: ProjectionHead,
+        criterion: NTXentLoss,
+        learning_rate: float = 1e-3,
+        batch_size: int = 32,
+        epochs: int = 5,
+        checkpoint_dir: str | Path = Path("models") / "contrastive",
+        val_split: float = 0.2,
+        seed: int = 42,
+    ) -> None:
+        if learning_rate <= 0:
+            raise ValueError(f"learning_rate must be > 0, got {learning_rate}")
+        if batch_size < 2:
+            raise ValueError(f"batch_size must be >= 2, got {batch_size}")
+        if epochs <= 0:
+            raise ValueError(f"epochs must be > 0, got {epochs}")
+        if not (0 < val_split < 1):
+            raise ValueError(f"val_split must be in (0, 1), got {val_split}")
+    
+        self._head = head
+        self._criterion = criterion
+        self._batch_size = batch_size
+        self._epochs = epochs
+        _resolved_dir = Path(checkpoint_dir).resolve()
+        _project_root = Path(__file__).resolve().parents[2]
+        if not _resolved_dir.is_relative_to(_project_root):
+>           raise ValueError(f"checkpoint_dir must be inside the project directory: {_resolved_dir}")
+E           ValueError: checkpoint_dir must be inside the project directory: C:\Users\vinyt\AppData\Local\Temp\pytest-of-vinyt\pytest-50\test_too_few_val_pairs_raises0
+
+src\contrastive_learning\trainer.py:112: ValueError
+___________ TestMultipleEpochs.test_history_has_one_entry_per_epoch ___________
+
+self = <test_trainer.TestMultipleEpochs object at 0x000001810FCB47D0>
+tmp_path = WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50/test_history_has_one_entry_per0')
+
+    def test_history_has_one_entry_per_epoch(self, tmp_path):
+        for epochs in (1, 3, 5):
+>           trainer = _make_trainer(tmp_path / str(epochs), epochs=epochs)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_trainer.py:337: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_trainer.py:144: in _make_trainer
+    return ContrastiveTrainer(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <src.contrastive_learning.trainer.ContrastiveTrainer object at 0x0000018149959590>
+head = ProjectionHead(
+  (net): Sequential(
+    (0): Linear(in_features=921, out_features=512, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=512, out_features=256, bias=True)
+  )
+)
+criterion = NTXentLoss(), learning_rate = 0.001, batch_size = 4, epochs = 1
+checkpoint_dir = WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50/test_history_has_one_entry_per0/1')
+val_split = 0.2, seed = 42
+
+    def __init__(
+        self,
+        head: ProjectionHead,
+        criterion: NTXentLoss,
+        learning_rate: float = 1e-3,
+        batch_size: int = 32,
+        epochs: int = 5,
+        checkpoint_dir: str | Path = Path("models") / "contrastive",
+        val_split: float = 0.2,
+        seed: int = 42,
+    ) -> None:
+        if learning_rate <= 0:
+            raise ValueError(f"learning_rate must be > 0, got {learning_rate}")
+        if batch_size < 2:
+            raise ValueError(f"batch_size must be >= 2, got {batch_size}")
+        if epochs <= 0:
+            raise ValueError(f"epochs must be > 0, got {epochs}")
+        if not (0 < val_split < 1):
+            raise ValueError(f"val_split must be in (0, 1), got {val_split}")
+    
+        self._head = head
+        self._criterion = criterion
+        self._batch_size = batch_size
+        self._epochs = epochs
+        _resolved_dir = Path(checkpoint_dir).resolve()
+        _project_root = Path(__file__).resolve().parents[2]
+        if not _resolved_dir.is_relative_to(_project_root):
+>           raise ValueError(f"checkpoint_dir must be inside the project directory: {_resolved_dir}")
+E           ValueError: checkpoint_dir must be inside the project directory: C:\Users\vinyt\AppData\Local\Temp\pytest-of-vinyt\pytest-50\test_history_has_one_entry_per0\1
+
+src\contrastive_learning\trainer.py:112: ValueError
+________ TestModelActuallyTrains.test_parameters_change_after_training ________
+
+self = <test_trainer.TestModelActuallyTrains object at 0x000001810FCB4910>
+tmp_path = WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50/test_parameters_change_after_t0')
+
+    def test_parameters_change_after_training(self, tmp_path):
+        torch.manual_seed(0)
+        head = ProjectionHead()
+        before = head.net[0].weight.detach().clone()
+    
+>       trainer = ContrastiveTrainer(
+            head=head,
+            criterion=NTXentLoss(temperature=0.1),
+            learning_rate=1e-3,
+            batch_size=4,
+            epochs=1,
+            checkpoint_dir=tmp_path,
+        )
+
+tests\test_trainer.py:350: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <src.contrastive_learning.trainer.ContrastiveTrainer object at 0x00000181499596D0>
+head = ProjectionHead(
+  (net): Sequential(
+    (0): Linear(in_features=921, out_features=512, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=512, out_features=256, bias=True)
+  )
+)
+criterion = NTXentLoss(), learning_rate = 0.001, batch_size = 4, epochs = 1
+checkpoint_dir = WindowsPath('C:/Users/vinyt/AppData/Local/Temp/pytest-of-vinyt/pytest-50/test_parameters_change_after_t0')
+val_split = 0.2, seed = 42
+
+    def __init__(
+        self,
+        head: ProjectionHead,
+        criterion: NTXentLoss,
+        learning_rate: float = 1e-3,
+        batch_size: int = 32,
+        epochs: int = 5,
+        checkpoint_dir: str | Path = Path("models") / "contrastive",
+        val_split: float = 0.2,
+        seed: int = 42,
+    ) -> None:
+        if learning_rate <= 0:
+            raise ValueError(f"learning_rate must be > 0, got {learning_rate}")
+        if batch_size < 2:
+            raise ValueError(f"batch_size must be >= 2, got {batch_size}")
+        if epochs <= 0:
+            raise ValueError(f"epochs must be > 0, got {epochs}")
+        if not (0 < val_split < 1):
+            raise ValueError(f"val_split must be in (0, 1), got {val_split}")
+    
+        self._head = head
+        self._criterion = criterion
+        self._batch_size = batch_size
+        self._epochs = epochs
+        _resolved_dir = Path(checkpoint_dir).resolve()
+        _project_root = Path(__file__).resolve().parents[2]
+        if not _resolved_dir.is_relative_to(_project_root):
+>           raise ValueError(f"checkpoint_dir must be inside the project directory: {_resolved_dir}")
+E           ValueError: checkpoint_dir must be inside the project directory: C:\Users\vinyt\AppData\Local\Temp\pytest-of-vinyt\pytest-50\test_parameters_change_after_t0
+
+src\contrastive_learning\trainer.py:112: ValueError
+============================== warnings summary ===============================
+tests/test_beats.py::TestBEATsEncoder::test_loads_successfully
+tests/test_drift.py::TestLearnedDriftAnalyzer::test_returns_learned_drift_result
+tests/test_drift.py::TestLearnedDriftAnalyzer::test_machine_type_mismatch_raises_value_error
+tests/test_drift.py::TestLearnedDriftAnalyzer::test_machine_id_mismatch_raises_value_error
+tests/test_health.py::TestLearnedHealthAnalyzer::test_returns_learned_health_result
+tests/test_pipeline.py::TestInferencePipeline::test_executes_successfully
+tests/test_pipeline.py::TestPipelineBenchmark::test_benchmark_executes_successfully
+tests/test_profile.py::TestLearnedFingerprintProfile::test_invalid_machine_raises_value_error
+  C:\Users\vinyt\AppData\Roaming\Python\Python314\site-packages\torch\nn\utils\weight_norm.py:144: FutureWarning: `torch.nn.utils.weight_norm` is deprecated in favor of `torch.nn.utils.parametrizations.weight_norm`.
+    WeightNorm.apply(module, name, dim)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_contrastive.py::TestMachineAwareBatching::test_single_machine_batches_one_pair_each
+FAILED tests/test_contrastive.py::TestCheckpointSaving::test_checkpoint_is_saved_on_val_improvement
+FAILED tests/test_contrastive.py::TestCheckpointSaving::test_history_has_correct_length
+FAILED tests/test_contrastive.py::TestExplicitRecordingsInterface::test_only_supplied_recordings_are_used
+FAILED tests/test_e1_baseline_evaluation.py::TestProtocolAlignment::test_stat_keys_are_subset_of_extractor_output
+FAILED tests/test_projection.py::TestProjectionHead::test_save_and_load_weights_preserve_parameters
+FAILED tests/test_trainer.py::TestTrainerInitialization::test_initialization_succeeds
+FAILED tests/test_trainer.py::TestTrainingCompletes::test_fit_completes - Val...
+FAILED tests/test_trainer.py::TestTrainingCompletes::test_history_keys - Valu...
+FAILED tests/test_trainer.py::TestTrainingCompletes::test_history_length_equals_epochs
+FAILED tests/test_trainer.py::TestEdgeCases::test_too_few_train_pairs_raises
+FAILED tests/test_trainer.py::TestEdgeCases::test_too_few_val_pairs_raises - ...
+FAILED tests/test_trainer.py::TestMultipleEpochs::test_history_has_one_entry_per_epoch
+FAILED tests/test_trainer.py::TestModelActuallyTrains::test_parameters_change_after_training
+ERROR tests/test_trainer.py::TestLossValues::test_training_losses_are_finite
+ERROR tests/test_trainer.py::TestLossValues::test_validation_losses_are_finite
+ERROR tests/test_trainer.py::TestCheckpoint::test_checkpoint_file_exists - Va...
+ERROR tests/test_trainer.py::TestCheckpoint::test_checkpoint_required_keys - ...
+ERROR tests/test_trainer.py::TestCheckpoint::test_checkpoint_optimizer_state_exists
+ERROR tests/test_trainer.py::TestCheckpoint::test_checkpoint_epoch_is_valid
+ERROR tests/test_trainer.py::TestCheckpoint::test_checkpoint_validation_loss_is_finite
+ERROR tests/test_trainer.py::TestMakeBatches::test_batches_respect_batch_size
+ERROR tests/test_trainer.py::TestMakeBatches::test_all_pairs_covered - ValueE...
+ERROR tests/test_trainer.py::TestMakeBatches::test_final_batch_with_one_pair_is_dropped
+ERROR tests/test_trainer.py::TestMakeBatches::test_final_batch_with_two_pairs_is_kept
+14 failed, 774 passed, 8 warnings, 11 errors in 69.02s (0:01:09)
