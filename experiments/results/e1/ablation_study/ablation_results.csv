@@ -1,0 +1,21 @@
+ablation_id,ablation_name,machine_id,n_normal,n_abnormal,auroc,separation_ratio
+FM_full_method,Full Method (DSP + BEATs + Contrastive ProjectionHead),id_00,152,143,0.7836,2.3389
+FM_full_method,Full Method (DSP + BEATs + Contrastive ProjectionHead),id_02,152,111,0.8046,1.7205
+FM_full_method,Full Method (DSP + BEATs + Contrastive ProjectionHead),id_04,106,100,0.9578,4.0659
+FM_full_method,Full Method (DSP + BEATs + Contrastive ProjectionHead),id_06,156,102,0.6851,2.1632
+A1_no_beats,Ablation A1 — No BEATs (DSP-only),id_00,152,143,0.6862,1.5276
+A1_no_beats,Ablation A1 — No BEATs (DSP-only),id_02,152,111,0.6255,1.2478
+A1_no_beats,Ablation A1 — No BEATs (DSP-only),id_04,106,100,0.9592,4.4392
+A1_no_beats,Ablation A1 — No BEATs (DSP-only),id_06,156,102,0.7191,1.6807
+A2_no_dsp,Ablation A2 — No DSP (BEATs-only),id_00,152,143,0.8683,1.9803
+A2_no_dsp,Ablation A2 — No DSP (BEATs-only),id_02,152,111,0.8699,1.8483
+A2_no_dsp,Ablation A2 — No DSP (BEATs-only),id_04,106,100,0.9502,2.8513
+A2_no_dsp,Ablation A2 — No DSP (BEATs-only),id_06,156,102,0.7318,1.6514
+A3_no_contrastive,Ablation A3 — No Contrastive Training (random ProjectionHead),id_00,152,143,0.5586,1.1443
+A3_no_contrastive,Ablation A3 — No Contrastive Training (random ProjectionHead),id_02,152,111,0.655,1.2437
+A3_no_contrastive,Ablation A3 — No Contrastive Training (random ProjectionHead),id_04,106,100,0.5852,1.2166
+A3_no_contrastive,Ablation A3 — No Contrastive Training (random ProjectionHead),id_06,156,102,0.5764,0.8916
+A4_no_projection,Ablation A4 — No ProjectionHead (raw Fusion Vector scoring),id_00,152,143,0.5068,1.0155
+A4_no_projection,Ablation A4 — No ProjectionHead (raw Fusion Vector scoring),id_02,152,111,0.667,1.6148
+A4_no_projection,Ablation A4 — No ProjectionHead (raw Fusion Vector scoring),id_04,106,100,0.5816,1.2087
+A4_no_projection,Ablation A4 — No ProjectionHead (raw Fusion Vector scoring),id_06,156,102,0.5416,0.9942
