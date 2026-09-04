@@ -1,0 +1,16 @@
+comparison_level,machine_id,metric,e1_roc_auc,phase9_roc_auc,roc_auc_difference,e1_cohens_d,phase9_cohens_d,cohens_d_difference
+overall,all,normalized_euclidean,0.802721,0.858572,0.055851,1.119798,1.345636,0.225838
+overall,all,normalized_manhattan,0.80028,0.859188,0.058908,1.116234,1.357293,0.241059
+overall,all,normalized_cosine,0.562915,0.50315,-0.059765,-0.141227,0.024851,0.166078
+per_machine,id_00,normalized_euclidean,0.778846,0.823128,0.044281,1.054399,1.148665,0.094266
+per_machine,id_00,normalized_manhattan,0.77995,0.823956,0.044005,1.063047,1.160419,0.097372
+per_machine,id_00,normalized_cosine,0.717841,0.553575,-0.164267,-0.598686,-0.195873,0.402813
+per_machine,id_02,normalized_euclidean,0.80927,0.791578,-0.017692,1.179352,0.914302,-0.265051
+per_machine,id_02,normalized_manhattan,0.802928,0.794363,-0.008564,1.15801,0.945507,-0.212502
+per_machine,id_02,normalized_cosine,0.729848,0.641507,-0.088342,-0.646417,-0.571057,0.075361
+per_machine,id_04,normalized_euclidean,0.95066,0.943821,-0.00684,2.071045,2.411175,0.34013
+per_machine,id_04,normalized_manhattan,0.945189,0.944575,-0.000613,2.048658,2.442695,0.394038
+per_machine,id_04,normalized_cosine,0.751792,0.765613,0.013821,1.05885,1.072084,0.013234
+per_machine,id_06,normalized_euclidean,0.688725,0.922668,0.233943,0.892921,2.039004,1.146083
+per_machine,id_06,normalized_manhattan,0.693125,0.922543,0.229418,0.88722,2.038404,1.151184
+per_machine,id_06,normalized_cosine,0.610985,0.572053,-0.038933,0.342176,-0.251102,-0.593278

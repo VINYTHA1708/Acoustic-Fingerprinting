@@ -1,0 +1,148 @@
+{
+  "phase": 13,
+  "status": "FROZEN",
+  "freeze_declaration": "No further methodological changes permitted after Phase 13. Any modification to the values in this file invalidates the experimental record.",
+  "method_name": "Multi-Machine Contrastive Acoustic Fingerprinting",
+  "experiment_id": "phase9",
+
+  "model_architecture": {
+    "beats_checkpoint": "models/contrastive/phase9/best_projection_head.pt",
+    "beats_model": "BEATs_iter3_plus_AS2M.pt",
+    "beats_output_dim": 768,
+    "beats_frozen": true,
+    "dsp_output_dim": 153,
+    "dsp_features": ["mfcc_mean_std_20coeff", "spectral_centroid_mean_std", "spectral_rolloff_mean_std", "rms_energy_mean_std", "harmonic_salience_mean_std"],
+    "fusion_dim": 921,
+    "projection_head": {
+      "input_dim": 921,
+      "hidden_dim": 512,
+      "output_dim": 256,
+      "activation": "ReLU",
+      "output_normalisation": "L2"
+    }
+  },
+
+  "preprocessing": {
+    "mono": true,
+    "target_sample_rate_hz": 16000,
+    "amplitude_normalisation": "peak_to_minus1_plus1",
+    "n_fft": 1024,
+    "hop_length": 512,
+    "win_length": 1024,
+    "n_mels": 128,
+    "fmin_hz": 20.0,
+    "fmax_hz": 8000
+  },
+
+  "contrastive_training": {
+    "machine_types": ["fan", "pump", "slider", "valve"],
+    "machine_ids": ["id_00", "id_02", "id_04", "id_06"],
+    "pooled_train_normal_recordings": 10296,
+    "epochs": 20,
+    "batch_size": 16,
+    "optimiser": "Adam",
+    "learning_rate": 0.001,
+    "ntxent_temperature": 0.07,
+    "internal_val_split": 0.20,
+    "checkpoint_selection": "min_validation_loss",
+    "best_validation_loss": 1.1015,
+    "per_type_train_normal_counts": {
+      "fan":    {"total": 2851, "id_00": 707, "id_02": 711, "id_04": 723, "id_06": 710},
+      "pump":   {"total": 2623, "id_00": 704, "id_02": 703, "id_04": 491, "id_06": 725},
+      "slider": {"total": 2240, "id_00": 747, "id_02": 747, "id_04": 373, "id_06": 373},
+      "valve":  {"total": 2582, "id_00": 693, "id_02": 495, "id_04": 700, "id_06": 694}
+    }
+  },
+
+  "dataset_split": {
+    "splitter": "DatasetSplitter",
+    "train_ratio": 0.70,
+    "profile_ratio": 0.15,
+    "test_ratio": 0.15,
+    "strategy": "per_machine_type_independent",
+    "abnormal_partition": "test_abnormal_only",
+    "seed": 42
+  },
+
+  "healthy_profile_construction": {
+    "source_partition": "profile_normal",
+    "scope": "per_machine_type_per_machine_id",
+    "stored_fields": ["all_embeddings", "mean_vector", "std_vector"],
+    "embedding_dim": 256,
+    "format": ["json", "npz"]
+  },
+
+  "drift_metrics": {
+    "primary_metric": "normalized_euclidean",
+    "formula": "norm2(z)  where z_i = (e_i - mu_i) / max(sigma_i, 1e-10)",
+    "secondary_metrics": ["normalized_manhattan", "normalized_cosine"],
+    "raw_metrics": ["euclidean", "manhattan", "cosine_similarity"],
+    "std_floor": 1e-10
+  },
+
+  "health_score": {
+    "method": "gaussian_survival_anchored",
+    "formula": "score = 100 * Phi(c - t)  where t = (norm_euclidean - mu_norm) / max(sigma_norm, 1e-8)",
+    "anchor_c": 1.6448536269514729,
+    "anchor_interpretation": "Phi_inverse(0.95): healthy mean maps to score=95",
+    "sigma_floor": 1e-8,
+    "clamp": [0, 100],
+    "state_bands": {
+      "EXCELLENT": [90, 100],
+      "GOOD":      [75, 89],
+      "WARNING":   [50, 74],
+      "CRITICAL":  [0,  49]
+    },
+    "anomaly_threshold": 54.52
+  },
+
+  "evaluation_protocol": {
+    "anomaly_score": "normalized_euclidean",
+    "primary_metric": "roc_auc",
+    "secondary_metric": "cohens_d",
+    "test_partitions": ["test_normal", "test_abnormal"],
+    "no_threshold_tuning_on_test_set": true
+  },
+
+  "random_seeds": {
+    "primary_seed": 42,
+    "dataset_splitter": 42,
+    "contrastive_dataset_val_split": 42,
+    "contrastive_trainer": 42,
+    "python_random": 42,
+    "numpy_random": 42,
+    "torch_manual_seed": 42,
+    "phase11_stability_seeds": [42, 123, 2026],
+    "bootstrap_ci_seed": 42,
+    "bootstrap_iterations": 2000
+  },
+
+  "final_results": {
+    "phase9_seed42": {
+      "overall_roc_auc": 0.787522,
+      "overall_cohens_d": 1.061325,
+      "per_type": {
+        "fan":    {"roc_auc": 0.698577, "cohens_d": 0.738717},
+        "pump":   {"roc_auc": 0.863535, "cohens_d": 1.424665},
+        "slider": {"roc_auc": 0.881314, "cohens_d": 1.487442},
+        "valve":  {"roc_auc": 0.828308, "cohens_d": 1.275274}
+      }
+    },
+    "phase11_seed_stability": {
+      "roc_auc_mean": 0.780306,
+      "roc_auc_std":  0.008091,
+      "cohens_d_mean": 1.036258,
+      "cohens_d_std":  0.029216,
+      "seeds": [42, 123, 2026]
+    },
+    "bootstrap_95ci_overall_euclidean": [0.777277, 0.801181]
+  },
+
+  "runtime_benchmarks_cpu_cache_hit": {
+    "inference_mean_ms": 5.86,
+    "inference_median_ms": 5.40,
+    "profile_build_per_recording_ms": 9.6,
+    "evaluation_1022_recs_total_s": 9.118,
+    "evaluation_mean_per_rec_ms": 8.92
+  }
+}

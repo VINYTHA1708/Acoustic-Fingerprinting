@@ -1,0 +1,167 @@
+[
+  {
+    "comparison_level": "overall",
+    "machine_id": "all",
+    "metric": "normalized_euclidean",
+    "e1_roc_auc": 0.802721,
+    "phase9_roc_auc": 0.858572,
+    "roc_auc_difference": 0.055851,
+    "e1_cohens_d": 1.119798,
+    "phase9_cohens_d": 1.345636,
+    "cohens_d_difference": 0.225838
+  },
+  {
+    "comparison_level": "overall",
+    "machine_id": "all",
+    "metric": "normalized_manhattan",
+    "e1_roc_auc": 0.80028,
+    "phase9_roc_auc": 0.859188,
+    "roc_auc_difference": 0.058908,
+    "e1_cohens_d": 1.116234,
+    "phase9_cohens_d": 1.357293,
+    "cohens_d_difference": 0.241059
+  },
+  {
+    "comparison_level": "overall",
+    "machine_id": "all",
+    "metric": "normalized_cosine",
+    "e1_roc_auc": 0.562915,
+    "phase9_roc_auc": 0.50315,
+    "roc_auc_difference": -0.059765,
+    "e1_cohens_d": -0.141227,
+    "phase9_cohens_d": 0.024851,
+    "cohens_d_difference": 0.166078
+  },
+  {
+    "comparison_level": "per_machine",
+    "machine_id": "id_00",
+    "metric": "normalized_euclidean",
+    "e1_roc_auc": 0.778846,
+    "phase9_roc_auc": 0.823128,
+    "roc_auc_difference": 0.044281,
+    "e1_cohens_d": 1.054399,
+    "phase9_cohens_d": 1.148665,
+    "cohens_d_difference": 0.094266
+  },
+  {
+    "comparison_level": "per_machine",
+    "machine_id": "id_00",
+    "metric": "normalized_manhattan",
+    "e1_roc_auc": 0.77995,
+    "phase9_roc_auc": 0.823956,
+    "roc_auc_difference": 0.044005,
+    "e1_cohens_d": 1.063047,
+    "phase9_cohens_d": 1.160419,
+    "cohens_d_difference": 0.097372
+  },
+  {
+    "comparison_level": "per_machine",
+    "machine_id": "id_00",
+    "metric": "normalized_cosine",
+    "e1_roc_auc": 0.717841,
+    "phase9_roc_auc": 0.553575,
+    "roc_auc_difference": -0.164267,
+    "e1_cohens_d": -0.598686,
+    "phase9_cohens_d": -0.195873,
+    "cohens_d_difference": 0.402813
+  },
+  {
+    "comparison_level": "per_machine",
+    "machine_id": "id_02",
+    "metric": "normalized_euclidean",
+    "e1_roc_auc": 0.80927,
+    "phase9_roc_auc": 0.791578,
+    "roc_auc_difference": -0.017692,
+    "e1_cohens_d": 1.179352,
+    "phase9_cohens_d": 0.914302,
+    "cohens_d_difference": -0.265051
+  },
+  {
+    "comparison_level": "per_machine",
+    "machine_id": "id_02",
+    "metric": "normalized_manhattan",
+    "e1_roc_auc": 0.802928,
+    "phase9_roc_auc": 0.794363,
+    "roc_auc_difference": -0.008564,
+    "e1_cohens_d": 1.15801,
+    "phase9_cohens_d": 0.945507,
+    "cohens_d_difference": -0.212502
+  },
+  {
+    "comparison_level": "per_machine",
+    "machine_id": "id_02",
+    "metric": "normalized_cosine",
+    "e1_roc_auc": 0.729848,
+    "phase9_roc_auc": 0.641507,
+    "roc_auc_difference": -0.088342,
+    "e1_cohens_d": -0.646417,
+    "phase9_cohens_d": -0.571057,
+    "cohens_d_difference": 0.075361
+  },
+  {
+    "comparison_level": "per_machine",
+    "machine_id": "id_04",
+    "metric": "normalized_euclidean",
+    "e1_roc_auc": 0.95066,
+    "phase9_roc_auc": 0.943821,
+    "roc_auc_difference": -0.00684,
+    "e1_cohens_d": 2.071045,
+    "phase9_cohens_d": 2.411175,
+    "cohens_d_difference": 0.34013
+  },
+  {
+    "comparison_level": "per_machine",
+    "machine_id": "id_04",
+    "metric": "normalized_manhattan",
+    "e1_roc_auc": 0.945189,
+    "phase9_roc_auc": 0.944575,
+    "roc_auc_difference": -0.000613,
+    "e1_cohens_d": 2.048658,
+    "phase9_cohens_d": 2.442695,
+    "cohens_d_difference": 0.394038
+  },
+  {
+    "comparison_level": "per_machine",
+    "machine_id": "id_04",
+    "metric": "normalized_cosine",
+    "e1_roc_auc": 0.751792,
+    "phase9_roc_auc": 0.765613,
+    "roc_auc_difference": 0.013821,
+    "e1_cohens_d": 1.05885,
+    "phase9_cohens_d": 1.072084,
+    "cohens_d_difference": 0.013234
+  },
+  {
+    "comparison_level": "per_machine",
+    "machine_id": "id_06",
+    "metric": "normalized_euclidean",
+    "e1_roc_auc": 0.688725,
+    "phase9_roc_auc": 0.922668,
+    "roc_auc_difference": 0.233943,
+    "e1_cohens_d": 0.892921,
+    "phase9_cohens_d": 2.039004,
+    "cohens_d_difference": 1.146083
+  },
+  {
+    "comparison_level": "per_machine",
+    "machine_id": "id_06",
+    "metric": "normalized_manhattan",
+    "e1_roc_auc": 0.693125,
+    "phase9_roc_auc": 0.922543,
+    "roc_auc_difference": 0.229418,
+    "e1_cohens_d": 0.88722,
+    "phase9_cohens_d": 2.038404,
+    "cohens_d_difference": 1.151184
+  },
+  {
+    "comparison_level": "per_machine",
+    "machine_id": "id_06",
+    "metric": "normalized_cosine",
+    "e1_roc_auc": 0.610985,
+    "phase9_roc_auc": 0.572053,
+    "roc_auc_difference": -0.038933,
+    "e1_cohens_d": 0.342176,
+    "phase9_cohens_d": -0.251102,
+    "cohens_d_difference": -0.593278
+  }
+]

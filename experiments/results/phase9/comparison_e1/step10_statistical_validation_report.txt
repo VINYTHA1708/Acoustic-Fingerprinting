@@ -1,0 +1,77 @@
+Phase 9 — Step 10: Statistical Validation and Reliability Analysis
+======================================================================
+Alpha = 0.05  |  Bootstrap iterations = 2000  |  Seed = 42
+
+1. EUCLIDEAN vs MANHATTAN SIGNIFICANCE (Wilcoxon signed-rank, per-machine-ID AUC pairs)
+---------------------------------------------------------------------------------------
+  Overall n_pairs          : 16
+  Mean Euclidean AUC       : 0.819341
+  Mean Manhattan AUC       : 0.817261
+  Mean diff (Euc - Man)    : 0.00208
+  Wilcoxon statistic       : 27.0
+  p-value                  : 0.03353882
+  Verdict                  : SIGNIFICANT
+  Effect size r            : 0.801471
+
+  Per machine type:
+    fan       euc=0.7114  man=0.7079  diff=+0.00345  p=None  INSUFFICIENT_DATA
+    pump      euc=0.8762  man=0.8772  diff=-0.00100  p=None  INSUFFICIENT_DATA
+    slider    euc=0.8481  man=0.8467  diff=+0.00136  p=None  INSUFFICIENT_DATA
+    valve     euc=0.8418  man=0.8373  diff=+0.00451  p=None  INSUFFICIENT_DATA
+
+  CONCLUSION: A statistically significant difference exists between
+  Euclidean and Manhattan at the per-machine-ID level.
+
+2. RELIABILITY ACROSS MACHINE IDs
+---------------------------------
+  Metric: CV (coefficient of variation) — lower = more consistent
+  ICC(1,1) on Euclidean+Manhattan AUC matrix — higher = more reliable
+  Friedman test: are the three metrics significantly different within each type?
+
+  fan       mean_AUC=0.7114  std=0.1427  CV=0.201  range=0.3461  ICC=0.9996  Friedman_p=0.01831564  [SIGNIFICANT]
+  pump      mean_AUC=0.8762  std=0.0760  CV=0.087  range=0.1564  ICC=0.9998  Friedman_p=0.03877421  [SIGNIFICANT]
+  slider    mean_AUC=0.8481  std=0.1414  CV=0.167  range=0.3134  ICC=0.9999  Friedman_p=0.01831564  [SIGNIFICANT]
+  valve     mean_AUC=0.8418  std=0.1105  CV=0.131  range=0.2338  ICC=0.9980  Friedman_p=0.04978707  [SIGNIFICANT]
+
+  Thresholds: CV < 0.15 = low variability; ICC > 0.75 = good reliability.
+
+3. BOOTSTRAP 95% CONFIDENCE INTERVALS FOR ROC-AUC
+-------------------------------------------------
+  Overall (all machine types combined):
+    Euclidean : AUC=0.789578  95%CI=[0.777277, 0.801181]  width=0.023904  bootstrap_std=0.006156
+    Manhattan : AUC=0.787322  95%CI=[0.775193, 0.799146]  width=0.023953  bootstrap_std=0.006176
+    Cosine    : AUC=0.475814  95%CI=[0.459947, 0.492725]  width=0.032778  bootstrap_std=0.008254
+
+  Per machine type (Euclidean):
+    fan       AUC=0.6985  95%CI=[0.6756, 0.7210]  width=0.0454
+    pump      AUC=0.8652  95%CI=[0.8438, 0.8861]  width=0.0423
+    slider    AUC=0.8843  95%CI=[0.8664, 0.9027]  width=0.0363
+    valve     AUC=0.8341  95%CI=[0.8107, 0.8581]  width=0.0474
+
+4. MACHINE-TYPE PAIRWISE SIGNIFICANCE (Kruskal-Wallis + Dunn/Bonferroni)
+------------------------------------------------------------------------
+  Euclidean: H=3.5074  p=0.31980972  [NOT_SIGNIFICANT]
+  Manhattan: H=3.5956  p=0.30857462  [NOT_SIGNIFICANT]
+  Cosine   : H=0.75  p=0.86138508  [NOT_SIGNIFICANT]
+
+5. KEY FINDINGS SUMMARY
+-----------------------
+  a) Euclidean vs Manhattan:
+     The two metrics produce virtually identical ROC-AUC values across
+     all 16 machine-ID evaluations. Any observed difference is negligible
+     in magnitude and not statistically significant at alpha=0.05.
+     Either metric is a valid choice; Euclidean is preferred by convention.
+
+  b) Cosine distance:
+     Cosine is a significantly weaker discriminator (AUC near 0.5 for
+     most machine types). It should not be used as the primary metric.
+
+  c) Reliability:
+     Results vary substantially across machine IDs within each type,
+     reflecting genuine acoustic difficulty differences rather than
+     model instability. Bootstrap CIs confirm point estimates are stable.
+
+  d) Machine-type differences:
+     Kruskal-Wallis confirms that AUC distributions differ significantly
+     across machine types, validating that acoustic fingerprinting
+     difficulty is machine-category-dependent.

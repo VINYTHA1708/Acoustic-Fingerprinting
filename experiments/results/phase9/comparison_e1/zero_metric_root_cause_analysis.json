@@ -1,0 +1,242 @@
+{
+  "investigation": "Phase 9.1 Step 7 \u2014 Zero-Metric Root Cause Analysis",
+  "section_1_affected_recordings": {
+    "total_zero_metric_recordings": 8,
+    "recordings": [
+      {
+        "machine_type": "pump",
+        "machine_id": "id_00",
+        "filename": "00000764.wav",
+        "true_label": "normal"
+      },
+      {
+        "machine_type": "pump",
+        "machine_id": "id_02",
+        "filename": "00000095.wav",
+        "true_label": "normal"
+      },
+      {
+        "machine_type": "pump",
+        "machine_id": "id_04",
+        "filename": "00000081.wav",
+        "true_label": "normal"
+      },
+      {
+        "machine_type": "pump",
+        "machine_id": "id_06",
+        "filename": "00000048.wav",
+        "true_label": "normal"
+      },
+      {
+        "machine_type": "pump",
+        "machine_id": "id_00",
+        "filename": "00000000.wav",
+        "true_label": "abnormal"
+      },
+      {
+        "machine_type": "pump",
+        "machine_id": "id_02",
+        "filename": "00000000.wav",
+        "true_label": "abnormal"
+      },
+      {
+        "machine_type": "pump",
+        "machine_id": "id_04",
+        "filename": "00000000.wav",
+        "true_label": "abnormal"
+      },
+      {
+        "machine_type": "pump",
+        "machine_id": "id_06",
+        "filename": "00000000.wav",
+        "true_label": "abnormal"
+      }
+    ]
+  },
+  "section_2_file_and_audio_validation": {
+    "audio_files_exist": 8,
+    "audio_files_missing": 0,
+    "cache_files_exist": 8,
+    "cache_files_missing": 0,
+    "fused_vectors_valid": 8,
+    "fused_vectors_invalid": 0
+  },
+  "section_3_embedding_validation": {
+    "embeddings_generated": 8,
+    "embedding_failures": 0,
+    "nan_embeddings": 0,
+    "inf_embeddings": 0
+  },
+  "section_4_reference_validation": {
+    "profile_files_exist": 8,
+    "profile_files_missing": 0,
+    "current_profile_n_embeddings": {
+      "id_00": 150,
+      "id_02": 150,
+      "id_04": 105,
+      "id_06": 155
+    }
+  },
+  "section_5_distance_calculation": {
+    "smoke_profile_std_all_zero_count": 8,
+    "smoke_profile_z_all_zero_count": 8,
+    "current_profile_norm_euclidean": {
+      "id_00/00000764.wav": 9.770064353942871,
+      "id_02/00000095.wav": 11.692556381225586,
+      "id_04/00000081.wav": 17.67464828491211,
+      "id_06/00000048.wav": 10.092351913452148,
+      "id_00/00000000.wav": 17.023120880126953,
+      "id_02/00000000.wav": 18.15896987915039,
+      "id_04/00000000.wav": 50.1808967590332,
+      "id_06/00000000.wav": 35.594444274902344
+    },
+    "explanation": "When the profile is built from exactly 1 embedding (smoke-test mode), std_vector = zeros(256). The _STD_FLOOR guard sets safe_std=1.0 for all dimensions, but the z-score formula uses np.where(std < STD_FLOOR, 0.0, ...), which forces z=0 for every dimension. Therefore norm_euclidean=0, norm_manhattan=0, and norm_cosine=0."
+  },
+  "section_6_code_path_analysis": {
+    "smoke_test_selection_matches_zero_rows": true,
+    "smoke_test_normal": [
+      {
+        "machine_id": "id_00",
+        "filename": "00000764.wav"
+      },
+      {
+        "machine_id": "id_02",
+        "filename": "00000095.wav"
+      },
+      {
+        "machine_id": "id_04",
+        "filename": "00000081.wav"
+      },
+      {
+        "machine_id": "id_06",
+        "filename": "00000048.wav"
+      }
+    ],
+    "smoke_test_abnormal": [
+      {
+        "machine_id": "id_00",
+        "filename": "00000000.wav"
+      },
+      {
+        "machine_id": "id_02",
+        "filename": "00000000.wav"
+      },
+      {
+        "machine_id": "id_04",
+        "filename": "00000000.wav"
+      },
+      {
+        "machine_id": "id_06",
+        "filename": "00000000.wav"
+      }
+    ],
+    "resume_mechanism": "phase9_evaluate.py _evaluate_split() reads existing rows from the CSV into 'completed' set (lines ~148-160). On the full run, these 8 rows were already present (written during the smoke-test run) and were skipped via 'if record_key in completed: continue'.",
+    "profile_build_smoke_test": "_build_profiles() with smoke_test=True passes recs[:1] to builder.build(). A single-embedding profile has std_vector = zeros(256).",
+    "zero_assignment_location": "src/learned_drift/metrics.py LearnedDriftMetrics.compute() line: z = np.where(std < _STD_FLOOR, 0.0, (emb - mean) / safe_std). When std=0 for all 256 dimensions, z=0 for all dimensions, so norm_euclidean=||z||=0, norm_manhattan=sum(|z|)=0, and _cosine_vs_uniform(z) returns 0.0 because norm_z==0.",
+    "responsible_function": "LearnedDriftMetrics.compute() in src/learned_drift/metrics.py",
+    "trigger_condition": "Profile built with exactly 1 embedding -> std_vector = zeros(256) -> z-score vector = zeros(256) -> all normalized metrics = 0.0"
+  },
+  "section_7_root_cause": {
+    "status": "CONFIRMED ROOT CAUSE",
+    "explanation": "The 8 zero-metric rows were written during a smoke-test run of phase9_evaluate.py (--smoke-test flag). In smoke-test mode, _build_profiles() builds each machine profile from exactly 1 recording. A single-embedding profile has std_vector = zeros(256). LearnedDriftMetrics.compute() uses np.where(std < 1e-10, 0.0, ...) to compute the z-score vector, which produces z=0 for every dimension when std=0. This makes norm_euclidean=0, norm_manhattan=0, and norm_cosine=0 for any test recording evaluated against that profile. The full evaluation run subsequently resumed from the CSV and skipped these 8 rows because they were already in the 'completed' set, preserving the incorrect zero values in the final CSV.",
+    "exact_code_location": "src/learned_drift/metrics.py \u2014 LearnedDriftMetrics.compute()",
+    "exact_line": "z = np.where(std < _STD_FLOOR, 0.0, (emb - mean) / safe_std)",
+    "trigger": "smoke-test profile with 1 embedding -> std_vector = zeros(256)",
+    "propagation": "resume logic in _evaluate_split() skipped the 8 rows on full run"
+  },
+  "section_8_impact": {
+    "zeros_are_valid_results": false,
+    "zeros_are_implementation_bug": true,
+    "bug_description": "The zeros are not a bug in the distance formula itself. The formula correctly returns 0 when std=0. The bug is that a smoke-test run (with 1-embedding profiles) wrote results to the same CSV that the full run later resumed from, and the resume logic did not detect that those rows were computed with an invalid (single-embedding) profile.",
+    "requires_correction": true,
+    "requires_phase9_rerun": true,
+    "note": "Phase 9 has NOT been rerun. This is investigation only."
+  },
+  "section_9_recommended_action": {
+    "recommendation": "B",
+    "description": "B. Fix implementation and rerun Phase 9. Delete evaluation_pump.csv (and any other per-type CSVs containing smoke-test rows), then rerun phase9_evaluate.py without --smoke-test. Alternatively, delete only the 8 zero rows before resuming. The profiles on disk (150/150/105/155 embeddings) are correct and do not need to be rebuilt."
+  },
+  "section_e1_comparison": {
+    "e1_uses_same_split": true,
+    "e1_uses_same_checkpoint": false,
+    "e1_checkpoint": "models/contrastive/e1/best_projection_head.pt",
+    "phase9_checkpoint": "models/contrastive/phase9/best_projection_head.pt",
+    "e1_profile_source": "pre-built NPZ files loaded from experiments/results/e1/profiles/",
+    "phase9_profile_source": "built during evaluation from profile_normal split",
+    "key_difference": "E1 always builds profiles from the full profile_normal split (no smoke-test). Phase 9 has a resume mechanism that preserved smoke-test zero rows. E1 has no resume mechanism \u2014 it always rewrites the full CSV.",
+    "e1_values_for_8_recordings": [
+      {
+        "machine_id": "id_00",
+        "filename": "00000764.wav",
+        "true_label": "normal",
+        "e1_normalized_euclidean": 12.961474418640137,
+        "e1_normalized_manhattan": 187.3851623535156,
+        "e1_normalized_cosine": -0.0861301273107528,
+        "e1_all_nonzero": true
+      },
+      {
+        "machine_id": "id_02",
+        "filename": "00000095.wav",
+        "true_label": "normal",
+        "e1_normalized_euclidean": 9.913208961486816,
+        "e1_normalized_manhattan": 132.05690002441406,
+        "e1_normalized_cosine": -0.0004496499313972,
+        "e1_all_nonzero": true
+      },
+      {
+        "machine_id": "id_04",
+        "filename": "00000081.wav",
+        "true_label": "normal",
+        "e1_normalized_euclidean": 16.283466339111328,
+        "e1_normalized_manhattan": 241.65298461914065,
+        "e1_normalized_cosine": -0.071156620979309,
+        "e1_all_nonzero": true
+      },
+      {
+        "machine_id": "id_06",
+        "filename": "00000048.wav",
+        "true_label": "normal",
+        "e1_normalized_euclidean": 3.797409057617188,
+        "e1_normalized_manhattan": 53.15287780761719,
+        "e1_normalized_cosine": -0.0513937436044216,
+        "e1_all_nonzero": true
+      },
+      {
+        "machine_id": "id_00",
+        "filename": "00000000.wav",
+        "true_label": "abnormal",
+        "e1_normalized_euclidean": 23.105833053588867,
+        "e1_normalized_manhattan": 339.5501403808594,
+        "e1_normalized_cosine": 0.1150015294551849,
+        "e1_all_nonzero": true
+      },
+      {
+        "machine_id": "id_02",
+        "filename": "00000000.wav",
+        "true_label": "abnormal",
+        "e1_normalized_euclidean": 22.99907684326172,
+        "e1_normalized_manhattan": 331.4571533203125,
+        "e1_normalized_cosine": -0.1072813495993614,
+        "e1_all_nonzero": true
+      },
+      {
+        "machine_id": "id_04",
+        "filename": "00000000.wav",
+        "true_label": "abnormal",
+        "e1_normalized_euclidean": 83.09882354736328,
+        "e1_normalized_manhattan": 1139.3533935546875,
+        "e1_normalized_cosine": 0.0416024178266525,
+        "e1_all_nonzero": true
+      },
+      {
+        "machine_id": "id_06",
+        "filename": "00000000.wav",
+        "true_label": "abnormal",
+        "e1_normalized_euclidean": 48.62086868286133,
+        "e1_normalized_manhattan": 680.7760620117188,
+        "e1_normalized_cosine": 0.1213594600558281,
+        "e1_all_nonzero": true
+      }
+    ]
+  }
+}

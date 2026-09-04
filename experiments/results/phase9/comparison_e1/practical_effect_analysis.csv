@@ -1,0 +1,10 @@
+group,metric,n,mean_diff,median_diff,std_diff,phase9_higher,e1_higher,pct_phase9_higher,pct_e1_higher,effect_size_r,abs_effect_size_r,effect_size_magnitude,direction
+overall,normalized_euclidean,1022,-1.198341,0.365503,13.2745,524,498,51.27,48.73,0.520755,0.520755,large,No clear practical direction
+overall,normalized_manhattan,1022,-28.815271,-11.797066,179.933585,474,548,46.38,53.62,0.569405,0.569405,large,E1 tends higher
+overall,normalized_cosine,1022,0.021555,0.035563,0.102536,613,409,59.98,40.02,0.617305,0.617305,large,Phase 9 tends higher
+normal,normalized_euclidean,566,0.307826,0.70882,7.168019,317,249,56.01,43.99,0.547641,0.547641,large,Phase 9 tends higher
+normal,normalized_manhattan,566,-7.318953,-2.185928,103.58079,276,290,48.76,51.24,0.520625,0.520625,large,E1 tends higher
+normal,normalized_cosine,566,0.015139,0.016076,0.103364,311,255,54.95,45.05,0.581537,0.581537,large,Phase 9 tends higher
+abnormal,normalized_euclidean,456,-3.067839,-1.93005,18.035685,207,249,45.39,54.61,0.581375,0.581375,large,E1 tends higher
+abnormal,normalized_manhattan,456,-55.497103,-40.860428,240.913735,198,258,43.42,56.58,0.616396,0.616396,large,E1 tends higher
+abnormal,normalized_cosine,456,0.029519,0.052486,0.101046,302,154,66.23,33.77,0.659881,0.659881,large,Phase 9 tends higher

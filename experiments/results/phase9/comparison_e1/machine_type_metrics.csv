@@ -1,0 +1,13 @@
+machine_type,metric,metric_short,n_normal,n_abnormal,roc_auc_computed,roc_auc_summary,cohens_d_computed,cohens_d_summary,auc_match
+pump,normalized_euclidean,euclidean,566,456,0.863535,0.863535,1.424665,1.424665,True
+pump,normalized_manhattan,manhattan,566,456,0.864136,0.864136,1.436819,1.436819,True
+pump,normalized_cosine,cosine,566,456,0.500143,0.500143,0.015327,0.015327,True
+fan,normalized_euclidean,euclidean,615,1475,0.698577,0.698577,0.738717,0.738717,True
+fan,normalized_manhattan,manhattan,615,1475,0.695405,0.695405,0.732896,0.732896,True
+fan,normalized_cosine,cosine,615,1475,0.469562,0.530438,-0.108894,-0.108894,False
+slider,normalized_euclidean,euclidean,484,890,0.881314,0.881314,1.487442,1.487442,True
+slider,normalized_manhattan,manhattan,484,890,0.880602,0.880602,1.48202,1.48202,True
+slider,normalized_cosine,cosine,484,890,0.437429,0.562571,-0.214406,-0.214406,False
+valve,normalized_euclidean,euclidean,557,479,0.828308,0.828308,1.275274,1.275274,True
+valve,normalized_manhattan,manhattan,557,479,0.823424,0.823424,1.252035,1.252035,True
+valve,normalized_cosine,cosine,557,479,0.544102,0.544102,0.164893,0.164893,True

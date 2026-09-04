@@ -1,0 +1,17 @@
+machine_type,machine_id,metric,roc_auc,cohens_d,n_normal,n_abnormal
+fan,id_00,normalized_euclidean,0.531122,0.132774,153,407
+fan,id_02,normalized_euclidean,0.741284,0.864056,153,359
+fan,id_04,normalized_euclidean,0.695927,0.648554,156,348
+fan,id_06,normalized_euclidean,0.877184,1.674696,153,361
+pump,id_00,normalized_manhattan,0.829269,1.187107,152,143
+pump,id_02,normalized_manhattan,0.797949,0.995646,152,111
+pump,id_04,normalized_manhattan,0.952358,2.544684,106,100
+pump,id_06,normalized_euclidean,0.929361,2.230225,156,102
+slider,id_00,normalized_euclidean,0.989977,3.477528,161,356
+slider,id_02,normalized_euclidean,0.933596,2.145533,161,267
+slider,id_04,normalized_euclidean,0.67655,0.469626,81,178
+slider,id_06,normalized_euclidean,0.792135,0.916534,81,89
+valve,id_00,normalized_manhattan,0.961261,2.557436,150,119
+valve,id_02,normalized_manhattan,0.771379,0.735633,107,120
+valve,id_04,normalized_euclidean,0.907583,1.892008,150,120
+valve,id_06,normalized_euclidean,0.727194,0.855343,150,120

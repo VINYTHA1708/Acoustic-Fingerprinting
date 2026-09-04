@@ -1,0 +1,11 @@
+{
+  "seed": 123,
+  "checkpoint": "models\\contrastive\\phase11\\seed_123\\best_projection_head.pt",
+  "n_normal": 2222,
+  "n_abnormal": 3300,
+  "primary_metric": "normalized_euclidean",
+  "metrics": {
+    "roc_auc": 0.775694,
+    "cohens_d": 1.01087
+  }
+}

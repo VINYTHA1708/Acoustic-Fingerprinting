@@ -1,0 +1,6 @@
+machine_type,n_pairs,mean_euclidean_auc,mean_manhattan_auc,mean_diff_euc_minus_man,stat,p_value,verdict,n,effect_size_r
+fan,4,0.711379,0.707927,0.003452,,,INSUFFICIENT_DATA,4,
+pump,4,0.876157,0.877156,-0.000999,,,INSUFFICIENT_DATA,4,
+slider,4,0.848064,0.846705,0.00136,,,INSUFFICIENT_DATA,4,
+valve,4,0.841765,0.837257,0.004507,,,INSUFFICIENT_DATA,4,
+overall,16,0.819341,0.817261,0.00208,27.0,0.03353882,SIGNIFICANT,16,0.801471

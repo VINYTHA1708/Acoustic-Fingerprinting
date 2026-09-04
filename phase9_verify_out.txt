@@ -1,0 +1,41 @@
+CHECK 1 (module loads without error): PASS
+CHECK 2 (all constants): PASS
+CHECK 3 (train_normal total fan): PASS  actual=2851  expected=2851
+CHECK 3 (train_normal total pump): PASS  actual=2623  expected=2623
+CHECK 3 (train_normal total slider): PASS  actual=2240  expected=2240
+CHECK 3 (train_normal total valve): PASS  actual=2582  expected=2582
+CHECK 3b (fan/id_00): PASS  actual=707  expected=707
+CHECK 3b (fan/id_02): PASS  actual=711  expected=711
+CHECK 3b (fan/id_04): PASS  actual=723  expected=723
+CHECK 3b (fan/id_06): PASS  actual=710  expected=710
+CHECK 3b (pump/id_00): PASS  actual=704  expected=704
+CHECK 3b (pump/id_02): PASS  actual=703  expected=703
+CHECK 3b (pump/id_04): PASS  actual=491  expected=491
+CHECK 3b (pump/id_06): PASS  actual=725  expected=725
+CHECK 3b (slider/id_00): PASS  actual=747  expected=747
+CHECK 3b (slider/id_02): PASS  actual=747  expected=747
+CHECK 3b (slider/id_04): PASS  actual=373  expected=373
+CHECK 3b (slider/id_06): PASS  actual=373  expected=373
+CHECK 3b (valve/id_00): PASS  actual=693  expected=693
+CHECK 3b (valve/id_02): PASS  actual=495  expected=495
+CHECK 3b (valve/id_04): PASS  actual=700  expected=700
+CHECK 3b (valve/id_06): PASS  actual=694  expected=694
+CHECK 4 (pooled total == 10296): PASS  actual=10296
+CHECK 5 (all 16 combos present): PASS
+CHECK 6 (only normal in pooled train): PASS  non-normal=0
+CHECK 7 (no overlap fan/profile_normal): PASS  overlap=0
+CHECK 7 (no overlap fan/test_normal): PASS  overlap=0
+CHECK 7 (no overlap fan/test_abnormal): PASS  overlap=0
+CHECK 7 (no overlap pump/profile_normal): PASS  overlap=0
+CHECK 7 (no overlap pump/test_normal): PASS  overlap=0
+CHECK 7 (no overlap pump/test_abnormal): PASS  overlap=0
+CHECK 7 (no overlap slider/profile_normal): PASS  overlap=0
+CHECK 7 (no overlap slider/test_normal): PASS  overlap=0
+CHECK 7 (no overlap slider/test_abnormal): PASS  overlap=0
+CHECK 7 (no overlap valve/profile_normal): PASS  overlap=0
+CHECK 7 (no overlap valve/test_normal): PASS  overlap=0
+CHECK 7 (no overlap valve/test_abnormal): PASS  overlap=0
+CHECK 8a (checkpoint path):        PASS  models\contrastive\phase9\best_projection_head.pt
+CHECK 8b (training_history path):  PASS  models\contrastive\phase9\training_history.json
+
+Done.

@@ -1,0 +1,20 @@
+[
+  {
+    "metric": "normalized_euclidean",
+    "kw_stat": 3.5074,
+    "kw_p": 0.31980972,
+    "kw_verdict": "NOT_SIGNIFICANT"
+  },
+  {
+    "metric": "normalized_manhattan",
+    "kw_stat": 3.5956,
+    "kw_p": 0.30857462,
+    "kw_verdict": "NOT_SIGNIFICANT"
+  },
+  {
+    "metric": "normalized_cosine",
+    "kw_stat": 0.75,
+    "kw_p": 0.86138508,
+    "kw_verdict": "NOT_SIGNIFICANT"
+  }
+]

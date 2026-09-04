@@ -1,0 +1,10 @@
+metric,value,unit,n
+profile_build_total_s,1.433,s,150
+profile_build_mean_per_rec_s,0.0096,s,150
+inference_mean_s,0.0059,s,30
+inference_mean_ms,5.86,ms,30
+inference_std_s,0.0028,s,30
+inference_median_s,0.0054,s,30
+evaluation_total_s,9.118,s,1022
+evaluation_mean_per_rec_s,0.0089,s,1022
+evaluation_mean_per_rec_ms,8.92,ms,1022

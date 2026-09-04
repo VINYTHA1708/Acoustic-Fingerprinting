@@ -1,0 +1,62 @@
+[
+  {
+    "machine_type": "fan",
+    "n_pairs": 4,
+    "mean_euclidean_auc": 0.711379,
+    "mean_manhattan_auc": 0.707927,
+    "mean_diff_euc_minus_man": 0.003452,
+    "stat": null,
+    "p_value": null,
+    "verdict": "INSUFFICIENT_DATA",
+    "n": 4,
+    "effect_size_r": null
+  },
+  {
+    "machine_type": "pump",
+    "n_pairs": 4,
+    "mean_euclidean_auc": 0.876157,
+    "mean_manhattan_auc": 0.877156,
+    "mean_diff_euc_minus_man": -0.000999,
+    "stat": null,
+    "p_value": null,
+    "verdict": "INSUFFICIENT_DATA",
+    "n": 4,
+    "effect_size_r": null
+  },
+  {
+    "machine_type": "slider",
+    "n_pairs": 4,
+    "mean_euclidean_auc": 0.848064,
+    "mean_manhattan_auc": 0.846705,
+    "mean_diff_euc_minus_man": 0.00136,
+    "stat": null,
+    "p_value": null,
+    "verdict": "INSUFFICIENT_DATA",
+    "n": 4,
+    "effect_size_r": null
+  },
+  {
+    "machine_type": "valve",
+    "n_pairs": 4,
+    "mean_euclidean_auc": 0.841765,
+    "mean_manhattan_auc": 0.837257,
+    "mean_diff_euc_minus_man": 0.004507,
+    "stat": null,
+    "p_value": null,
+    "verdict": "INSUFFICIENT_DATA",
+    "n": 4,
+    "effect_size_r": null
+  },
+  {
+    "machine_type": "overall",
+    "n_pairs": 16,
+    "mean_euclidean_auc": 0.819341,
+    "mean_manhattan_auc": 0.817261,
+    "mean_diff_euc_minus_man": 0.00208,
+    "stat": 27.0,
+    "p_value": 0.03353882,
+    "verdict": "SIGNIFICANT",
+    "n": 16,
+    "effect_size_r": 0.801471
+  }
+]

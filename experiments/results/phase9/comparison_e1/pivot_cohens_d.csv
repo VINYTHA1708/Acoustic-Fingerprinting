@@ -1,0 +1,4 @@
+metric,fan,pump,slider,valve
+normalized_cosine,-0.108894,0.015327,-0.214406,0.164893
+normalized_euclidean,0.738717,1.424665,1.487442,1.275274
+normalized_manhattan,0.732896,1.436819,1.48202,1.252035

@@ -1,0 +1,77 @@
+============================================================
+Phase 9 — Step 8 Repair Report
+============================================================
+
+Total rows in evaluation_pump.csv : 1022
+Rows repaired                      : 8
+
+Old vs New Metrics for 8 Repaired Rows
+------------------------------------------------------------
+
+  id_00/00000764.wav [normal]
+    health_score         : 95.000000  →  98.869262
+    normalized_euclidean : 0.000000  →  9.770064
+    normalized_manhattan : 0.000000  →  124.328102
+    normalized_cosine    : 0.000000  →  0.089678
+
+  id_02/00000095.wav [normal]
+    health_score         : 95.000000  →  72.277495
+    normalized_euclidean : 0.000000  →  21.595278
+    normalized_manhattan : 0.000000  →  297.158630
+    normalized_cosine    : 0.000000  →  0.022243
+
+  id_04/00000081.wav [normal]
+    health_score         : 95.000000  →  7.769983
+    normalized_euclidean : 0.000000  →  36.399788
+    normalized_manhattan : 0.000000  →  502.197540
+    normalized_cosine    : 0.000000  →  0.078508
+
+  id_06/00000048.wav [normal]
+    health_score         : 95.000000  →  22.746346
+    normalized_euclidean : 0.000000  →  29.339891
+    normalized_manhattan : 0.000000  →  408.189484
+    normalized_cosine    : 0.000000  →  -0.007763
+
+  id_00/00000000.wav [abnormal]
+    health_score         : 95.000000  →  89.721599
+    normalized_euclidean : 0.000000  →  17.023121
+    normalized_manhattan : 0.000000  →  228.052200
+    normalized_cosine    : 0.000000  →  -0.021219
+
+  id_02/00000000.wav [abnormal]
+    health_score         : 95.000000  →  86.504547
+    normalized_euclidean : 0.000000  →  18.158970
+    normalized_manhattan : 0.000000  →  251.716583
+    normalized_cosine    : 0.000000  →  -0.037338
+
+  id_04/00000000.wav [abnormal]
+    health_score         : 95.000000  →  0.043315
+    normalized_euclidean : 0.000000  →  50.180897
+    normalized_manhattan : 0.000000  →  694.400269
+    normalized_cosine    : 0.000000  →  0.044363
+
+  id_06/00000000.wav [abnormal]
+    health_score         : 95.000000  →  3.784543
+    normalized_euclidean : 0.000000  →  35.594444
+    normalized_manhattan : 0.000000  →  496.465576
+    normalized_cosine    : 0.000000  →  -0.048473
+
+Validation Results
+------------------------------------------------------------
+  Row count unchanged          : PASS
+  Exactly 8 rows modified      : PASS
+  No NaN or Inf                : PASS
+  No negative Euclidean/Manhat : PASS
+
+Smoke-Test Contamination Fix (Step 8D)
+------------------------------------------------------------
+  phase9_evaluate.py: _evaluate_split() now skips writing to
+  the production CSV when --smoke-test is active.  Smoke-test
+  results are written to a separate file:
+    evaluation_{machine_type}_smoketest.csv
+  The production CSV is never opened in append mode during a
+  smoke-test run.
+
+Final Status
+------------------------------------------------------------
+  STEP 8 PASSED

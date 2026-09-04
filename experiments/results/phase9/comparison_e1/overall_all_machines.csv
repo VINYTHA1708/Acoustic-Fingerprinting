@@ -1,0 +1,4 @@
+metric,metric_short,n_normal,n_abnormal,roc_auc,cohens_d,roc_auc_ref,cohens_d_ref
+normalized_euclidean,euclidean,2222,3300,0.787522,1.061325,0.787522,1.061325
+normalized_manhattan,manhattan,2222,3300,0.785283,1.057087,0.785283,1.057087
+normalized_cosine,cosine,2222,3300,0.475397,-0.074557,0.524603,-0.074557

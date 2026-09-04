@@ -1,0 +1,10 @@
+group_type,group_value,metric,n,stat,p_value,verdict
+overall,all,normalized_euclidean,1022,250527.0,0.250354,NOT_SIGNIFICANT
+overall,all,normalized_manhattan,1022,225095.0,0.000121,SIGNIFICANT
+overall,all,normalized_cosine,1022,200055.0,0.0,SIGNIFICANT
+label,normal,normalized_euclidean,566,72586.0,0.049531,SIGNIFICANT
+label,normal,normalized_manhattan,566,76921.0,0.395179,NOT_SIGNIFICANT
+label,normal,normalized_cosine,566,67147.0,0.000776,SIGNIFICANT
+label,abnormal,normalized_euclidean,456,43619.0,0.0026,SIGNIFICANT
+label,abnormal,normalized_manhattan,456,39970.0,1.7e-05,SIGNIFICANT
+label,abnormal,normalized_cosine,456,35439.0,0.0,SIGNIFICANT

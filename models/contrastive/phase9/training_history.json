@@ -1,0 +1,104 @@
+{
+  "experiment_id": "phase9",
+  "seed": 42,
+  "machine_types": [
+    "fan",
+    "pump",
+    "slider",
+    "valve"
+  ],
+  "machine_ids": [
+    "id_00",
+    "id_02",
+    "id_04",
+    "id_06"
+  ],
+  "split_configuration": {
+    "train_ratio": 0.7,
+    "profile_ratio": 0.15,
+    "strategy": "per_machine_type_independent"
+  },
+  "per_type_counts": {
+    "fan": {
+      "train_normal": 2851,
+      "profile_normal": 609,
+      "test_normal": 615,
+      "test_abnormal": 1475
+    },
+    "pump": {
+      "train_normal": 2623,
+      "profile_normal": 560,
+      "test_normal": 566,
+      "test_abnormal": 456
+    },
+    "slider": {
+      "train_normal": 2240,
+      "profile_normal": 480,
+      "test_normal": 484,
+      "test_abnormal": 890
+    },
+    "valve": {
+      "train_normal": 2582,
+      "profile_normal": 552,
+      "test_normal": 557,
+      "test_abnormal": 479
+    }
+  },
+  "total_pooled_train_normal": 10296,
+  "training_configuration": {
+    "epochs": 20,
+    "batch_size": 16,
+    "learning_rate": 0.001,
+    "temperature": 0.07,
+    "input_dimension": 921,
+    "projection_dimension": 256
+  },
+  "loss_history": {
+    "training": [
+      2.333572840610874,
+      1.764475551436976,
+      1.6252329202998044,
+      1.2639147241079687,
+      0.9361000024903579,
+      0.8213626181326782,
+      0.7473313503067031,
+      0.6793858172452968,
+      0.6177466995344438,
+      0.6295395255786519,
+      1.0111354185201316,
+      0.6028146493096017,
+      0.5903853080710427,
+      0.8074021830852689,
+      0.7341671051713716,
+      1.0303333287055676,
+      0.9203530116424115,
+      0.86896996926454,
+      1.3389726436656455,
+      1.2352535997744787
+    ],
+    "validation": [
+      3.058837622604114,
+      3.0613890726294293,
+      3.0019759499786685,
+      1.4726517788515796,
+      1.199438179899382,
+      1.5090276330909473,
+      1.7085987705512335,
+      2.0563928008879593,
+      1.1014557539816672,
+      3.029416635532507,
+      1.1883603748084115,
+      1.213253854905199,
+      1.9425223089704577,
+      2.207885519770168,
+      2.4040201106327492,
+      2.105794913816772,
+      2.2047399058437986,
+      2.087400903237746,
+      2.325304775430052,
+      1.4741805783854236
+    ]
+  },
+  "best_validation_loss": 1.1014557539816672,
+  "checkpoint_path": "models\\contrastive\\phase9\\best_projection_head.pt"
+}

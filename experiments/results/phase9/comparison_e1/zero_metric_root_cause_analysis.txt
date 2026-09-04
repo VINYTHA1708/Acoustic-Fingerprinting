@@ -1,0 +1,123 @@
+============================================================
+PHASE 9.1 — STEP 7
+ZERO-METRIC ROOT CAUSE ANALYSIS
+============================================================
+
+1. AFFECTED RECORDINGS
+
+Total zero-metric recordings: 8
+
+  pump/id_00/00000764.wav  [normal]
+  pump/id_02/00000095.wav  [normal]
+  pump/id_04/00000081.wav  [normal]
+  pump/id_06/00000048.wav  [normal]
+  pump/id_00/00000000.wav  [abnormal]
+  pump/id_02/00000000.wav  [abnormal]
+  pump/id_04/00000000.wav  [abnormal]
+  pump/id_06/00000000.wav  [abnormal]
+
+------------------------------------------------------------
+
+2. FILE AND AUDIO VALIDATION
+
+Audio files exist    : 8/8
+Cache files exist    : 8/8
+Fused vectors valid  : 8/8
+
+------------------------------------------------------------
+
+3. EMBEDDING VALIDATION
+
+Embeddings generated : 8/8
+NaN embeddings       : 0
+Inf embeddings       : 0
+
+------------------------------------------------------------
+
+4. REFERENCE VALIDATION
+
+Profile files exist  : 8/8
+Current profile n_embeddings:
+  id_00: 150 embeddings
+  id_02: 150 embeddings
+  id_04: 105 embeddings
+  id_06: 155 embeddings
+  id_00: 150 embeddings
+  id_02: 150 embeddings
+  id_04: 105 embeddings
+  id_06: 155 embeddings
+
+------------------------------------------------------------
+
+5. DISTANCE CALCULATION
+
+Smoke-test profile (1 embedding) → std_vector = zeros(256):
+  Recordings with smoke_std_all_zero : 8/8
+  Recordings with smoke_z_all_zero   : 8/8
+
+Current profile (full) normalized metrics (non-zero confirms formula is correct):
+  id_00/00000764.wav: norm_euclidean=9.7701
+  id_02/00000095.wav: norm_euclidean=11.6926
+  id_04/00000081.wav: norm_euclidean=17.6746
+  id_06/00000048.wav: norm_euclidean=10.0924
+  id_00/00000000.wav: norm_euclidean=17.0231
+  id_02/00000000.wav: norm_euclidean=18.1590
+  id_04/00000000.wav: norm_euclidean=50.1809
+  id_06/00000000.wav: norm_euclidean=35.5944
+
+------------------------------------------------------------
+
+6. CODE PATH ANALYSIS
+
+Smoke-test selection matches zero rows exactly: True
+
+Responsible function:
+  LearnedDriftMetrics.compute()  [src/learned_drift/metrics.py]
+
+Exact line:
+  z = np.where(std < _STD_FLOOR, 0.0, (emb - mean) / safe_std)
+
+When std=0 for all 256 dims (single-embedding profile):
+  z = zeros(256)  →  norm_euclidean=0  norm_manhattan=0  norm_cosine=0
+
+Resume mechanism (phase9_evaluate.py _evaluate_split):
+  Smoke-test rows written to CSV first.
+  Full run loaded them into 'completed' set and skipped them.
+
+------------------------------------------------------------
+
+7. ROOT CAUSE
+
+CONFIRMED ROOT CAUSE:
+
+  phase9_evaluate.py was run with --smoke-test BEFORE the full run.
+  Smoke-test mode builds each profile from exactly 1 recording.
+  A 1-embedding profile has std_vector = zeros(256).
+  LearnedDriftMetrics.compute() sets z=0 for every dimension where std<1e-10.
+  This produces norm_euclidean=0, norm_manhattan=0, norm_cosine=0.
+  The full run resumed from the existing CSV and skipped these 8 rows
+  because they were already in the 'completed' set.
+  The incorrect zero values were preserved in the final evaluation_pump.csv.
+
+------------------------------------------------------------
+
+8. IMPACT ON PHASE 9 RESULTS
+
+  - The zero rows are NOT valid results.
+  - They are caused by an implementation interaction between the smoke-test
+    profile (1 embedding → std=0) and the resume mechanism.
+  - The distance formula itself is correct.
+  - Phase 9 evaluation_pump.csv requires correction.
+  - The on-disk profiles (150/150/105/155 embeddings) are correct.
+
+------------------------------------------------------------
+
+9. RECOMMENDED NEXT ACTION
+
+  B. Fix implementation and rerun Phase 9.
+
+  Delete the 8 zero rows from evaluation_pump.csv (or delete the file)
+  and rerun phase9_evaluate.py WITHOUT --smoke-test.
+  The profiles do not need to be rebuilt.
+
+============================================================

@@ -1,0 +1,4 @@
+metric,kw_stat,kw_p,kw_verdict
+normalized_euclidean,3.5074,0.31980972,NOT_SIGNIFICANT
+normalized_manhattan,3.5956,0.30857462,NOT_SIGNIFICANT
+normalized_cosine,0.75,0.86138508,NOT_SIGNIFICANT

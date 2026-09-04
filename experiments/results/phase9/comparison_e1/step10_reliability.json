@@ -1,0 +1,58 @@
+[
+  {
+    "machine_type": "fan",
+    "n_machine_ids": 4,
+    "mean_auc_euclidean": 0.711379,
+    "std_auc_euclidean": 0.142732,
+    "cv_euclidean": 0.200641,
+    "cv_manhattan": 0.203791,
+    "cv_cosine": 0.104001,
+    "auc_range_euclidean": 0.346062,
+    "icc_euc_man": 0.999621,
+    "friedman_stat": 8.0,
+    "friedman_p": 0.01831564,
+    "friedman_verdict": "SIGNIFICANT"
+  },
+  {
+    "machine_type": "pump",
+    "n_machine_ids": 4,
+    "mean_auc_euclidean": 0.876157,
+    "std_auc_euclidean": 0.076048,
+    "cv_euclidean": 0.086798,
+    "cv_manhattan": 0.085605,
+    "cv_cosine": 0.36558,
+    "auc_range_euclidean": 0.156381,
+    "icc_euc_man": 0.999808,
+    "friedman_stat": 6.5,
+    "friedman_p": 0.03877421,
+    "friedman_verdict": "SIGNIFICANT"
+  },
+  {
+    "machine_type": "slider",
+    "n_machine_ids": 4,
+    "mean_auc_euclidean": 0.848064,
+    "std_auc_euclidean": 0.141422,
+    "cv_euclidean": 0.166758,
+    "cv_manhattan": 0.166819,
+    "cv_cosine": 0.328179,
+    "auc_range_euclidean": 0.313427,
+    "icc_euc_man": 0.999935,
+    "friedman_stat": 8.0,
+    "friedman_p": 0.01831564,
+    "friedman_verdict": "SIGNIFICANT"
+  },
+  {
+    "machine_type": "valve",
+    "n_machine_ids": 4,
+    "mean_auc_euclidean": 0.841765,
+    "std_auc_euclidean": 0.110508,
+    "cv_euclidean": 0.131281,
+    "cv_manhattan": 0.131753,
+    "cv_cosine": 0.599051,
+    "auc_range_euclidean": 0.233786,
+    "icc_euc_man": 0.998042,
+    "friedman_stat": 6.0,
+    "friedman_p": 0.04978707,
+    "friedman_verdict": "SIGNIFICANT"
+  }
+]

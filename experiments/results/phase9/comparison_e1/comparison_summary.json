@@ -1,0 +1,60 @@
+{
+  "overall": {
+    "normalized_euclidean": {
+      "e1_roc_auc": 0.802721,
+      "phase9_roc_auc": 0.858572,
+      "roc_auc_difference": 0.055851,
+      "e1_cohens_d": 1.119798,
+      "phase9_cohens_d": 1.345636,
+      "cohens_d_difference": 0.225838
+    },
+    "normalized_manhattan": {
+      "e1_roc_auc": 0.80028,
+      "phase9_roc_auc": 0.859188,
+      "roc_auc_difference": 0.058908,
+      "e1_cohens_d": 1.116234,
+      "phase9_cohens_d": 1.357293,
+      "cohens_d_difference": 0.241059
+    },
+    "normalized_cosine": {
+      "e1_roc_auc": 0.562915,
+      "phase9_roc_auc": 0.50315,
+      "roc_auc_difference": -0.059765,
+      "e1_cohens_d": -0.141227,
+      "phase9_cohens_d": 0.024851,
+      "cohens_d_difference": 0.166078
+    }
+  },
+  "per_machine_cases_total": 12,
+  "roc_auc": {
+    "improved": 5,
+    "regressed": 7,
+    "unchanged": 0,
+    "best_improvement": {
+      "machine_id": "id_06",
+      "metric": "normalized_euclidean",
+      "difference": 0.233943
+    },
+    "largest_regression": {
+      "machine_id": "id_00",
+      "metric": "normalized_cosine",
+      "difference": -0.164267
+    }
+  },
+  "cohens_d": {
+    "improved": 9,
+    "regressed": 3,
+    "unchanged": 0,
+    "best_improvement": {
+      "machine_id": "id_06",
+      "metric": "normalized_manhattan",
+      "difference": 1.151184
+    },
+    "largest_regression": {
+      "machine_id": "id_06",
+      "metric": "normalized_cosine",
+      "difference": -0.593278
+    }
+  },
+  "interpretation": "Phase 9 overall ROC-AUC for normalized_euclidean is higher than E1 (diff=+0.0559). Phase 9 overall ROC-AUC for normalized_manhattan is higher than E1 (diff=+0.0589). Phase 9 overall ROC-AUC for normalized_cosine is lower than E1 (diff=-0.0598); cosine separation is weak in both systems. Across 12 per-machine metric cases: Phase 9 ROC-AUC improved in 5, regressed in 7. Cohen's d improved in 9 cases, regressed in 3 cases. Phase 9 shows a net ROC-AUC regression relative to E1 across per-machine cases."
+}

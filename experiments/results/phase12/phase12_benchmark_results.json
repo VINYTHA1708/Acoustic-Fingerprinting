@@ -1,0 +1,51 @@
+{
+  "phase": "phase12",
+  "description": "Runtime benchmark of Phase 9 method",
+  "environment": {
+    "python_version": "3.14.0",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 154 Stepping 4, GenuineIntel",
+    "cpu_count": "N/A",
+    "torch_version": "2.10.0+cpu",
+    "cuda_available": "False",
+    "cuda_device": "N/A",
+    "numpy_version": "2.3.4"
+  },
+  "training_time": {
+    "source": "training_history.json (Phase 9 run)",
+    "note": "Wall-clock not instrumented during training; values derived from dataset/config.",
+    "epochs": 20,
+    "total_pooled_train_normal": 10296,
+    "batch_size": 16,
+    "approx_train_pairs": 8236,
+    "approx_batches_per_epoch": 514,
+    "best_val_loss": 1.1014557539816672,
+    "final_train_loss": 1.2352535997744787,
+    "final_val_loss": 1.4741805783854236
+  },
+  "profile_build_time": {
+    "machine": "pump/id_00",
+    "n_recordings": 150,
+    "total_time_s": 1.433,
+    "mean_time_per_rec_s": 0.0096
+  },
+  "inference_time_per_file": {
+    "machine": "pump/id_00",
+    "n_recordings": 30,
+    "mean_s": 0.0059,
+    "std_s": 0.0028,
+    "min_s": 0.0046,
+    "max_s": 0.0206,
+    "median_s": 0.0054,
+    "mean_ms": 5.86,
+    "note": "Cache-hit path (fusion vector loaded from disk, no BEATs/DSP recomputation)"
+  },
+  "evaluation_time": {
+    "machine_type": "pump",
+    "n_recordings": 1022,
+    "total_time_s": 9.118,
+    "mean_time_per_rec_s": 0.0089,
+    "mean_time_per_rec_ms": 8.92,
+    "note": "Cache-hit path; pump machine type only"
+  }
+}

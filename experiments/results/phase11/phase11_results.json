@@ -1,0 +1,43 @@
+{
+  "experiment": "phase11",
+  "method": "phase9_multi_machine_contrastive",
+  "primary_metric": "normalized_euclidean",
+  "seeds": [
+    42,
+    123,
+    2026
+  ],
+  "per_seed": [
+    {
+      "seed": 42,
+      "roc_auc": 0.789649,
+      "cohens_d": 1.068191
+    },
+    {
+      "seed": 123,
+      "roc_auc": 0.775694,
+      "cohens_d": 1.01087
+    },
+    {
+      "seed": 2026,
+      "roc_auc": 0.775575,
+      "cohens_d": 1.029714
+    }
+  ],
+  "aggregate": {
+    "roc_auc_mean": 0.780306,
+    "roc_auc_std": 0.008091,
+    "cohens_d_mean": 1.036258,
+    "cohens_d_std": 0.029216
+  },
+  "split": {
+    "train_ratio": 0.7,
+    "profile_ratio": 0.15
+  },
+  "training": {
+    "epochs": 20,
+    "batch_size": 16,
+    "learning_rate": 0.001,
+    "temperature": 0.07
+  }
+}

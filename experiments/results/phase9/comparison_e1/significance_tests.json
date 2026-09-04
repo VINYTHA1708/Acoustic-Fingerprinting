@@ -1,0 +1,83 @@
+[
+  {
+    "group_type": "overall",
+    "group_value": "all",
+    "metric": "normalized_euclidean",
+    "n": 1022,
+    "stat": 250527.0,
+    "p_value": 0.250354,
+    "verdict": "NOT_SIGNIFICANT"
+  },
+  {
+    "group_type": "overall",
+    "group_value": "all",
+    "metric": "normalized_manhattan",
+    "n": 1022,
+    "stat": 225095.0,
+    "p_value": 0.000121,
+    "verdict": "SIGNIFICANT"
+  },
+  {
+    "group_type": "overall",
+    "group_value": "all",
+    "metric": "normalized_cosine",
+    "n": 1022,
+    "stat": 200055.0,
+    "p_value": 0.0,
+    "verdict": "SIGNIFICANT"
+  },
+  {
+    "group_type": "label",
+    "group_value": "normal",
+    "metric": "normalized_euclidean",
+    "n": 566,
+    "stat": 72586.0,
+    "p_value": 0.049531,
+    "verdict": "SIGNIFICANT"
+  },
+  {
+    "group_type": "label",
+    "group_value": "normal",
+    "metric": "normalized_manhattan",
+    "n": 566,
+    "stat": 76921.0,
+    "p_value": 0.395179,
+    "verdict": "NOT_SIGNIFICANT"
+  },
+  {
+    "group_type": "label",
+    "group_value": "normal",
+    "metric": "normalized_cosine",
+    "n": 566,
+    "stat": 67147.0,
+    "p_value": 0.000776,
+    "verdict": "SIGNIFICANT"
+  },
+  {
+    "group_type": "label",
+    "group_value": "abnormal",
+    "metric": "normalized_euclidean",
+    "n": 456,
+    "stat": 43619.0,
+    "p_value": 0.0026,
+    "verdict": "SIGNIFICANT"
+  },
+  {
+    "group_type": "label",
+    "group_value": "abnormal",
+    "metric": "normalized_manhattan",
+    "n": 456,
+    "stat": 39970.0,
+    "p_value": 1.7e-05,
+    "verdict": "SIGNIFICANT"
+  },
+  {
+    "group_type": "label",
+    "group_value": "abnormal",
+    "metric": "normalized_cosine",
+    "n": 456,
+    "stat": 35439.0,
+    "p_value": 0.0,
+    "verdict": "SIGNIFICANT"
+  }
+]

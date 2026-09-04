@@ -1,0 +1,5 @@
+machine_type,n_machine_ids,mean_auc_euclidean,std_auc_euclidean,cv_euclidean,cv_manhattan,cv_cosine,auc_range_euclidean,icc_euc_man,friedman_stat,friedman_p,friedman_verdict
+fan,4,0.711379,0.142732,0.200641,0.203791,0.104001,0.346062,0.999621,8.0,0.01831564,SIGNIFICANT
+pump,4,0.876157,0.076048,0.086798,0.085605,0.36558,0.156381,0.999808,6.5,0.03877421,SIGNIFICANT
+slider,4,0.848064,0.141422,0.166758,0.166819,0.328179,0.313427,0.999935,8.0,0.01831564,SIGNIFICANT
+valve,4,0.841765,0.110508,0.131281,0.131753,0.599051,0.233786,0.998042,6.0,0.04978707,SIGNIFICANT
