@@ -1,0 +1,6 @@
+Stage,Time,Notes
+Profile build (per recording),9.6 ms,"150 recordings, pump/id_00"
+"Inference (cache-hit, mean)",5.86 ms,"30 recordings, pump/id_00"
+"Inference (cache-hit, median)",5.40 ms,"30 recordings, pump/id_00"
+Evaluation (per recording),8.92 ms,"1022 recordings, pump"
+Evaluation (1022 recs total),9.118 s,pump machine type

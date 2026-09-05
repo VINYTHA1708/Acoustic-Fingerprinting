@@ -1,11 +1,4 @@
-"""Streamlit dashboard for Acoustic Fingerprinting of Industrial Machines.
-
-Provides an interactive UI for:
-    - Building a healthy learned fingerprint profile
-    - Running end-to-end inference on an uploaded audio file
-    - Displaying health score, drift metrics, and rule-based explanation
-    - Rendering all five ResultVisualizer plots inline
-    - Reporting per-stage benchmark timings
+"""Streamlit dashboard - Acoustic Fingerprinting of Industrial Machines.
 
 Run with:
     streamlit run app.py
@@ -21,10 +14,6 @@ from pathlib import Path
 import numpy as np
 import streamlit as st
 
-# ---------------------------------------------------------------------------
-# Project imports — all inference delegated to existing modules
-# ---------------------------------------------------------------------------
-from src.benchmark.benchmark import PipelineBenchmark
 from src.dataset.loader import DatasetLoader
 from src.dataset.metadata import AudioMetadata
 from src.explainability.explainer import ExplainabilityEngine
@@ -36,101 +25,264 @@ from src.visualization.visualizer import ResultVisualizer
 
 logging.basicConfig(level=logging.WARNING, format="%(levelname)s: %(message)s")
 
-# ---------------------------------------------------------------------------
-# Constants
-# ---------------------------------------------------------------------------
-
-_EVAL_LIMIT = 50  # recordings used for trend / PCA / confusion / ROC plots
-_VIZ_TMP = Path(tempfile.gettempdir()) / "af_dashboard_viz"
+_CHECKPOINT    = "models/contrastive/best_projection_head.pt"
+_DATASET_ROOT  = "data/raw/MIMII"
+_VIZ_TMP       = Path(tempfile.gettempdir()) / "af_dashboard_viz"
 _VIZ_TMP.mkdir(parents=True, exist_ok=True)
+_EVAL_LIMIT    = 50
 
-_STATE_COLORS: dict[str, str] = {
-    "EXCELLENT": "🟢",
-    "GOOD": "🟡",
-    "WARNING": "🟠",
-    "CRITICAL": "🔴",
+# ---------------------------------------------------------------------------
+# CSS  — light professional theme
+# ---------------------------------------------------------------------------
+
+_CSS = """
+<style>
+/* ── Page background ─────────────────────────────────────────── */
+[data-testid="stAppViewContainer"] {
+    background: #f5f7fa;
+}
+[data-testid="stHeader"] { background: transparent; }
+
+/* ── Sidebar ─────────────────────────────────────────────────── */
+[data-testid="stSidebar"] {
+    background: #ffffff;
+    border-right: 1px solid #e2e8f0;
 }
 
+/* ── Remove default top padding ─────────────────────────────── */
+.block-container { padding-top: 1.5rem !important; }
+
+/* ── Header banner ───────────────────────────────────────────── */
+.app-header {
+    background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 60%, #2563eb 100%);
+    border-radius: 14px;
+    padding: 2rem 2.5rem;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+.app-header-icon { font-size: 2.8rem; line-height: 1; }
+.app-header-title {
+    font-size: 1.9rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0;
+    letter-spacing: -0.3px;
+}
+.app-header-sub {
+    font-size: 0.95rem;
+    color: #bfdbfe;
+    margin: 0.2rem 0 0 0;
+}
+
+/* ── Step card ───────────────────────────────────────────────── */
+.step-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.5rem 1.75rem 1.75rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    height: 100%;
+}
+.step-number {
+    display: inline-block;
+    background: #1d4ed8;
+    color: #ffffff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    border-radius: 6px;
+    padding: 0.2rem 0.6rem;
+    margin-bottom: 0.6rem;
+}
+.step-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 0.25rem 0;
+}
+.step-desc {
+    font-size: 0.82rem;
+    color: #64748b;
+    margin: 0 0 1rem 0;
+}
+
+/* ── Welcome info box ────────────────────────────────────────── */
+.welcome-box {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 12px;
+    padding: 1.5rem 2rem;
+    margin-top: 1.5rem;
+    display: flex;
+    gap: 1.25rem;
+    align-items: flex-start;
+}
+.welcome-icon { font-size: 2rem; line-height: 1.2; }
+.welcome-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1e40af;
+    margin: 0 0 0.35rem 0;
+}
+.welcome-text {
+    font-size: 0.88rem;
+    color: #374151;
+    margin: 0;
+    line-height: 1.6;
+}
+.welcome-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.75rem;
+}
+.pill {
+    background: #dbeafe;
+    color: #1e40af;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 20px;
+    padding: 0.2rem 0.7rem;
+}
+
+/* ── Result: status card ─────────────────────────────────────── */
+.status-card {
+    border-radius: 14px;
+    padding: 2rem 1.5rem;
+    text-align: center;
+}
+.status-healthy {
+    background: #f0fdf4;
+    border: 2px solid #22c55e;
+}
+.status-abnormal {
+    background: #fff1f2;
+    border: 2px solid #ef4444;
+}
+.status-icon { font-size: 3rem; line-height: 1; margin-bottom: 0.5rem; }
+.status-label {
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin: 0.3rem 0 0.4rem;
+    letter-spacing: 0.02em;
+}
+.status-healthy .status-label { color: #16a34a; }
+.status-abnormal .status-label { color: #dc2626; }
+.status-desc { font-size: 0.88rem; color: #64748b; }
+
+/* ── Metric card ─────────────────────────────────────────────── */
+.metric-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.1rem 1.25rem;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.metric-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: 0.4rem;
+}
+.metric-value {
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: #1e293b;
+}
+.metric-sub {
+    font-size: 0.78rem;
+    color: #94a3b8;
+    margin-top: 0.2rem;
+}
+
+/* ── Section heading ─────────────────────────────────────────── */
+.section-heading {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 0.45rem;
+    margin: 1.75rem 0 0.9rem;
+}
+
+/* ── Detail table row ────────────────────────────────────────── */
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.45rem 0;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 0.87rem;
+}
+.detail-key { color: #64748b; }
+.detail-val { color: #1e293b; font-weight: 600; }
+
+/* ── Sidebar info ────────────────────────────────────────────── */
+.sidebar-section {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 1rem 1.1rem;
+    margin-top: 0.5rem;
+}
+.sidebar-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    padding: 0.3rem 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+.sidebar-key { color: #64748b; }
+.sidebar-val { color: #1e293b; font-weight: 600; }
+</style>
+"""
+
 # ---------------------------------------------------------------------------
-# Cached resource loaders
+# Cached resource loaders — each loaded exactly once per session
 # ---------------------------------------------------------------------------
 
 
-@st.cache_resource(show_spinner="Loading pipeline resources…")
+@st.cache_resource(show_spinner="Loading BEATs model and ProjectionHead...")
 def _load_pipeline(checkpoint: str) -> InferencePipeline:
-    """Load and cache the InferencePipeline (BEATs + ProjectionHead).
-
-    Args:
-        checkpoint: Path to the trained ProjectionHead ``.pt`` checkpoint.
-
-    Returns:
-        A ready :class:`~pipeline.pipeline.InferencePipeline` instance.
-    """
     return InferencePipeline(checkpoint_path=checkpoint)
 
 
-@st.cache_resource(show_spinner="Loading drift analyzer…")
+@st.cache_resource(show_spinner="Loading drift analyzer...")
 def _load_drift_analyzer(checkpoint: str) -> LearnedDriftAnalyzer:
-    """Load and cache the LearnedDriftAnalyzer.
-
-    Args:
-        checkpoint: Path to the trained ProjectionHead ``.pt`` checkpoint.
-
-    Returns:
-        A ready :class:`~learned_drift.analyzer.LearnedDriftAnalyzer` instance.
-    """
     return LearnedDriftAnalyzer(checkpoint_path=checkpoint)
 
 
-@st.cache_resource(show_spinner="Loading health analyzer…")
+@st.cache_resource(show_spinner="Loading health analyzer...")
 def _load_health_analyzer(checkpoint: str) -> LearnedHealthAnalyzer:
-    """Load and cache the LearnedHealthAnalyzer.
-
-    Args:
-        checkpoint: Path to the trained ProjectionHead ``.pt`` checkpoint.
-
-    Returns:
-        A ready :class:`~learned_health_index.analyzer.LearnedHealthAnalyzer` instance.
-    """
     return LearnedHealthAnalyzer(checkpoint_path=checkpoint)
 
 
-@st.cache_resource(show_spinner="Loading benchmark…")
-def _load_benchmark(checkpoint: str) -> PipelineBenchmark:
-    """Load and cache the PipelineBenchmark.
-
-    Args:
-        checkpoint: Path to the trained ProjectionHead ``.pt`` checkpoint.
-
-    Returns:
-        A ready :class:`~benchmark.benchmark.PipelineBenchmark` instance.
-    """
-    return PipelineBenchmark(checkpoint_path=checkpoint)
+@st.cache_resource(show_spinner="Building healthy machine profile...")
+def _get_profile(machine_type: str, machine_id: str, max_recordings: int, checkpoint: str):
+    """Build and cache the healthy profile. Re-runs only when key changes."""
+    loader  = DatasetLoader(_DATASET_ROOT)
+    builder = LearnedProfileBuilder(checkpoint_path=checkpoint)
+    return builder.build(
+        loader=loader,
+        machine_type=machine_type,
+        machine_id=machine_id,
+        max_recordings=max_recordings,
+    )
 
 
 # ---------------------------------------------------------------------------
-# Helper — build AudioMetadata from an uploaded file saved to a temp path
+# Small HTML helpers
 # ---------------------------------------------------------------------------
 
 
-def _make_audio_metadata(
-    wav_path: Path,
-    machine_type: str,
-    machine_id: str,
-) -> AudioMetadata:
-    """Construct an :class:`~dataset.metadata.AudioMetadata` for an uploaded file.
-
-    The uploaded file is treated as a ``normal`` recording for inference
-    purposes.  The label does not affect drift or health computation.
-
-    Args:
-        wav_path: Absolute path to the saved temporary WAV file.
-        machine_type: Machine type selected in the sidebar.
-        machine_id: Machine ID selected in the sidebar.
-
-    Returns:
-        :class:`~dataset.metadata.AudioMetadata` pointing at the temp file.
-    """
+def _make_audio_metadata(wav_path: Path, machine_type: str, machine_id: str) -> AudioMetadata:
     return AudioMetadata(
         machine_type=machine_type,
         machine_id=machine_id,
@@ -142,248 +294,32 @@ def _make_audio_metadata(
     )
 
 
-# ---------------------------------------------------------------------------
-# Helper — collect evaluation data for trend / PCA / confusion / ROC plots
-# ---------------------------------------------------------------------------
-
-
-def _collect_eval_data(
-    loader: DatasetLoader,
-    machine_type: str,
-    machine_id: str,
-    pipeline: InferencePipeline,
-    drift_analyzer: LearnedDriftAnalyzer,
-    profile,
-) -> tuple[list[float], list[float], np.ndarray, list[str], list[int]]:
-    """Run inference on up to _EVAL_LIMIT healthy and abnormal recordings.
-
-    Collects health scores, drift scores, embeddings, embedding labels, and
-    ground-truth binary labels for visualization.
-
-    Args:
-        loader: :class:`~dataset.loader.DatasetLoader` for the dataset root.
-        machine_type: Machine type to evaluate.
-        machine_id: Machine ID to evaluate.
-        pipeline: Cached :class:`~pipeline.pipeline.InferencePipeline`.
-        drift_analyzer: Cached :class:`~learned_drift.analyzer.LearnedDriftAnalyzer`.
-        profile: :class:`~learned_profile.learned_profile.LearnedFingerprintProfile`.
-
-    Returns:
-        Tuple of (health_scores, drift_scores, emb_matrix, embed_labels, y_true).
-    """
-    all_records = loader.get_all_files()
-    normal_recs = [
-        r for r in all_records
-        if r.machine_type == machine_type and r.machine_id == machine_id and r.label == "normal"
-    ][:_EVAL_LIMIT]
-    abnormal_recs = [
-        r for r in all_records
-        if r.machine_type == machine_type and r.machine_id == machine_id and r.label == "abnormal"
-    ][:_EVAL_LIMIT]
-
-    health_scores: list[float] = []
-    drift_scores: list[float] = []
-    embeddings: list[np.ndarray] = []
-    embed_labels: list[str] = []
-    y_true: list[int] = []
-
-    inference = drift_analyzer._inference
-
-    for rec, y_val, lbl in (
-        [(r, 0, "healthy") for r in normal_recs]
-        + [(r, 1, "abnormal") for r in abnormal_recs]
-    ):
-        try:
-            result = pipeline.analyze(rec, profile)
-            health_scores.append(result.health_score)
-            drift_scores.append(result.normalized_euclidean)
-            y_true.append(y_val)
-            embed_labels.append(lbl)
-            fused = drift_analyzer._cache.load_or_create(rec)
-            embeddings.append(inference.generate_fingerprint(fused))
-        except Exception:  # noqa: BLE001
-            pass
-
-    emb_matrix = np.stack(embeddings, axis=0).astype(np.float32) if embeddings else np.empty((0, 256))
-    return health_scores, drift_scores, emb_matrix, embed_labels, y_true
-
-
-# ---------------------------------------------------------------------------
-# Section renderers
-# ---------------------------------------------------------------------------
-
-
-def _render_machine_info(machine_type: str, machine_id: str, filename: str) -> None:
-    """Render the Machine Information section.
-
-    Args:
-        machine_type: Machine type string.
-        machine_id: Machine ID string.
-        filename: Source audio filename.
-    """
-    st.subheader("Machine Information")
-    c1, c2, c3 = st.columns(3)
-    c1.metric("Machine Type", machine_type)
-    c2.metric("Machine ID", machine_id)
-    c3.metric("Filename", filename)
-
-
-def _render_health(health_score: float, health_state: str) -> None:
-    """Render the Health section with a large metric and state badge.
-
-    Args:
-        health_score: Bounded health score in [0, 100].
-        health_state: Qualitative state string.
-    """
-    st.subheader("Health")
-    badge = _STATE_COLORS.get(health_state, "⚪")
-    c1, c2 = st.columns(2)
-    c1.metric("Health Score", f"{health_score:.1f} / 100")
-    c2.metric("Health State", f"{badge} {health_state}")
-
-    # Colour-coded progress bar
-    bar_color = {"EXCELLENT": "green", "GOOD": "blue", "WARNING": "orange", "CRITICAL": "red"}.get(
-        health_state, "gray"
+def _metric_card(label: str, value: str, sub: str = "") -> str:
+    sub_html = f'<div class="metric-sub">{sub}</div>' if sub else ""
+    return (
+        f'<div class="metric-card">'
+        f'<div class="metric-label">{label}</div>'
+        f'<div class="metric-value">{value}</div>'
+        f'{sub_html}</div>'
     )
-    st.progress(int(health_score), text=f"{health_score:.1f}%")
-    _ = bar_color  # reserved for future custom styling
 
 
-def _render_drift(
-    raw_euclidean: float,
-    normalized_euclidean: float,
-    raw_manhattan: float,
-    normalized_manhattan: float,
-    cosine_similarity: float,
-) -> None:
-    """Render the Drift Metrics section.
-
-    Args:
-        raw_euclidean: Raw Euclidean distance.
-        normalized_euclidean: Normalized Euclidean distance.
-        raw_manhattan: Raw Manhattan distance.
-        normalized_manhattan: Normalized Manhattan distance.
-        cosine_similarity: Raw cosine similarity.
-    """
-    st.subheader("Drift Metrics")
-    c1, c2, c3 = st.columns(3)
-    c1.metric("Raw Euclidean", f"{raw_euclidean:.4f}")
-    c2.metric("Normalized Euclidean", f"{normalized_euclidean:.4f}")
-    c3.metric("Cosine Similarity", f"{cosine_similarity:.4f}")
-    c4, c5 = st.columns(2)
-    c4.metric("Raw Manhattan", f"{raw_manhattan:.4f}")
-    c5.metric("Normalized Manhattan", f"{normalized_manhattan:.4f}")
+def _detail_row(key: str, val: str) -> str:
+    return (
+        f'<div class="detail-row">'
+        f'<span class="detail-key">{key}</span>'
+        f'<span class="detail-val">{val}</span>'
+        f'</div>'
+    )
 
 
-def _render_explanation(summary: str, possible_causes: list[str], recommendation: str) -> None:
-    """Render the Explanation section.
-
-    Args:
-        summary: One-sentence condition summary.
-        possible_causes: List of potential root causes.
-        recommendation: Suggested operator action.
-    """
-    st.subheader("Explanation")
-    st.info(f"**Summary:** {summary}")
-    if possible_causes:
-        st.warning("**Possible Causes:**\n" + "\n".join(f"- {c}" for c in possible_causes))
-    else:
-        st.success("No fault causes identified.")
-    st.info(f"**Recommendation:** {recommendation}")
-
-
-def _render_performance(
-    dsp_dim: int,
-    beats_dim: int,
-    fusion_dim: int,
-    embedding_dim: int,
-    inference_time: float,
-    cache_hit: bool,
-) -> None:
-    """Render the Performance section.
-
-    Args:
-        dsp_dim: DSP feature vector dimension.
-        beats_dim: BEATs embedding dimension.
-        fusion_dim: Fused vector dimension.
-        embedding_dim: Learned embedding dimension.
-        inference_time: Total wall-clock inference time in seconds.
-        cache_hit: Whether the fused vector was loaded from disk cache.
-    """
-    st.subheader("Performance")
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("DSP Dimension", dsp_dim)
-    c2.metric("BEATs Dimension", beats_dim)
-    c3.metric("Fusion Dimension", fusion_dim)
-    c4.metric("Embedding Dimension", embedding_dim)
-    c5, c6 = st.columns(2)
-    c5.metric("Inference Time", f"{inference_time * 1000:.1f} ms")
-    c6.metric("Cache Hit", "✅ Yes" if cache_hit else "❌ No")
-
-
-def _render_visualizations(
-    health_scores: list[float],
-    drift_scores: list[float],
-    emb_matrix: np.ndarray,
-    embed_labels: list[str],
-    y_true: list[int],
-) -> None:
-    """Render all five ResultVisualizer plots inline.
-
-    Saves each figure to a temporary directory and displays it with
-    ``st.image``.  Requires at least two classes in ``y_true`` for the
-    confusion matrix and ROC curve.
-
-    Args:
-        health_scores: Health scores for all evaluated recordings.
-        drift_scores: Normalized Euclidean drift scores.
-        emb_matrix: Embedding matrix of shape ``(N, 256)``.
-        embed_labels: Per-row label strings (``"healthy"`` / ``"abnormal"``).
-        y_true: Ground-truth binary labels (0 = healthy, 1 = abnormal).
-    """
-    if not health_scores:
-        st.info("No evaluation recordings available for visualization.")
-        return
-
-    vis = ResultVisualizer()
-    filenames = [f"rec_{i}" for i in range(len(health_scores))]
-
-    st.subheader("Visualizations")
-
-    # Health trend
-    p_health = _VIZ_TMP / "health_scores.png"
-    vis.plot_health_scores(health_scores, filenames, p_health)
-    st.image(str(p_health), caption="Health Score Trend", use_container_width=True)
-
-    # Drift trend
-    p_drift = _VIZ_TMP / "drift_scores.png"
-    vis.plot_drift_scores(drift_scores, filenames, p_drift)
-    st.image(str(p_drift), caption="Normalized Euclidean Drift Trend", use_container_width=True)
-
-    # Embedding PCA — needs at least 2 samples
-    if emb_matrix.shape[0] >= 2:
-        p_pca = _VIZ_TMP / "embedding_pca.png"
-        vis.plot_embedding_distribution(emb_matrix, embed_labels, p_pca)
-        st.image(str(p_pca), caption="Embedding Distribution (PCA)", use_container_width=True)
-
-    # Confusion matrix and ROC — need both classes present
-    has_both_classes = len(set(y_true)) == 2
-    if has_both_classes:
-        y_pred = [1 if s < 50.0 else 0 for s in health_scores]
-        anomaly_scores = [100.0 - s for s in health_scores]
-
-        p_cm = _VIZ_TMP / "confusion_matrix.png"
-        vis.plot_confusion_matrix(y_true, y_pred, p_cm)
-        st.image(str(p_cm), caption="Confusion Matrix", use_container_width=True)
-
-        p_roc = _VIZ_TMP / "roc_curve.png"
-        vis.plot_roc_curve(y_true, anomaly_scores, p_roc)
-        st.image(str(p_roc), caption="ROC Curve", use_container_width=True)
-    else:
-        st.info(
-            "Confusion matrix and ROC curve require both healthy and abnormal "
-            "recordings in the dataset."
-        )
+def _sidebar_row(key: str, val: str) -> str:
+    return (
+        f'<div class="sidebar-row">'
+        f'<span class="sidebar-key">{key}</span>'
+        f'<span class="sidebar-val">{val}</span>'
+        f'</div>'
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -392,219 +328,382 @@ def _render_visualizations(
 
 
 def main() -> None:
-    """Entry point for the Streamlit dashboard.
-
-    Renders the sidebar, handles the Analyze button click, and orchestrates
-    all section renderers.  All heavy computation is delegated to the
-    existing project modules — no inference logic is duplicated here.
-    """
     st.set_page_config(
-        page_title="Acoustic Fingerprinting Dashboard",
+        page_title="Acoustic Fingerprinting",
         page_icon="🔊",
         layout="wide",
+        initial_sidebar_state="expanded",
     )
+    st.markdown(_CSS, unsafe_allow_html=True)
 
-    st.title("🔊 Acoustic Fingerprinting — Industrial Machine Health Monitor")
-    st.caption(
-        "Detects deviations from a machine's healthy acoustic reference profile "
-        "using BEATs embeddings and contrastive learning."
-    )
-
-    # ------------------------------------------------------------------
-    # Sidebar — configuration inputs
-    # ------------------------------------------------------------------
+    # ── Sidebar — system info only ─────────────────────────────────────────
     with st.sidebar:
-        st.header("Configuration")
+        st.markdown("### System Information")
+        st.markdown(
+            '<div class="sidebar-section">'
+            + _sidebar_row("Model", "BEATs + DSP Fusion")
+            + _sidebar_row("Embedding", "256 dimensions")
+            + _sidebar_row("Metric", "Norm. Euclidean")
+            + _sidebar_row("Threshold", "Score &lt; 50")
+            + _sidebar_row("Runtime", "CPU")
+            + "</div>",
+            unsafe_allow_html=True,
+        )
 
-        dataset_root = st.text_input(
-            "Dataset Root",
-            value="data/raw/MIMII",
-            help="Path to the MIMII dataset root directory.",
+        st.markdown("---")
+        st.markdown("### About")
+        st.markdown(
+            "<small style='color:#64748b;line-height:1.7'>"
+            "Learns only from <b>healthy</b> recordings. "
+            "Detects faults by measuring acoustic drift from "
+            "the machine's healthy reference profile using "
+            "contrastive embeddings."
+            "</small>",
+            unsafe_allow_html=True,
         )
-        machine_type = st.text_input(
+
+    # ── Header banner ──────────────────────────────────────────────────────
+    st.markdown(
+        '<div class="app-header">'
+        '<div class="app-header-icon">🔊</div>'
+        '<div>'
+        '<p class="app-header-title">Acoustic Fingerprinting</p>'
+        '<p class="app-header-sub">AI-Based Industrial Machine Health Monitoring</p>'
+        '</div>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+    # ── Three-step workflow cards ──────────────────────────────────────────
+    col1, col2, col3 = st.columns(3, gap="medium")
+
+    with col1:
+        st.markdown('<div class="step-card">', unsafe_allow_html=True)
+        st.markdown('<span class="step-number">STEP 1</span>', unsafe_allow_html=True)
+        st.markdown('<p class="step-title">Select Machine</p>', unsafe_allow_html=True)
+        st.markdown(
+            '<p class="step-desc">Choose the machine type and ID to analyze.</p>',
+            unsafe_allow_html=True,
+        )
+        machine_type = st.selectbox(
             "Machine Type",
-            value="pump",
-            help="Machine type (e.g. fan, pump, valve, slider).",
+            ["pump", "fan", "valve", "slider"],
+            index=0,
+            label_visibility="collapsed",
         )
-        machine_id = st.text_input(
+        machine_id = st.selectbox(
             "Machine ID",
-            value="id_00",
-            help="Machine identifier (e.g. id_00, id_02).",
-        )
-        checkpoint = st.text_input(
-            "Projection Head Checkpoint",
-            value="models/contrastive/best_projection_head.pt",
-            help="Path to the trained ProjectionHead .pt checkpoint.",
+            ["id_00", "id_02", "id_04", "id_06"],
+            index=0,
+            label_visibility="collapsed",
         )
         max_recordings = st.number_input(
-            "Maximum Healthy Recordings",
-            min_value=1,
-            max_value=1000,
+            "Max Healthy Recordings",
+            min_value=10,
+            max_value=500,
             value=100,
             step=10,
-            help="Maximum number of healthy recordings used to build the profile.",
+            help="Number of normal recordings used to build the healthy reference profile.",
+        )
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    with col2:
+        st.markdown('<div class="step-card">', unsafe_allow_html=True)
+        st.markdown('<span class="step-number">STEP 2</span>', unsafe_allow_html=True)
+        st.markdown('<p class="step-title">Upload Audio</p>', unsafe_allow_html=True)
+        st.markdown(
+            '<p class="step-desc">Upload a WAV recording from the selected machine.</p>',
+            unsafe_allow_html=True,
         )
         uploaded_file = st.file_uploader(
-            "Upload Audio File (.wav)",
+            "WAV file",
             type=["wav"],
-            help="WAV file to analyze against the healthy profile.",
+            label_visibility="collapsed",
         )
+        if uploaded_file:
+            st.success(f"Ready: **{uploaded_file.name}**")
+        else:
+            st.info("Accepted format: .wav")
+        st.markdown("</div>", unsafe_allow_html=True)
 
-        analyze_clicked = st.button("Analyze", type="primary", use_container_width=True)
+    with col3:
+        st.markdown('<div class="step-card">', unsafe_allow_html=True)
+        st.markdown('<span class="step-number">STEP 3</span>', unsafe_allow_html=True)
+        st.markdown('<p class="step-title">Analyze Machine Health</p>', unsafe_allow_html=True)
+        st.markdown(
+            '<p class="step-desc">'
+            "Run the acoustic fingerprint analysis against the healthy reference profile."
+            "</p>",
+            unsafe_allow_html=True,
+        )
+        analyze_clicked = st.button(
+            "Analyze Audio",
+            type="primary",
+            use_container_width=True,
+        )
+        st.markdown(
+            "<small style='color:#94a3b8'>"
+            "The healthy profile is built once and cached. "
+            "Only the uploaded file is processed on each run."
+            "</small>",
+            unsafe_allow_html=True,
+        )
+        st.markdown("</div>", unsafe_allow_html=True)
 
-    # ------------------------------------------------------------------
-    # Validate inputs before doing any work
-    # ------------------------------------------------------------------
+    # ── Welcome / idle state ───────────────────────────────────────────────
     if not analyze_clicked:
-        st.info("Configure the sidebar and click **Analyze** to begin.")
+        st.markdown(
+            '<div class="welcome-box">'
+            '<div class="welcome-icon">&#128268;</div>'
+            '<div>'
+            '<p class="welcome-title">How it works</p>'
+            '<p class="welcome-text">'
+            "Upload an industrial machine audio recording to detect deviations from its "
+            "healthy acoustic fingerprint. The system uses a frozen BEATs encoder combined "
+            "with DSP features and contrastive learning to produce a 256-dimensional "
+            "fingerprint, then measures drift from the machine's healthy reference profile."
+            "</p>"
+            '<div class="welcome-pills">'
+            '<span class="pill">BEATs Encoder</span>'
+            '<span class="pill">DSP Features</span>'
+            '<span class="pill">Contrastive Learning</span>'
+            '<span class="pill">256-dim Fingerprint</span>'
+            '<span class="pill">Drift Analysis</span>'
+            "</div>"
+            "</div>"
+            "</div>",
+            unsafe_allow_html=True,
+        )
         return
 
+    # ── Input validation ───────────────────────────────────────────────────
     if uploaded_file is None:
-        st.error("Please upload a WAV file before clicking Analyze.")
+        st.error("Please upload a WAV file in Step 2 before clicking Analyze.")
         return
 
-    checkpoint_path = Path(checkpoint)
-    if not checkpoint_path.exists():
-        st.error(f"Checkpoint not found: `{checkpoint_path}`")
+    if not Path(_CHECKPOINT).exists():
+        st.error(f"Checkpoint not found: `{_CHECKPOINT}`")
         return
 
-    dataset_path = Path(dataset_root)
-    if not dataset_path.exists():
-        st.error(f"Dataset root not found: `{dataset_path}`")
+    if not Path(_DATASET_ROOT).exists():
+        st.error(f"Dataset root not found: `{_DATASET_ROOT}`")
         return
 
-    # ------------------------------------------------------------------
-    # Save uploaded file to a temp path so existing modules can read it
-    # ------------------------------------------------------------------
-    _safe_stem = Path(uploaded_file.name).stem[:64]
-    tmp_wav = _VIZ_TMP / f"{_safe_stem}.wav"
+    # ── Save uploaded WAV to temp path ─────────────────────────────────────
+    tmp_wav = _VIZ_TMP / Path(uploaded_file.name).name
     tmp_wav.write_bytes(uploaded_file.read())
-
     audio_record = _make_audio_metadata(tmp_wav, machine_type, machine_id)
 
-    # ------------------------------------------------------------------
-    # Load cached resources (BEATs + ProjectionHead loaded once)
-    # ------------------------------------------------------------------
-    pipeline = _load_pipeline(checkpoint)
-    drift_analyzer = _load_drift_analyzer(checkpoint)
-    health_analyzer = _load_health_analyzer(checkpoint)
-    benchmark = _load_benchmark(checkpoint)
+    # ── Load cached model resources (loaded once per session) ──────────────
+    pipeline       = _load_pipeline(_CHECKPOINT)
+    drift_analyzer = _load_drift_analyzer(_CHECKPOINT)
+    health_analyzer = _load_health_analyzer(_CHECKPOINT)
 
-    # ------------------------------------------------------------------
-    # Build healthy learned profile
-    # ------------------------------------------------------------------
-    with st.spinner(f"Building healthy profile from up to {max_recordings} recordings…"):
-        loader = DatasetLoader(dataset_root)
-        builder = LearnedProfileBuilder(checkpoint_path=checkpoint)
-        try:
-            profile = builder.build(
-                loader=loader,
-                machine_type=machine_type,
-                machine_id=machine_id,
-                max_recordings=int(max_recordings),
-                exclude_filenames={audio_record.filename},
-            )
-        except ValueError as exc:
-            st.error(f"Profile build failed: {exc}")
-            return
+    # ── Load/build healthy profile (cached per machine + max_recordings) ───
+    try:
+        profile = _get_profile(machine_type, machine_id, int(max_recordings), _CHECKPOINT)
+    except ValueError as exc:
+        st.error(f"Profile build failed: {exc}")
+        return
 
-    # ------------------------------------------------------------------
-    # Run inference pipeline + benchmark
-    # ------------------------------------------------------------------
-    with st.spinner("Running inference…"):
+    # ── Run inference on the uploaded file only ────────────────────────────
+    with st.spinner("Analyzing audio recording..."):
         t0 = time.perf_counter()
         try:
             pipeline_result = pipeline.analyze(audio_record, profile)
-            drift_result = drift_analyzer.analyze(audio_record, profile)
-            health_result = health_analyzer.analyze(audio_record, profile)
+            drift_result    = drift_analyzer.analyze(audio_record, profile)
+            health_result   = health_analyzer.analyze(audio_record, profile)
         except Exception as exc:  # noqa: BLE001
             st.error(f"Inference failed: {exc}")
             return
-        inference_time = time.perf_counter() - t0
+        inference_time_ms = (time.perf_counter() - t0) * 1000
 
-        cache_hit = drift_analyzer._cache.exists(audio_record)
-
-        # Benchmark for dimension metadata
-        try:
-            bench = benchmark.benchmark(audio_record, profile)
-            dsp_dim = bench.dsp_dimension
-            beats_dim = bench.beats_dimension
-            fusion_dim = bench.fusion_dimension
-            embedding_dim = bench.embedding_dimension
-        except Exception:  # noqa: BLE001
-            dsp_dim, beats_dim, fusion_dim, embedding_dim = 153, 768, 921, 256
-
-    # ------------------------------------------------------------------
-    # Generate explanation
-    # ------------------------------------------------------------------
-    engine = ExplainabilityEngine()
+    engine      = ExplainabilityEngine()
     explanation = engine.explain(drift_result, health_result)
 
-    st.success("Inference complete.")
+    health_score   = pipeline_result.health_score
+    health_state   = pipeline_result.health_state
+    norm_euclidean = pipeline_result.normalized_euclidean
+    is_healthy     = health_score >= 50.0
+    threshold      = 50.0
 
-    # ------------------------------------------------------------------
-    # Render all sections
-    # ------------------------------------------------------------------
-    st.divider()
-    _render_machine_info(
-        machine_type=pipeline_result.machine_type,
-        machine_id=pipeline_result.machine_id,
-        filename=pipeline_result.filename,
+    # ── Results section heading ────────────────────────────────────────────
+    st.markdown(
+        '<div class="section-heading">Analysis Results</div>',
+        unsafe_allow_html=True,
     )
 
-    st.divider()
-    _render_health(
-        health_score=pipeline_result.health_score,
-        health_state=pipeline_result.health_state,
+    # ── Status card + metric cards ─────────────────────────────────────────
+    res_left, res_right = st.columns([1, 2], gap="large")
+
+    with res_left:
+        if is_healthy:
+            st.markdown(
+                '<div class="status-card status-healthy">'
+                '<div class="status-icon">&#9989;</div>'
+                '<div class="status-label">HEALTHY</div>'
+                '<div class="status-desc">Within normal operating range</div>'
+                "</div>",
+                unsafe_allow_html=True,
+            )
+        else:
+            st.markdown(
+                '<div class="status-card status-abnormal">'
+                '<div class="status-icon">&#9888;&#65039;</div>'
+                '<div class="status-label">ABNORMAL</div>'
+                '<div class="status-desc">Deviation detected from healthy profile</div>'
+                "</div>",
+                unsafe_allow_html=True,
+            )
+
+    with res_right:
+        r1, r2 = st.columns(2)
+        with r1:
+            st.markdown(
+                _metric_card("Health Score", f"{health_score:.1f}", f"out of 100  \u00b7  {health_state}"),
+                unsafe_allow_html=True,
+            )
+        with r2:
+            st.markdown(
+                _metric_card("Drift Score", f"{norm_euclidean:.4f}", "Normalized Euclidean"),
+                unsafe_allow_html=True,
+            )
+        r3, r4 = st.columns(2)
+        with r3:
+            st.markdown(
+                _metric_card(
+                    "Prediction",
+                    "HEALTHY" if is_healthy else "ABNORMAL",
+                    f"Threshold: score < {threshold:.0f}",
+                ),
+                unsafe_allow_html=True,
+            )
+        with r4:
+            st.markdown(
+                _metric_card("Processing Time", f"{inference_time_ms:.0f} ms", "Uploaded file only"),
+                unsafe_allow_html=True,
+            )
+
+    # ── Health score progress bar ──────────────────────────────────────────
+    st.progress(
+        int(health_score),
+        text=f"Health Score: {health_score:.1f} / 100  ({health_state})",
     )
 
-    st.divider()
-    _render_drift(
-        raw_euclidean=pipeline_result.raw_euclidean,
-        normalized_euclidean=pipeline_result.normalized_euclidean,
-        raw_manhattan=pipeline_result.raw_manhattan,
-        normalized_manhattan=pipeline_result.normalized_manhattan,
-        cosine_similarity=pipeline_result.raw_cosine,
+    # ── Recommendation ─────────────────────────────────────────────────────
+    st.markdown(
+        '<div class="section-heading">Recommendation</div>',
+        unsafe_allow_html=True,
     )
+    if is_healthy:
+        st.success(f"**{explanation.summary}**  \n{explanation.recommendation}")
+    else:
+        st.error(f"**{explanation.summary}**  \n{explanation.recommendation}")
+        if explanation.possible_causes:
+            st.warning(
+                "**Possible causes:** " + "  \u00b7  ".join(explanation.possible_causes)
+            )
 
-    st.divider()
-    _render_explanation(
-        summary=explanation.summary,
-        possible_causes=explanation.possible_causes,
-        recommendation=explanation.recommendation,
-    )
+    # ── Technical details (expandable) ────────────────────────────────────
+    with st.expander("Technical Details"):
+        td1, td2 = st.columns(2)
+        with td1:
+            st.markdown(
+                "".join([
+                    _detail_row("Machine Type",       pipeline_result.machine_type),
+                    _detail_row("Machine ID",         pipeline_result.machine_id),
+                    _detail_row("File",               pipeline_result.filename),
+                    _detail_row("Embedding Dim",      str(pipeline_result.embedding_dimension)),
+                    _detail_row("Fusion Dim",         str(pipeline_result.fusion_dimension)),
+                ]),
+                unsafe_allow_html=True,
+            )
+        with td2:
+            st.markdown(
+                "".join([
+                    _detail_row("Detection Metric",   "Normalized Euclidean"),
+                    _detail_row("Anomaly Threshold",  f"Score < {threshold:.0f}"),
+                    _detail_row("Raw Euclidean",      f"{pipeline_result.raw_euclidean:.4f}"),
+                    _detail_row("Norm. Euclidean",    f"{norm_euclidean:.4f}"),
+                    _detail_row("Cosine Similarity",  f"{pipeline_result.raw_cosine:.4f}"),
+                ]),
+                unsafe_allow_html=True,
+            )
 
-    st.divider()
-    _render_performance(
-        dsp_dim=dsp_dim,
-        beats_dim=beats_dim,
-        fusion_dim=fusion_dim,
-        embedding_dim=embedding_dim,
-        inference_time=inference_time,
-        cache_hit=cache_hit,
-    )
+    # ── Visualizations (optional, evaluation dataset) ─────────────────────
+    with st.expander("Visualizations  (Evaluation Dataset)"):
+        with st.spinner("Running evaluation recordings for plots..."):
+            loader      = DatasetLoader(_DATASET_ROOT)
+            all_records = loader.get_all_files()
+            normal_recs = [
+                r for r in all_records
+                if r.machine_type == machine_type
+                and r.machine_id == machine_id
+                and r.label == "normal"
+            ][:_EVAL_LIMIT]
+            abnormal_recs = [
+                r for r in all_records
+                if r.machine_type == machine_type
+                and r.machine_id == machine_id
+                and r.label == "abnormal"
+            ][:_EVAL_LIMIT]
 
-    # ------------------------------------------------------------------
-    # Collect evaluation data and render visualizations
-    # ------------------------------------------------------------------
-    st.divider()
-    with st.spinner("Collecting evaluation data for visualizations…"):
-        health_scores, drift_scores, emb_matrix, embed_labels, y_true = _collect_eval_data(
-            loader=loader,
-            machine_type=machine_type,
-            machine_id=machine_id,
-            pipeline=pipeline,
-            drift_analyzer=drift_analyzer,
-            profile=profile,
-        )
+            health_scores: list[float] = []
+            drift_scores:  list[float] = []
+            embeddings:    list[np.ndarray] = []
+            embed_labels:  list[str] = []
+            y_true:        list[int] = []
+            inference_obj  = drift_analyzer._inference
 
-    _render_visualizations(
-        health_scores=health_scores,
-        drift_scores=drift_scores,
-        emb_matrix=emb_matrix,
-        embed_labels=embed_labels,
-        y_true=y_true,
-    )
+            for rec, y_val, lbl in (
+                [(r, 0, "healthy")  for r in normal_recs]
+                + [(r, 1, "abnormal") for r in abnormal_recs]
+            ):
+                try:
+                    res = pipeline.analyze(rec, profile)
+                    health_scores.append(res.health_score)
+                    drift_scores.append(res.normalized_euclidean)
+                    y_true.append(y_val)
+                    embed_labels.append(lbl)
+                    fused = drift_analyzer._cache.load_or_create(rec)
+                    embeddings.append(inference_obj.generate_fingerprint(fused))
+                except Exception:  # noqa: BLE001
+                    pass
+
+        if not health_scores:
+            st.info("No evaluation recordings found for this machine.")
+        else:
+            vis       = ResultVisualizer()
+            filenames = [f"rec_{i}" for i in range(len(health_scores))]
+            emb_matrix = (
+                np.stack(embeddings, axis=0).astype(np.float32)
+                if embeddings else np.empty((0, 256))
+            )
+
+            v1, v2 = st.columns(2)
+            p_health = _VIZ_TMP / "health_scores.png"
+            vis.plot_health_scores(health_scores, filenames, p_health)
+            v1.image(str(p_health), caption="Health Score Trend", use_container_width=True)
+
+            p_drift = _VIZ_TMP / "drift_scores.png"
+            vis.plot_drift_scores(drift_scores, filenames, p_drift)
+            v2.image(str(p_drift), caption="Drift Score Trend", use_container_width=True)
+
+            if emb_matrix.shape[0] >= 2:
+                p_pca = _VIZ_TMP / "embedding_pca.png"
+                vis.plot_embedding_distribution(emb_matrix, embed_labels, p_pca)
+                st.image(str(p_pca), caption="Embedding Distribution (PCA)", use_container_width=True)
+
+            if len(set(y_true)) == 2:
+                y_pred        = [1 if s < 50.0 else 0 for s in health_scores]
+                anomaly_scores = [100.0 - s for s in health_scores]
+                c1, c2 = st.columns(2)
+                p_cm = _VIZ_TMP / "confusion_matrix.png"
+                vis.plot_confusion_matrix(y_true, y_pred, p_cm)
+                c1.image(str(p_cm), caption="Confusion Matrix", use_container_width=True)
+                p_roc = _VIZ_TMP / "roc_curve.png"
+                vis.plot_roc_curve(y_true, anomaly_scores, p_roc)
+                c2.image(str(p_roc), caption="ROC Curve", use_container_width=True)
 
 
 if __name__ == "__main__":

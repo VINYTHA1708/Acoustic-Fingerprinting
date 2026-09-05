@@ -1,0 +1,6 @@
+Configuration,id_00 AUC,id_02 AUC,id_04 AUC,id_06 AUC,Mean AUC,Delta vs Full
+Full Method (DSP+BEATs+Contrastive),0.7836,0.8046,0.9578,0.6851,0.8078,0.0
+A1 — No BEATs (DSP-only),0.6862,0.6255,0.9592,0.7191,0.7475,-0.0603
+A2 — No DSP (BEATs-only),0.8683,0.8699,0.9502,0.7318,0.855,0.0473
+A3 — No Contrastive Training,0.5586,0.655,0.5852,0.5764,0.5938,-0.214
+A4 — No ProjectionHead,0.5068,0.667,0.5816,0.5416,0.5742,-0.2335

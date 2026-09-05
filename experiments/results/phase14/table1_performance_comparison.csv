@@ -1,0 +1,5 @@
+Method,id_00 AUC,id_02 AUC,id_04 AUC,id_06 AUC,Mean AUC
+B1 — Raw MFCC Distance,0.5068,0.667,0.5816,0.5416,0.5742
+B2 — Statistical Feature Distance,0.4581,0.6316,0.5441,0.5265,0.5401
+B3 — Non-Contrastive Projection,0.5198,0.5145,0.5228,0.5442,0.5253
+Ours — Contrastive Fingerprinting,0.7836,0.8046,0.9578,0.6851,0.8078

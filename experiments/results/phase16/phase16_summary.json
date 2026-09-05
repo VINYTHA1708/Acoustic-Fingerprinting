@@ -1,0 +1,50 @@
+{
+  "phase": 16,
+  "title": "Reproducibility Cleanup",
+  "status": "PASSED",
+  "actions": [
+    {
+      "item": "requirements.txt",
+      "action": "Replaced garbled UTF-16 pip-freeze dump with clean, minimal direct-dependency list (13 packages with pinned versions)",
+      "path": "requirements.txt"
+    },
+    {
+      "item": "random_seeds",
+      "action": "Verified: seed 42 applied consistently in all experiment scripts via _set_seeds() at top of main(). Documented in reproducibility_checklist.md section 4.",
+      "scripts": [
+        "experiments/e1_train.py",
+        "experiments/phase9_train.py",
+        "experiments/phase9_evaluate.py"
+      ]
+    },
+    {
+      "item": "path_portability",
+      "action": "Verified: all paths in experiment scripts use pathlib.Path with relative strings (e.g. Path('data/raw/MIMII')). Scripts must be run from repository root.",
+      "finding": "All paths are relative and portable across OS via pathlib."
+    },
+    {
+      "item": "reproducibility_checklist",
+      "action": "Created reproducibility_checklist.md documenting frozen Phase 13 configuration, seeds, split protocol, evaluation steps, and expected results.",
+      "path": "experiments/results/phase16/reproducibility_checklist.md"
+    },
+    {
+      "item": "phase16_summary",
+      "action": "Created this summary JSON.",
+      "path": "experiments/results/phase16/phase16_summary.json"
+    }
+  ],
+  "frozen_config_reference": "experiments/results/phase13/final_method_config.json",
+  "frozen_results_reference": "experiments/results/phase9/evaluation_summary.json",
+  "final_results": {
+    "overall_roc_auc": 0.787522,
+    "overall_cohens_d": 1.061325,
+    "per_type": {
+      "fan":    {"roc_auc": 0.698577, "cohens_d": 0.738717},
+      "pump":   {"roc_auc": 0.863535, "cohens_d": 1.424665},
+      "slider": {"roc_auc": 0.881314, "cohens_d": 1.487442},
+      "valve":  {"roc_auc": 0.828308, "cohens_d": 1.275274}
+    }
+  },
+  "no_retraining": true,
+  "no_method_changes": true
+}

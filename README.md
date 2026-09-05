@@ -152,6 +152,99 @@ Harmonic Salience
 
 ---
 
+## Quick Start
+
+The five steps below take you from a fresh clone to a running dashboard.
+
+### 1. Installation
+
+Python 3.10 or later is required.
+
+```bash
+git clone https://github.com/VINYTHA1708/Acoustic-Fingerprinting.git
+cd Acoustic-Fingerprinting
+python -m venv .venv
+# Windows
+.\.venv\Scripts\activate
+# macOS / Linux
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+### 2. Dataset Setup
+
+Download the MIMII dataset from <https://zenodo.org/record/3384388> and extract it so the layout matches:
+
+```
+data/raw/MIMII/
+├── fan/id_00/{normal,abnormal}/*.wav
+├── pump/id_00/{normal,abnormal}/*.wav
+├── slider/ ...
+└── valve/  ...
+```
+
+Download `BEATs_iter3_plus_AS2M.pt` from <https://github.com/microsoft/unilm/tree/master/beats> and place it at:
+
+```
+models/beats/BEATs_iter3_plus_AS2M.pt
+```
+
+### 3. Training
+
+The frozen Phase 9 checkpoint (`models/contrastive/phase9/best_projection_head.pt`) is the
+canonical trained model. Run the following **only if the checkpoint is missing**:
+
+```bash
+python experiments/phase9_train.py
+```
+
+This trains a shared ProjectionHead on all four MIMII machine types (fan, pump, slider, valve)
+for 20 epochs with seed 42. The best checkpoint is saved to
+`models/contrastive/phase9/best_projection_head.pt`.
+
+Configuration is frozen in `experiments/results/phase13/final_method_config.json`.
+
+### 4. Evaluation
+
+Reproduce the full evaluation across all machine types and IDs:
+
+```bash
+python experiments/phase9_evaluate.py
+```
+
+Results are written to `experiments/results/phase9/`. Expected overall ROC-AUC: **0.7875**.
+
+| Machine type | ROC-AUC | Cohen's d |
+|---|---|---|
+| fan | 0.6986 | 0.739 |
+| pump | 0.8635 | 1.425 |
+| slider | 0.8813 | 1.487 |
+| valve | 0.8283 | 1.275 |
+| **Overall** | **0.7875** | **1.061** |
+
+### 5. Streamlit Demo
+
+The dashboard requires the Phase 9 checkpoint and at least one built healthy profile.
+Build a profile first if needed:
+
+```bash
+python examples/learned_profile_example.py \
+    --root data/raw/MIMII \
+    --machine-type pump \
+    --machine-id id_00 \
+    --checkpoint models/contrastive/phase9/best_projection_head.pt
+```
+
+Then launch the dashboard:
+
+```bash
+streamlit run app.py
+```
+
+Upload any `.wav` file to get a live health score, drift metrics, benchmark timings, and embedding visualisation.
+
+---
+
 ## Installation
 
 Python 3.10 or later is required.
@@ -299,6 +392,17 @@ python examples/projection_head_example.py --root data/raw/MIMII
 
 ### Contrastive Training
 
+**Canonical training (all four machine types, frozen Phase 9 configuration):**
+
+```bash
+python experiments/phase9_train.py
+```
+
+Saves the best checkpoint to `models/contrastive/phase9/best_projection_head.pt`.
+Configuration is frozen in `experiments/results/phase13/final_method_config.json`.
+
+**Quick exploration on a single machine type (example script):**
+
 ```bash
 python examples/contrastive_training_example.py \
     --root data/raw/MIMII \
@@ -396,7 +500,19 @@ python examples/benchmark_pipeline.py \
     --max-recordings 50
 ```
 
-### Final Evaluation
+### Full Evaluation (all machine types)
+
+**Canonical evaluation reproducing the reported results:**
+
+```bash
+python experiments/phase9_evaluate.py
+```
+
+Builds healthy profiles from `profile_normal` recordings, evaluates all `test_normal` and
+`test_abnormal` recordings, and writes per-type CSVs and a summary JSON to
+`experiments/results/phase9/`.
+
+**Single machine type (example script):**
 
 ```bash
 python examples/final_evaluation.py \
@@ -432,6 +548,9 @@ Builds the healthy learned profile, runs inference on up to 50 healthy and 50 ab
 ## Dashboard
 
 The project includes an interactive Streamlit dashboard for real-time acoustic fingerprint analysis.
+
+**Prerequisites:** the Phase 9 checkpoint and at least one healthy profile must exist.
+See [Quick Start → Step 5](#5-streamlit-demo) for the one-command profile build.
 
 ```bash
 streamlit run app.py
