@@ -1,0 +1,16 @@
+{
+  "source_file": "experiments\\results\\phase11\\seed_42\\evaluation_results.csv",
+  "score_column": "normalized_euclidean",
+  "label_column": "true_label",
+  "total_samples": 5522,
+  "normal_samples": 2222,
+  "abnormal_samples": 3300,
+  "point_estimate_roc_auc": 0.789649,
+  "bootstrap_mean": 0.789369,
+  "bootstrap_std": 0.006005,
+  "ci_lower_95": 0.777194,
+  "ci_upper_95": 0.801104,
+  "n_bootstrap": 2000,
+  "rng_seed": 42,
+  "valid_bootstrap_samples": 2000
+}

@@ -1,0 +1,2 @@
+source_file,score_column,label_column,total_samples,normal_samples,abnormal_samples,point_estimate_roc_auc,bootstrap_mean,bootstrap_std,ci_lower_95,ci_upper_95,n_bootstrap,rng_seed,valid_bootstrap_samples
+experiments\results\phase11\seed_42\evaluation_results.csv,normalized_euclidean,true_label,5522,2222,3300,0.789649,0.789369,0.006005,0.777194,0.801104,2000,42,2000
