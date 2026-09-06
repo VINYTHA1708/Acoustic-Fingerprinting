@@ -1,0 +1,220 @@
+{
+  "experiment_id": "phase19",
+  "smoke_test": false,
+  "split": {
+    "train_ratio": 0.7,
+    "profile_ratio": 0.15,
+    "seed": 42
+  },
+  "checkpoints": {
+    "full_method": "models\\contrastive\\phase9\\best_projection_head.pt",
+    "beats_only": "models\\contrastive\\phase19\\best_projection_head_beats_only.pt"
+  },
+  "full_method": {
+    "per_id": {
+      "fan/id_00": {
+        "roc_auc": 0.531451,
+        "cohens_d": 0.130972
+      },
+      "fan/id_02": {
+        "roc_auc": 0.742768,
+        "cohens_d": 0.869352
+      },
+      "fan/id_04": {
+        "roc_auc": 0.690834,
+        "cohens_d": 0.600676
+      },
+      "fan/id_06": {
+        "roc_auc": 0.879746,
+        "cohens_d": 1.691228
+      },
+      "pump/id_00": {
+        "roc_auc": 0.828441,
+        "cohens_d": 1.174853
+      },
+      "pump/id_02": {
+        "roc_auc": 0.798305,
+        "cohens_d": 0.970772
+      },
+      "pump/id_04": {
+        "roc_auc": 0.953208,
+        "cohens_d": 2.538808
+      },
+      "pump/id_06": {
+        "roc_auc": 0.932378,
+        "cohens_d": 2.263689
+      },
+      "slider/id_00": {
+        "roc_auc": 0.992777,
+        "cohens_d": 3.585282
+      },
+      "slider/id_02": {
+        "roc_auc": 0.937167,
+        "cohens_d": 2.220062
+      },
+      "slider/id_04": {
+        "roc_auc": 0.673186,
+        "cohens_d": 0.458471
+      },
+      "slider/id_06": {
+        "roc_auc": 0.798863,
+        "cohens_d": 0.957443
+      },
+      "valve/id_00": {
+        "roc_auc": 0.969132,
+        "cohens_d": 2.6313
+      },
+      "valve/id_02": {
+        "roc_auc": 0.769782,
+        "cohens_d": 0.721322
+      },
+      "valve/id_04": {
+        "roc_auc": 0.913333,
+        "cohens_d": 1.97686
+      },
+      "valve/id_06": {
+        "roc_auc": 0.733778,
+        "cohens_d": 0.875917
+      }
+    },
+    "per_type": {
+      "fan": {
+        "roc_auc": 0.698489,
+        "cohens_d": 0.735539
+      },
+      "pump": {
+        "roc_auc": 0.865713,
+        "cohens_d": 1.433788
+      },
+      "slider": {
+        "roc_auc": 0.884086,
+        "cohens_d": 1.503828
+      },
+      "valve": {
+        "roc_auc": 0.833465,
+        "cohens_d": 1.302411
+      }
+    },
+    "overall": {
+      "roc_auc": 0.789649,
+      "cohens_d": 1.068191
+    }
+  },
+  "beats_only": {
+    "per_id": {
+      "fan/id_00": {
+        "roc_auc": 0.572241,
+        "cohens_d": 0.203203
+      },
+      "fan/id_02": {
+        "roc_auc": 0.73676,
+        "cohens_d": 0.896871
+      },
+      "fan/id_04": {
+        "roc_auc": 0.737732,
+        "cohens_d": 0.781736
+      },
+      "fan/id_06": {
+        "roc_auc": 0.822407,
+        "cohens_d": 1.696639
+      },
+      "pump/id_00": {
+        "roc_auc": 0.796559,
+        "cohens_d": 1.13877
+      },
+      "pump/id_02": {
+        "roc_auc": 0.965505,
+        "cohens_d": 2.338587
+      },
+      "pump/id_04": {
+        "roc_auc": 0.939434,
+        "cohens_d": 2.205088
+      },
+      "pump/id_06": {
+        "roc_auc": 0.96688,
+        "cohens_d": 3.188581
+      },
+      "slider/id_00": {
+        "roc_auc": 0.981872,
+        "cohens_d": 2.692719
+      },
+      "slider/id_02": {
+        "roc_auc": 0.780352,
+        "cohens_d": 0.902543
+      },
+      "slider/id_04": {
+        "roc_auc": 0.53343,
+        "cohens_d": 0.254826
+      },
+      "slider/id_06": {
+        "roc_auc": 0.500486,
+        "cohens_d": -0.092971
+      },
+      "valve/id_00": {
+        "roc_auc": 0.99479,
+        "cohens_d": 5.775451
+      },
+      "valve/id_02": {
+        "roc_auc": 0.996262,
+        "cohens_d": 4.886352
+      },
+      "valve/id_04": {
+        "roc_auc": 0.9605,
+        "cohens_d": 2.464942
+      },
+      "valve/id_06": {
+        "roc_auc": 0.627944,
+        "cohens_d": 0.495536
+      }
+    },
+    "per_type": {
+      "fan": {
+        "roc_auc": 0.699504,
+        "cohens_d": 0.741772
+      },
+      "pump": {
+        "roc_auc": 0.906419,
+        "cohens_d": 1.782622
+      },
+      "slider": {
+        "roc_auc": 0.798753,
+        "cohens_d": 1.106559
+      },
+      "valve": {
+        "roc_auc": 0.907913,
+        "cohens_d": 1.965846
+      }
+    },
+    "overall": {
+      "roc_auc": 0.780819,
+      "cohens_d": 0.961333
+    }
+  },
+  "delta_full_minus_beats": {
+    "per_id": {
+      "fan/id_00": -0.04079,
+      "fan/id_02": 0.006008,
+      "fan/id_04": -0.046898,
+      "fan/id_06": 0.057339,
+      "pump/id_00": 0.031882,
+      "pump/id_02": -0.1672,
+      "pump/id_04": 0.013774,
+      "pump/id_06": -0.034502,
+      "slider/id_00": 0.010905,
+      "slider/id_02": 0.156815,
+      "slider/id_04": 0.139756,
+      "slider/id_06": 0.298377,
+      "valve/id_00": -0.025658,
+      "valve/id_02": -0.22648,
+      "valve/id_04": -0.047167,
+      "valve/id_06": 0.105834
+    },
+    "per_type": {
+      "fan": -0.001015,
+      "pump": -0.040706,
+      "slider": 0.085333,
+      "valve": -0.074448
+    },
+    "overall": 0.00883
+  }
+}

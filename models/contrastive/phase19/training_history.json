@@ -1,0 +1,135 @@
+{
+  "experiment_id": "phase19",
+  "condition": "beats_only",
+  "seed": 42,
+  "machine_types": [
+    "fan",
+    "pump",
+    "slider",
+    "valve"
+  ],
+  "machine_ids": [
+    "id_00",
+    "id_02",
+    "id_04",
+    "id_06"
+  ],
+  "split_configuration": {
+    "train_ratio": 0.7,
+    "profile_ratio": 0.15,
+    "strategy": "per_machine_type_independent"
+  },
+  "total_pooled_train_normal": 10296,
+  "training_configuration": {
+    "epochs": 20,
+    "batch_size": 16,
+    "learning_rate": 0.001,
+    "temperature": 0.07,
+    "input_dimension": 768,
+    "projection_dimension": 256
+  },
+  "loss_history": [
+    {
+      "epoch": 1,
+      "train": 0.507302352819957,
+      "val": 0.9706125779252425
+    },
+    {
+      "epoch": 2,
+      "train": 0.1854966312139155,
+      "val": 1.9966541512700535
+    },
+    {
+      "epoch": 3,
+      "train": 0.1338597161638942,
+      "val": 0.26613860476546025
+    },
+    {
+      "epoch": 4,
+      "train": 0.07425382802549593,
+      "val": 0.4401597949631681
+    },
+    {
+      "epoch": 5,
+      "train": 0.06043659758332937,
+      "val": 0.3773993295295916
+    },
+    {
+      "epoch": 6,
+      "train": 0.04652313494175028,
+      "val": 0.20539722083166326
+    },
+    {
+      "epoch": 7,
+      "train": 0.04303641275756402,
+      "val": 0.47064138733900635
+    },
+    {
+      "epoch": 8,
+      "train": 0.03181337213091102,
+      "val": 0.36661552221172367
+    },
+    {
+      "epoch": 9,
+      "train": 0.04367924898902236,
+      "val": 0.43093022884138477
+    },
+    {
+      "epoch": 10,
+      "train": 0.03490959620875588,
+      "val": 0.3297912277087519
+    },
+    {
+      "epoch": 11,
+      "train": 0.022624819439031302,
+      "val": 0.30083026091611925
+    },
+    {
+      "epoch": 12,
+      "train": 0.03278025962978659,
+      "val": 0.21662895382661684
+    },
+    {
+      "epoch": 13,
+      "train": 0.015581710366853541,
+      "val": 0.22416976221934085
+    },
+    {
+      "epoch": 14,
+      "train": 0.013752251108052829,
+      "val": 0.1929260112660472
+    },
+    {
+      "epoch": 15,
+      "train": 0.01442109299585228,
+      "val": 0.12355303809771224
+    },
+    {
+      "epoch": 16,
+      "train": 0.015999714056865153,
+      "val": 0.3272369781773601
+    },
+    {
+      "epoch": 17,
+      "train": 0.01563037254637357,
+      "val": 0.15374881074664803
+    },
+    {
+      "epoch": 18,
+      "train": 0.012699033530820887,
+      "val": 0.24443876852910457
+    },
+    {
+      "epoch": 19,
+      "train": 0.01500702766877087,
+      "val": 0.1528663173971866
+    },
+    {
+      "epoch": 20,
+      "train": 0.0041502271611085105,
+      "val": 0.1605960636459557
+    }
+  ],
+  "best_validation_loss": 0.12355303809771224,
+  "checkpoint_path": "models\\contrastive\\phase19\\best_projection_head_beats_only.pt"
+}

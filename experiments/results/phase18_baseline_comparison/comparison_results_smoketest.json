@@ -1,0 +1,369 @@
+{
+  "experiment_id": "phase18_baseline_comparison",
+  "smoke_test": true,
+  "checkpoint": "models\\contrastive\\phase9\\best_projection_head.pt",
+  "split": {
+    "train_ratio": 0.7,
+    "profile_ratio": 0.15,
+    "seed": 42
+  },
+  "baselines": [
+    "ocsvm",
+    "iforest",
+    "knn"
+  ],
+  "phase9_reference": {
+    "fan": {
+      "id_00": 0.531122,
+      "id_02": 0.741284,
+      "id_04": 0.695927,
+      "id_06": 0.877184,
+      "overall": 0.698577
+    },
+    "pump": {
+      "id_00": 0.828441,
+      "id_02": 0.795223,
+      "id_04": 0.951604,
+      "id_06": 0.929361,
+      "overall": 0.863535
+    },
+    "slider": {
+      "id_00": 0.989977,
+      "id_02": 0.933596,
+      "id_04": 0.67655,
+      "id_06": 0.792135,
+      "overall": 0.881314
+    },
+    "valve": {
+      "id_00": 0.96098,
+      "id_02": 0.771301,
+      "id_04": 0.907583,
+      "id_06": 0.727194,
+      "overall": 0.828308
+    },
+    "overall": 0.787522
+  },
+  "results": {
+    "per_type": {
+      "fan": {
+        "per_id": {
+          "id_00": {
+            "ocsvm": {
+              "roc_auc": 0.75,
+              "cohens_d": 1.140003
+            },
+            "iforest": {
+              "roc_auc": 0.5,
+              "cohens_d": 0.0
+            },
+            "knn": {
+              "roc_auc": 0.75,
+              "cohens_d": 1.354462
+            }
+          },
+          "id_02": {
+            "ocsvm": {
+              "roc_auc": 1.0,
+              "cohens_d": 4.802467
+            },
+            "iforest": {
+              "roc_auc": 0.5,
+              "cohens_d": 0.0
+            },
+            "knn": {
+              "roc_auc": 1.0,
+              "cohens_d": 5.517096
+            }
+          },
+          "id_04": {
+            "ocsvm": {
+              "roc_auc": 0.5,
+              "cohens_d": -0.311488
+            },
+            "iforest": {
+              "roc_auc": 0.5,
+              "cohens_d": 0.0
+            },
+            "knn": {
+              "roc_auc": 0.5,
+              "cohens_d": -0.216416
+            }
+          },
+          "id_06": {
+            "ocsvm": {
+              "roc_auc": 1.0,
+              "cohens_d": 6.501401
+            },
+            "iforest": {
+              "roc_auc": 0.5,
+              "cohens_d": 0.0
+            },
+            "knn": {
+              "roc_auc": 1.0,
+              "cohens_d": 5.714529
+            }
+          }
+        },
+        "overall": {
+          "ocsvm": {
+            "roc_auc": 0.78125,
+            "cohens_d": 0.747339
+          },
+          "iforest": {
+            "roc_auc": 0.5,
+            "cohens_d": 0.0
+          },
+          "knn": {
+            "roc_auc": 0.8125,
+            "cohens_d": 0.889892
+          }
+        },
+        "n_test_normal": 8,
+        "n_test_abnormal": 8
+      },
+      "pump": {
+        "per_id": {
+          "id_00": {
+            "ocsvm": {
+              "roc_auc": 1.0,
+              "cohens_d": 2.85808
+            },
+            "iforest": {
+              "roc_auc": 0.5,
+              "cohens_d": 0.0
+            },
+            "knn": {
+              "roc_auc": 1.0,
+              "cohens_d": 1.94294
+            }
+          },
+          "id_02": {
+            "ocsvm": {
+              "roc_auc": 0.5,
+              "cohens_d": -0.590571
+            },
+            "iforest": {
+              "roc_auc": 0.5,
+              "cohens_d": 0.0
+            },
+            "knn": {
+              "roc_auc": 0.5,
+              "cohens_d": -0.412929
+            }
+          },
+          "id_04": {
+            "ocsvm": {
+              "roc_auc": 0.75,
+              "cohens_d": 1.040283
+            },
+            "iforest": {
+              "roc_auc": 0.5,
+              "cohens_d": 0.0
+            },
+            "knn": {
+              "roc_auc": 0.75,
+              "cohens_d": 1.062188
+            }
+          },
+          "id_06": {
+            "ocsvm": {
+              "roc_auc": 1.0,
+              "cohens_d": 1.694373
+            },
+            "iforest": {
+              "roc_auc": 0.5,
+              "cohens_d": 0.0
+            },
+            "knn": {
+              "roc_auc": 1.0,
+              "cohens_d": 2.010116
+            }
+          }
+        },
+        "overall": {
+          "ocsvm": {
+            "roc_auc": 0.796875,
+            "cohens_d": 0.879733
+          },
+          "iforest": {
+            "roc_auc": 0.5,
+            "cohens_d": 0.0
+          },
+          "knn": {
+            "roc_auc": 0.8125,
+            "cohens_d": 1.100909
+          }
+        },
+        "n_test_normal": 8,
+        "n_test_abnormal": 8
+      },
+      "slider": {
+        "per_id": {
+          "id_00": {
+            "ocsvm": {
+              "roc_auc": 1.0,
+              "cohens_d": 15.354165
+            },
+            "iforest": {
+              "roc_auc": 0.5,
+              "cohens_d": 0.0
+            },
+            "knn": {
+              "roc_auc": 1.0,
+              "cohens_d": 13.621249
+            }
+          },
+          "id_02": {
+            "ocsvm": {
+              "roc_auc": 1.0,
+              "cohens_d": 24.002271
+            },
+            "iforest": {
+              "roc_auc": 0.5,
+              "cohens_d": 0.0
+            },
+            "knn": {
+              "roc_auc": 1.0,
+              "cohens_d": 17.688398
+            }
+          },
+          "id_04": {
+            "ocsvm": {
+              "roc_auc": 0.5,
+              "cohens_d": -0.737213
+            },
+            "iforest": {
+              "roc_auc": 0.5,
+              "cohens_d": 0.0
+            },
+            "knn": {
+              "roc_auc": 0.5,
+              "cohens_d": -0.512591
+            }
+          },
+          "id_06": {
+            "ocsvm": {
+              "roc_auc": 0.5,
+              "cohens_d": 0.431027
+            },
+            "iforest": {
+              "roc_auc": 0.5,
+              "cohens_d": 0.0
+            },
+            "knn": {
+              "roc_auc": 0.75,
+              "cohens_d": 0.384399
+            }
+          }
+        },
+        "overall": {
+          "ocsvm": {
+            "roc_auc": 0.84375,
+            "cohens_d": 1.114823
+          },
+          "iforest": {
+            "roc_auc": 0.5,
+            "cohens_d": 0.0
+          },
+          "knn": {
+            "roc_auc": 0.78125,
+            "cohens_d": 1.068088
+          }
+        },
+        "n_test_normal": 8,
+        "n_test_abnormal": 8
+      },
+      "valve": {
+        "per_id": {
+          "id_00": {
+            "ocsvm": {
+              "roc_auc": 1.0,
+              "cohens_d": 1.740017
+            },
+            "iforest": {
+              "roc_auc": 0.5,
+              "cohens_d": 0.0
+            },
+            "knn": {
+              "roc_auc": 1.0,
+              "cohens_d": 1.614394
+            }
+          },
+          "id_02": {
+            "ocsvm": {
+              "roc_auc": 0.75,
+              "cohens_d": 0.163892
+            },
+            "iforest": {
+              "roc_auc": 0.5,
+              "cohens_d": 0.0
+            },
+            "knn": {
+              "roc_auc": 0.75,
+              "cohens_d": 0.335448
+            }
+          },
+          "id_04": {
+            "ocsvm": {
+              "roc_auc": 0.75,
+              "cohens_d": 0.457279
+            },
+            "iforest": {
+              "roc_auc": 0.5,
+              "cohens_d": 0.0
+            },
+            "knn": {
+              "roc_auc": 0.75,
+              "cohens_d": 0.474294
+            }
+          },
+          "id_06": {
+            "ocsvm": {
+              "roc_auc": 0.75,
+              "cohens_d": 0.835884
+            },
+            "iforest": {
+              "roc_auc": 0.5,
+              "cohens_d": 0.0
+            },
+            "knn": {
+              "roc_auc": 0.75,
+              "cohens_d": 0.868566
+            }
+          }
+        },
+        "overall": {
+          "ocsvm": {
+            "roc_auc": 0.6875,
+            "cohens_d": 0.558355
+          },
+          "iforest": {
+            "roc_auc": 0.5,
+            "cohens_d": 0.0
+          },
+          "knn": {
+            "roc_auc": 0.703125,
+            "cohens_d": 0.558262
+          }
+        },
+        "n_test_normal": 8,
+        "n_test_abnormal": 8
+      }
+    },
+    "overall": {
+      "ocsvm": {
+        "roc_auc": 0.755859,
+        "cohens_d": 0.827387
+      },
+      "iforest": {
+        "roc_auc": 0.5,
+        "cohens_d": 0.0
+      },
+      "knn": {
+        "roc_auc": 0.744141,
+        "cohens_d": 0.832378
+      }
+    }
+  },
+  "notes": "Baselines fit on profile_normal embeddings (same partition as Phase 9 healthy profile). Evaluated on test_normal + test_abnormal. Embeddings: 256-dim L2-normalised from Phase 9 ProjectionHead. No retraining of BEATs or ProjectionHead."
+}

@@ -1,0 +1,346 @@
+{
+  "experiment_id": "phase17",
+  "description": "Global vs Machine-Specific Healthy Profile Comparison",
+  "smoke_test": false,
+  "checkpoint": "models\\contrastive\\phase9\\best_projection_head.pt",
+  "phase9_csv_used": "experiments\\results\\phase9\\evaluation_results.csv",
+  "phase9_profiles_used": "experiments\\results\\phase9\\profiles",
+  "split": {
+    "train_ratio": 0.7,
+    "profile_ratio": 0.15,
+    "seed": 42
+  },
+  "global_profile_embedding_count": 2201,
+  "profile_counts_per_machine": {
+    "fan": {
+      "id_00": 151,
+      "id_02": 152,
+      "id_04": 154,
+      "id_06": 152
+    },
+    "pump": {
+      "id_00": 150,
+      "id_02": 150,
+      "id_04": 105,
+      "id_06": 155
+    },
+    "slider": {
+      "id_00": 160,
+      "id_02": 160,
+      "id_04": 80,
+      "id_06": 80
+    },
+    "valve": {
+      "id_00": 148,
+      "id_02": 106,
+      "id_04": 150,
+      "id_06": 148
+    }
+  },
+  "metrics": {
+    "per_type": {
+      "fan": {
+        "global": {
+          "roc_auc": 0.500262,
+          "cohens_d": 0.007995,
+          "n_normal": 615,
+          "n_abnormal": 1475
+        },
+        "specific": {
+          "roc_auc": 0.698577,
+          "cohens_d": 0.738717,
+          "n_normal": 615,
+          "n_abnormal": 1475
+        },
+        "per_id": {
+          "id_00": {
+            "global": {
+              "roc_auc": 0.544652,
+              "cohens_d": -0.107189,
+              "n_normal": 153,
+              "n_abnormal": 407
+            },
+            "specific": {
+              "roc_auc": 0.531122,
+              "cohens_d": 0.132774,
+              "n_normal": 153,
+              "n_abnormal": 407
+            }
+          },
+          "id_02": {
+            "global": {
+              "roc_auc": 0.514902,
+              "cohens_d": 0.045004,
+              "n_normal": 153,
+              "n_abnormal": 359
+            },
+            "specific": {
+              "roc_auc": 0.741284,
+              "cohens_d": 0.864056,
+              "n_normal": 153,
+              "n_abnormal": 359
+            }
+          },
+          "id_04": {
+            "global": {
+              "roc_auc": 0.504716,
+              "cohens_d": -0.003028,
+              "n_normal": 156,
+              "n_abnormal": 348
+            },
+            "specific": {
+              "roc_auc": 0.695927,
+              "cohens_d": 0.648554,
+              "n_normal": 156,
+              "n_abnormal": 348
+            }
+          },
+          "id_06": {
+            "global": {
+              "roc_auc": 0.576666,
+              "cohens_d": 0.268103,
+              "n_normal": 153,
+              "n_abnormal": 361
+            },
+            "specific": {
+              "roc_auc": 0.877184,
+              "cohens_d": 1.674696,
+              "n_normal": 153,
+              "n_abnormal": 361
+            }
+          }
+        }
+      },
+      "pump": {
+        "global": {
+          "roc_auc": 0.595257,
+          "cohens_d": 0.277055,
+          "n_normal": 566,
+          "n_abnormal": 456
+        },
+        "specific": {
+          "roc_auc": 0.858572,
+          "cohens_d": 1.402769,
+          "n_normal": 566,
+          "n_abnormal": 456
+        },
+        "per_id": {
+          "id_00": {
+            "global": {
+              "roc_auc": 0.857379,
+              "cohens_d": 1.360561,
+              "n_normal": 152,
+              "n_abnormal": 143
+            },
+            "specific": {
+              "roc_auc": 0.823128,
+              "cohens_d": 1.162569,
+              "n_normal": 152,
+              "n_abnormal": 143
+            }
+          },
+          "id_02": {
+            "global": {
+              "roc_auc": 0.506075,
+              "cohens_d": -0.068931,
+              "n_normal": 152,
+              "n_abnormal": 111
+            },
+            "specific": {
+              "roc_auc": 0.791578,
+              "cohens_d": 0.947299,
+              "n_normal": 152,
+              "n_abnormal": 111
+            }
+          },
+          "id_04": {
+            "global": {
+              "roc_auc": 0.618868,
+              "cohens_d": -0.422204,
+              "n_normal": 106,
+              "n_abnormal": 100
+            },
+            "specific": {
+              "roc_auc": 0.943821,
+              "cohens_d": 2.437364,
+              "n_normal": 106,
+              "n_abnormal": 100
+            }
+          },
+          "id_06": {
+            "global": {
+              "roc_auc": 0.555556,
+              "cohens_d": 0.161605,
+              "n_normal": 156,
+              "n_abnormal": 102
+            },
+            "specific": {
+              "roc_auc": 0.922668,
+              "cohens_d": 2.123979,
+              "n_normal": 156,
+              "n_abnormal": 102
+            }
+          }
+        }
+      },
+      "slider": {
+        "global": {
+          "roc_auc": 0.512177,
+          "cohens_d": -0.049371,
+          "n_normal": 484,
+          "n_abnormal": 890
+        },
+        "specific": {
+          "roc_auc": 0.881314,
+          "cohens_d": 1.487442,
+          "n_normal": 484,
+          "n_abnormal": 890
+        },
+        "per_id": {
+          "id_00": {
+            "global": {
+              "roc_auc": 0.552804,
+              "cohens_d": -0.140652,
+              "n_normal": 161,
+              "n_abnormal": 356
+            },
+            "specific": {
+              "roc_auc": 0.989977,
+              "cohens_d": 3.477528,
+              "n_normal": 161,
+              "n_abnormal": 356
+            }
+          },
+          "id_02": {
+            "global": {
+              "roc_auc": 0.58028,
+              "cohens_d": 0.309928,
+              "n_normal": 161,
+              "n_abnormal": 267
+            },
+            "specific": {
+              "roc_auc": 0.933596,
+              "cohens_d": 2.145533,
+              "n_normal": 161,
+              "n_abnormal": 267
+            }
+          },
+          "id_04": {
+            "global": {
+              "roc_auc": 0.541753,
+              "cohens_d": 0.147592,
+              "n_normal": 81,
+              "n_abnormal": 178
+            },
+            "specific": {
+              "roc_auc": 0.67655,
+              "cohens_d": 0.469626,
+              "n_normal": 81,
+              "n_abnormal": 178
+            }
+          },
+          "id_06": {
+            "global": {
+              "roc_auc": 0.64468,
+              "cohens_d": -0.517224,
+              "n_normal": 81,
+              "n_abnormal": 89
+            },
+            "specific": {
+              "roc_auc": 0.792135,
+              "cohens_d": 0.916534,
+              "n_normal": 81,
+              "n_abnormal": 89
+            }
+          }
+        }
+      },
+      "valve": {
+        "global": {
+          "roc_auc": 0.50911,
+          "cohens_d": 0.034084,
+          "n_normal": 557,
+          "n_abnormal": 479
+        },
+        "specific": {
+          "roc_auc": 0.828308,
+          "cohens_d": 1.275274,
+          "n_normal": 557,
+          "n_abnormal": 479
+        },
+        "per_id": {
+          "id_00": {
+            "global": {
+              "roc_auc": 0.691036,
+              "cohens_d": 0.691436,
+              "n_normal": 150,
+              "n_abnormal": 119
+            },
+            "specific": {
+              "roc_auc": 0.96098,
+              "cohens_d": 2.511563,
+              "n_normal": 150,
+              "n_abnormal": 119
+            }
+          },
+          "id_02": {
+            "global": {
+              "roc_auc": 0.622664,
+              "cohens_d": -0.433473,
+              "n_normal": 107,
+              "n_abnormal": 120
+            },
+            "specific": {
+              "roc_auc": 0.771301,
+              "cohens_d": 0.743646,
+              "n_normal": 107,
+              "n_abnormal": 120
+            }
+          },
+          "id_04": {
+            "global": {
+              "roc_auc": 0.574639,
+              "cohens_d": 0.292033,
+              "n_normal": 150,
+              "n_abnormal": 120
+            },
+            "specific": {
+              "roc_auc": 0.907583,
+              "cohens_d": 1.892008,
+              "n_normal": 150,
+              "n_abnormal": 120
+            }
+          },
+          "id_06": {
+            "global": {
+              "roc_auc": 0.591306,
+              "cohens_d": -0.30627,
+              "n_normal": 150,
+              "n_abnormal": 120
+            },
+            "specific": {
+              "roc_auc": 0.727194,
+              "cohens_d": 0.855343,
+              "n_normal": 150,
+              "n_abnormal": 120
+            }
+          }
+        }
+      }
+    },
+    "overall": {
+      "global": {
+        "roc_auc": 0.507412,
+        "cohens_d": -0.031736,
+        "n_normal": 2222,
+        "n_abnormal": 3300
+      },
+      "specific": {
+        "roc_auc": 0.787275,
+        "cohens_d": 1.060418,
+        "n_normal": 2222,
+        "n_abnormal": 3300
+      }
+    }
+  }
+}
