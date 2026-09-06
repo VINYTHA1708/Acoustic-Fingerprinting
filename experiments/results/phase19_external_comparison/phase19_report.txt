@@ -1,0 +1,111 @@
+Phase 19 — External Literature Comparison Report
+======================================================================
+
+CRITICAL WARNING
+----------------------------------------------------------------------
+External literature results listed in this report are NOT head-to-head
+comparisons unless ALL of the following conditions hold:
+  same_dataset=True, same_dataset_version=True,
+  same_machine_types=True, same_machine_ids=True,
+  same_protocol=True, same_metric=True
+  => comparability_level == DIRECT
+
+Literature placeholders in external_benchmark_comparison.csv have
+comparability_level=CONTEXT_ONLY and roc_auc=None.  Do NOT fill in
+numbers from papers without first verifying every comparability field.
+
+======================================================================
+1. EXPERIMENTAL PROTOCOL (this work)
+======================================================================
+  Dataset        : MIMII (Zenodo 3384388)
+  Machine types  : fan, pump, slider, valve
+  Machine IDs    : id_00, id_02, id_04, id_06 (4 per type, 16 total)
+  Split          : train=0.70 / profile=0.15 / test=0.15  seed=42
+  Abnormal data  : test_abnormal partition only (no leakage)
+  Primary metric : ROC-AUC (threshold-free)
+  Anomaly score  : normalized Euclidean drift on 256-dim L2-normalised embedding
+  N test normal  : 2222
+  N test abnormal: 3300
+
+======================================================================
+2. PROPOSED METHOD RESULTS  (comparability_level = DIRECT)
+======================================================================
+  Machine type    ROC-AUC
+  ------------------------
+  fan              0.6985
+  pump             0.8657
+  slider           0.8841
+  valve            0.8335
+  overall          0.7896
+
+======================================================================
+3. INTERNAL BASELINES  (comparability_level = DIRECT)
+======================================================================
+  All baselines use the same dataset, split, embeddings, and metric.
+  Fit on profile_normal embeddings (256-dim L2-normalised, Phase 9 head).
+
+  Method                  fan     pump   slider    valve  overall
+  --------------------------------------------------------------
+  OC-SVM             0.6723  0.8135  0.9174  0.7912  0.7773
+  IForest            0.7021  0.8673  0.8892  0.8279  0.7871
+  kNN                0.7171  0.8578  0.8435  0.8269  0.7760
+  Proposed           0.6985  0.8657  0.8841  0.8335  0.7896
+
+======================================================================
+4. STATISTICAL SIGNIFICANCE (Phase 18 results)
+======================================================================
+  Proposed vs OC-SVM  (overall): SIGNIFICANT (bootstrap + DeLong)
+  Proposed vs IForest (overall): SIGNIFICANT (bootstrap + DeLong)
+  Proposed vs kNN     (overall): SIGNIFICANT (bootstrap + DeLong)
+  Tests: paired bootstrap (2000 iter) + DeLong analytic + Wilcoxon signed-rank
+  See experiments/results/phase18_baseline_comparison/significance/ for details.
+
+======================================================================
+5. LITERATURE CONTEXT  (comparability_level = CONTEXT_ONLY)
+======================================================================
+  PROTOCOL MISMATCH WARNING
+  ------------------------------------------------------------------
+  The numerical values below are taken directly from the cited papers.
+  They are listed for orientation only.  Numerical differences between
+  these values and the proposed method's results CANNOT be interpreted
+  as head-to-head performance differences because the evaluation
+  protocols differ in at least one of the following material respects:
+
+    - Dataset version: literature uses DCASE 2020 Task 2 dev set;
+      this work uses MIMII Zenodo 3384388 original release.
+    - SNR conditions: DCASE 2020 mixes multiple SNR levels;
+      this work uses the 0 dB SNR mix only.
+    - Train/test split: DCASE 2020 uses its own fixed split;
+      this work uses train=0.70 / profile=0.15 / test=0.15 seed=42.
+    - Machine-ID selection: literature machine IDs unconfirmed.
+    - Averaging: literature reports average AUC per machine type;
+      this work pools all recordings across types.
+    - Some literature methods use machine-ID conditioning (ID-aware),
+      which is a strictly stronger supervision signal.
+
+  No statistical tests are performed against literature values.
+  No better/worse judgement is made about any literature method.
+
+  Verified literature entries (overall average ROC-AUC as reported):
+
+  Method                                      Reported AUC  Source
+  --------------------------------------------------------------------------------
+  DCASE 2020 AE Baseline                            0.7244  DCASE 2020 Task 2 challenge (officia...
+  LSTM Autoencoder                                  0.7351  DCASE Challenge 2020: Unsupervised A...
+  Conformer ID-Aware AE (single model)              0.9047  Conformer-Based ID-Aware Autoencoder...
+
+  DCASE 2020 AE Baseline — per-machine-type reported AUCs:
+    fan=0.6583  pump=0.7289  slider=0.8476  valve=0.6628  avg=0.7244
+
+  Full comparability fields and protocol notes are in:
+    literature_methods.json
+    external_benchmark_comparison.csv  (method_type=LITERATURE_CONTEXT)
+
+======================================================================
+6. OUTPUTS
+======================================================================
+  protocol_summary.json            — dataset and protocol description
+  external_benchmark_comparison.csv — all methods with comparability fields
+  literature_methods.json           — template for literature entries
+  phase19_report.txt                — this report
+  fig_direct_comparison.png         — bar chart (DIRECT comparisons only)

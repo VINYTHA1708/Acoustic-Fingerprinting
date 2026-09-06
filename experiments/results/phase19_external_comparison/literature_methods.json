@@ -1,0 +1,98 @@
+{
+  "_instructions": "All entries in this file are CONTEXT_ONLY. Numerical results are taken directly from the cited papers and have not been re-evaluated. They must not be used as head-to-head comparisons because the evaluation protocols differ from this work in at least one material respect. See the comparability fields and notes on each entry.",
+  "methods": [
+    {
+      "short_name": "DCASE2020_AE_baseline",
+      "full_name": "DCASE 2020 Task 2 Autoencoder Baseline",
+      "citation": "DCASE 2020 Task 2 challenge (official baseline)",
+      "url": "https://dcase.community/challenge2020/task2-unsupervised-detection-of-anomalous-sounds",
+      "dataset": "DCASE 2020 Task 2 development dataset",
+      "dataset_version": "DCASE 2020 dev set (differs from MIMII Zenodo 3384388 original)",
+      "machine_types_used": "fan, pump, slider, valve",
+      "machine_ids_used": "unconfirmed \u2014 differs from this work",
+      "snr_conditions": "mixed SNR conditions per DCASE 2020 Task 2 setup",
+      "train_test_protocol": "DCASE 2020 Task 2 protocol (differs from this work)",
+      "reported_metric": "average ROC-AUC per machine type",
+      "reported_roc_auc_overall": 0.7244,
+      "reported_roc_auc_per_type": {
+        "fan": 0.6583,
+        "pump": 0.7289,
+        "slider": 0.8476,
+        "valve": 0.6628
+      },
+      "same_dataset": true,
+      "same_dataset_version": false,
+      "same_machine_types": true,
+      "same_machine_ids": false,
+      "same_protocol": false,
+      "same_metric": true,
+      "comparability_level": "CONTEXT_ONLY",
+      "protocol_differences": [
+        "Different dataset version and SNR mix",
+        "Different train/test split strategy",
+        "Machine-ID selection unconfirmed",
+        "AUC averaged per machine type, not pooled across all recordings"
+      ],
+      "notes": "Numerical differences vs this work cannot be interpreted as head-to-head performance differences due to protocol mismatches."
+    },
+    {
+      "short_name": "LSTM_AE",
+      "full_name": "LSTM Autoencoder",
+      "citation": "DCASE Challenge 2020: Unsupervised Anomalous Sound Detection of Machinery with Deep Autoencoders",
+      "url": "https://dcase.community/challenge2020/task2-unsupervised-detection-of-anomalous-sounds",
+      "dataset": "DCASE 2020 / MIMII context",
+      "dataset_version": "unconfirmed \u2014 differs from MIMII Zenodo 3384388 original",
+      "machine_types_used": "unconfirmed",
+      "machine_ids_used": "unconfirmed \u2014 differs from this work",
+      "snr_conditions": "unconfirmed",
+      "train_test_protocol": "DCASE 2020 protocol (differs from this work)",
+      "reported_metric": "average ROC-AUC",
+      "reported_roc_auc_overall": 0.7351,
+      "reported_roc_auc_per_type": null,
+      "same_dataset": true,
+      "same_dataset_version": false,
+      "same_machine_types": null,
+      "same_machine_ids": false,
+      "same_protocol": false,
+      "same_metric": true,
+      "comparability_level": "CONTEXT_ONLY",
+      "protocol_differences": [
+        "Dataset version and SNR conditions unconfirmed",
+        "Train/test split strategy differs",
+        "Machine-ID selection unconfirmed"
+      ],
+      "notes": "Numerical differences vs this work cannot be interpreted as head-to-head performance differences due to protocol mismatches."
+    },
+    {
+      "short_name": "Conformer_ID_Aware_AE",
+      "full_name": "Conformer-Based ID-Aware Autoencoder",
+      "citation": "Conformer-Based ID-Aware Autoencoder for Unsupervised Anomalous Sound Detection",
+      "url": "https://dcase.community/challenge2020/task2-unsupervised-detection-of-anomalous-sounds",
+      "dataset": "DCASE 2020 Task 2 development dataset",
+      "dataset_version": "DCASE 2020 dev set (differs from MIMII Zenodo 3384388 original)",
+      "machine_types_used": "unconfirmed",
+      "machine_ids_used": "unconfirmed \u2014 differs from this work",
+      "snr_conditions": "DCASE 2020 Task 2 conditions",
+      "train_test_protocol": "DCASE 2020 protocol (differs from this work)",
+      "reported_metric": "average ROC-AUC",
+      "reported_roc_auc_overall": 0.9047,
+      "reported_roc_auc_ensemble": 0.9133,
+      "primary_value_used": "single_model (0.9047); ensemble (0.9133) not used as primary",
+      "reported_roc_auc_per_type": null,
+      "same_dataset": true,
+      "same_dataset_version": false,
+      "same_machine_types": null,
+      "same_machine_ids": false,
+      "same_protocol": false,
+      "same_metric": true,
+      "comparability_level": "CONTEXT_ONLY",
+      "protocol_differences": [
+        "Dataset version and SNR conditions differ",
+        "Model uses machine-ID conditioning (ID-aware)",
+        "Train/test split strategy differs",
+        "Machine-ID selection unconfirmed"
+      ],
+      "notes": "Numerical differences vs this work cannot be interpreted as head-to-head performance differences due to protocol mismatches."
+    }
+  ]
+}

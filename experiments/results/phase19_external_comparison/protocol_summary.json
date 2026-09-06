@@ -1,0 +1,32 @@
+{
+  "experiment": "phase19_external_comparison",
+  "proposed_method": "Multi-Machine Contrastive Acoustic Fingerprinting",
+  "dataset": "MIMII (Malfunctioning Industrial Machine Investigation and Inspection)",
+  "dataset_source": "https://zenodo.org/record/3384388",
+  "dataset_version": "original (0 dB SNR mix, 16 kHz mono)",
+  "machine_types": [
+    "fan",
+    "pump",
+    "slider",
+    "valve"
+  ],
+  "machine_ids": [
+    "id_00",
+    "id_02",
+    "id_04",
+    "id_06"
+  ],
+  "n_machine_ids": 16,
+  "split_strategy": "per_machine_type_independent",
+  "train_ratio": 0.7,
+  "profile_ratio": 0.15,
+  "test_ratio": 0.15,
+  "abnormal_partition": "test_abnormal_only",
+  "seed": 42,
+  "primary_metric": "roc_auc",
+  "anomaly_score": "normalized_euclidean",
+  "n_test_normal": 2222,
+  "n_test_abnormal": 3300,
+  "n_test_total": 5522,
+  "notes": "Training uses only normal recordings. Abnormal recordings are reserved exclusively for evaluation. No threshold tuning on the test set. ROC-AUC is threshold-free."
+}

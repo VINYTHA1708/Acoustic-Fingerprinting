@@ -180,7 +180,7 @@ def _bootstrap_paired(
     # One-sided p: proportion of bootstrap deltas <= 0
     p_one_sided = float((arr <= 0).mean())
 
-    return {
+    return arr, {
         "auc_a":          round(point_a,  6),
         "auc_b":          round(point_b,  6),
         "delta":          round(delta_pt, 6),
@@ -398,7 +398,7 @@ def _run_all_tests(merged: dict) -> tuple[list[dict], list[dict], list[dict]]:
             if done % 10 == 0 or done == total:
                 print(f"  [{done}/{total}] {scope_label} {group_label} vs {bl}")
 
-            boot = _bootstrap_paired(y, s_p9, s_bl[bl])
+            boot_arr, boot = _bootstrap_paired(y, s_p9, s_bl[bl])
             delong = _delong_test(y, s_p9, s_bl[bl])
 
             row = {
@@ -429,24 +429,10 @@ def _run_all_tests(merged: dict) -> tuple[list[dict], list[dict], list[dict]]:
 
             # Store bootstrap delta distribution for overall scope only
             if scope_label == "overall":
-                rng = np.random.default_rng(SEED)
-                n   = len(y)
-                for _ in range(N_BOOTSTRAP):
-                    idx = rng.integers(0, n, n)
-                    yb  = y[idx]
-                    if len(np.unique(yb)) < 2:
-                        continue
-                    sa_b = s_p9[idx]
-                    sb_b = s_bl[bl][idx]
-                    a_auc = float(roc_auc_score(yb, sa_b))
-                    b_auc = float(roc_auc_score(yb, sb_b))
-                    if a_auc < 0.5:
-                        a_auc = float(roc_auc_score(yb, -sa_b))
-                    if b_auc < 0.5:
-                        b_auc = float(roc_auc_score(yb, -sb_b))
+                for delta_val in boot_arr:
                     boot_delta_rows.append({
                         "baseline": bl,
-                        "delta":    round(a_auc - b_auc, 8),
+                        "delta":    round(float(delta_val), 8),
                     })
 
     return summary_rows, boot_delta_rows

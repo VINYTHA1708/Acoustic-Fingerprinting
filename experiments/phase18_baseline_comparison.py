@@ -74,13 +74,13 @@ SEED          = 42
 
 BASELINES = ["ocsvm", "iforest", "knn"]
 
-# Phase 9 reported ROC-AUC values (normalized_euclidean) for direct comparison
+# Phase 9 ROC-AUC values (normalized_euclidean) from clean evaluation_results.csv
 PHASE9_RESULTS = {
-    "fan":    {"id_00": 0.531122, "id_02": 0.741284, "id_04": 0.695927, "id_06": 0.877184, "overall": 0.698577},
-    "pump":   {"id_00": 0.828441, "id_02": 0.795223, "id_04": 0.951604, "id_06": 0.929361, "overall": 0.863535},
-    "slider": {"id_00": 0.989977, "id_02": 0.933596, "id_04": 0.676550, "id_06": 0.792135, "overall": 0.881314},
-    "valve":  {"id_00": 0.960980, "id_02": 0.771301, "id_04": 0.907583, "id_06": 0.727194, "overall": 0.828308},
-    "overall": 0.787522,
+    "fan":    {"id_00": 0.531451, "id_02": 0.742768, "id_04": 0.690834, "id_06": 0.879746, "overall": 0.698489},
+    "pump":   {"id_00": 0.828441, "id_02": 0.798305, "id_04": 0.953208, "id_06": 0.932378, "overall": 0.865713},
+    "slider": {"id_00": 0.992777, "id_02": 0.937167, "id_04": 0.673186, "id_06": 0.798863, "overall": 0.884086},
+    "valve":  {"id_00": 0.969132, "id_02": 0.769782, "id_04": 0.913333, "id_06": 0.733778, "overall": 0.833465},
+    "overall": 0.789649,
 }
 
 

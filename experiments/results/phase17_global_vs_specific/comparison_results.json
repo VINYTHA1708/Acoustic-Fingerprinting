@@ -47,8 +47,8 @@
           "n_abnormal": 1475
         },
         "specific": {
-          "roc_auc": 0.698577,
-          "cohens_d": 0.738717,
+          "roc_auc": 0.698489,
+          "cohens_d": 0.735539,
           "n_normal": 615,
           "n_abnormal": 1475
         },
@@ -61,8 +61,8 @@
               "n_abnormal": 407
             },
             "specific": {
-              "roc_auc": 0.531122,
-              "cohens_d": 0.132774,
+              "roc_auc": 0.531451,
+              "cohens_d": 0.130971,
               "n_normal": 153,
               "n_abnormal": 407
             }
@@ -75,8 +75,8 @@
               "n_abnormal": 359
             },
             "specific": {
-              "roc_auc": 0.741284,
-              "cohens_d": 0.864056,
+              "roc_auc": 0.742768,
+              "cohens_d": 0.869352,
               "n_normal": 153,
               "n_abnormal": 359
             }
@@ -89,8 +89,8 @@
               "n_abnormal": 348
             },
             "specific": {
-              "roc_auc": 0.695927,
-              "cohens_d": 0.648554,
+              "roc_auc": 0.690834,
+              "cohens_d": 0.600676,
               "n_normal": 156,
               "n_abnormal": 348
             }
@@ -103,8 +103,8 @@
               "n_abnormal": 361
             },
             "specific": {
-              "roc_auc": 0.877184,
-              "cohens_d": 1.674696,
+              "roc_auc": 0.879746,
+              "cohens_d": 1.691228,
               "n_normal": 153,
               "n_abnormal": 361
             }
@@ -119,8 +119,8 @@
           "n_abnormal": 456
         },
         "specific": {
-          "roc_auc": 0.858572,
-          "cohens_d": 1.402769,
+          "roc_auc": 0.865713,
+          "cohens_d": 1.433788,
           "n_normal": 566,
           "n_abnormal": 456
         },
@@ -133,8 +133,8 @@
               "n_abnormal": 143
             },
             "specific": {
-              "roc_auc": 0.823128,
-              "cohens_d": 1.162569,
+              "roc_auc": 0.828441,
+              "cohens_d": 1.174853,
               "n_normal": 152,
               "n_abnormal": 143
             }
@@ -147,8 +147,8 @@
               "n_abnormal": 111
             },
             "specific": {
-              "roc_auc": 0.791578,
-              "cohens_d": 0.947299,
+              "roc_auc": 0.798305,
+              "cohens_d": 0.970772,
               "n_normal": 152,
               "n_abnormal": 111
             }
@@ -161,8 +161,8 @@
               "n_abnormal": 100
             },
             "specific": {
-              "roc_auc": 0.943821,
-              "cohens_d": 2.437364,
+              "roc_auc": 0.953208,
+              "cohens_d": 2.538808,
               "n_normal": 106,
               "n_abnormal": 100
             }
@@ -175,8 +175,8 @@
               "n_abnormal": 102
             },
             "specific": {
-              "roc_auc": 0.922668,
-              "cohens_d": 2.123979,
+              "roc_auc": 0.932378,
+              "cohens_d": 2.263689,
               "n_normal": 156,
               "n_abnormal": 102
             }
@@ -191,8 +191,8 @@
           "n_abnormal": 890
         },
         "specific": {
-          "roc_auc": 0.881314,
-          "cohens_d": 1.487442,
+          "roc_auc": 0.884086,
+          "cohens_d": 1.503828,
           "n_normal": 484,
           "n_abnormal": 890
         },
@@ -205,8 +205,8 @@
               "n_abnormal": 356
             },
             "specific": {
-              "roc_auc": 0.989977,
-              "cohens_d": 3.477528,
+              "roc_auc": 0.992777,
+              "cohens_d": 3.585282,
               "n_normal": 161,
               "n_abnormal": 356
             }
@@ -219,8 +219,8 @@
               "n_abnormal": 267
             },
             "specific": {
-              "roc_auc": 0.933596,
-              "cohens_d": 2.145533,
+              "roc_auc": 0.937167,
+              "cohens_d": 2.220062,
               "n_normal": 161,
               "n_abnormal": 267
             }
@@ -233,8 +233,8 @@
               "n_abnormal": 178
             },
             "specific": {
-              "roc_auc": 0.67655,
-              "cohens_d": 0.469626,
+              "roc_auc": 0.673186,
+              "cohens_d": 0.458471,
               "n_normal": 81,
               "n_abnormal": 178
             }
@@ -247,8 +247,8 @@
               "n_abnormal": 89
             },
             "specific": {
-              "roc_auc": 0.792135,
-              "cohens_d": 0.916534,
+              "roc_auc": 0.798863,
+              "cohens_d": 0.957443,
               "n_normal": 81,
               "n_abnormal": 89
             }
@@ -263,8 +263,8 @@
           "n_abnormal": 479
         },
         "specific": {
-          "roc_auc": 0.828308,
-          "cohens_d": 1.275274,
+          "roc_auc": 0.833465,
+          "cohens_d": 1.302411,
           "n_normal": 557,
           "n_abnormal": 479
         },
@@ -277,8 +277,8 @@
               "n_abnormal": 119
             },
             "specific": {
-              "roc_auc": 0.96098,
-              "cohens_d": 2.511563,
+              "roc_auc": 0.969132,
+              "cohens_d": 2.6313,
               "n_normal": 150,
               "n_abnormal": 119
             }
@@ -291,8 +291,8 @@
               "n_abnormal": 120
             },
             "specific": {
-              "roc_auc": 0.771301,
-              "cohens_d": 0.743646,
+              "roc_auc": 0.769782,
+              "cohens_d": 0.721322,
               "n_normal": 107,
               "n_abnormal": 120
             }
@@ -305,8 +305,8 @@
               "n_abnormal": 120
             },
             "specific": {
-              "roc_auc": 0.907583,
-              "cohens_d": 1.892008,
+              "roc_auc": 0.913333,
+              "cohens_d": 1.97686,
               "n_normal": 150,
               "n_abnormal": 120
             }
@@ -319,8 +319,8 @@
               "n_abnormal": 120
             },
             "specific": {
-              "roc_auc": 0.727194,
-              "cohens_d": 0.855343,
+              "roc_auc": 0.733778,
+              "cohens_d": 0.875917,
               "n_normal": 150,
               "n_abnormal": 120
             }
@@ -336,8 +336,8 @@
         "n_abnormal": 3300
       },
       "specific": {
-        "roc_auc": 0.787275,
-        "cohens_d": 1.060418,
+        "roc_auc": 0.789649,
+        "cohens_d": 1.068191,
         "n_normal": 2222,
         "n_abnormal": 3300
       }

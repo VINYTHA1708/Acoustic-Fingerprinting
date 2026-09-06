@@ -13,73 +13,73 @@
       "n_abnormal": 1475,
       "overall_metrics": {
         "normalized_euclidean": {
-          "roc_auc": 0.698577,
-          "cohens_d": 0.738717
+          "roc_auc": 0.698489,
+          "cohens_d": 0.735539
         },
         "normalized_manhattan": {
-          "roc_auc": 0.695405,
-          "cohens_d": 0.732896
+          "roc_auc": 0.695335,
+          "cohens_d": 0.729641
         },
         "normalized_cosine": {
-          "roc_auc": 0.530438,
-          "cohens_d": -0.108894
+          "roc_auc": 0.528504,
+          "cohens_d": -0.101541
         }
       },
       "per_id_metrics": {
         "id_00": {
           "normalized_euclidean": {
-            "roc_auc": 0.531122,
-            "cohens_d": 0.132774
+            "roc_auc": 0.531451,
+            "cohens_d": 0.130971
           },
           "normalized_manhattan": {
-            "roc_auc": 0.524698,
-            "cohens_d": 0.117125
+            "roc_auc": 0.524931,
+            "cohens_d": 0.11513
           },
           "normalized_cosine": {
-            "roc_auc": 0.513104,
-            "cohens_d": -0.045195
+            "roc_auc": 0.512984,
+            "cohens_d": -0.044852
           }
         },
         "id_02": {
           "normalized_euclidean": {
-            "roc_auc": 0.741284,
-            "cohens_d": 0.864056
+            "roc_auc": 0.742768,
+            "cohens_d": 0.869352
           },
           "normalized_manhattan": {
-            "roc_auc": 0.740255,
-            "cohens_d": 0.861136
+            "roc_auc": 0.741785,
+            "cohens_d": 0.866374
           },
           "normalized_cosine": {
-            "roc_auc": 0.605049,
-            "cohens_d": -0.409125
+            "roc_auc": 0.603474,
+            "cohens_d": -0.402814
           }
         },
         "id_04": {
           "normalized_euclidean": {
-            "roc_auc": 0.695927,
-            "cohens_d": 0.648554
+            "roc_auc": 0.690834,
+            "cohens_d": 0.600676
           },
           "normalized_manhattan": {
-            "roc_auc": 0.692722,
-            "cohens_d": 0.632333
+            "roc_auc": 0.687666,
+            "cohens_d": 0.583717
           },
           "normalized_cosine": {
-            "roc_auc": 0.501078,
-            "cohens_d": 0.041057
+            "roc_auc": 0.501621,
+            "cohens_d": 0.053681
           }
         },
         "id_06": {
           "normalized_euclidean": {
-            "roc_auc": 0.877184,
-            "cohens_d": 1.674696
+            "roc_auc": 0.879746,
+            "cohens_d": 1.691228
           },
           "normalized_manhattan": {
-            "roc_auc": 0.874034,
-            "cohens_d": 1.673242
+            "roc_auc": 0.876632,
+            "cohens_d": 1.690004
           },
           "normalized_cosine": {
-            "roc_auc": 0.510972,
-            "cohens_d": -0.017015
+            "roc_auc": 0.508084,
+            "cohens_d": -0.002991
           }
         }
       }
@@ -89,16 +89,16 @@
       "n_abnormal": 456,
       "overall_metrics": {
         "normalized_euclidean": {
-          "roc_auc": 0.863535,
-          "cohens_d": 1.424665
+          "roc_auc": 0.865713,
+          "cohens_d": 1.433788
         },
         "normalized_manhattan": {
-          "roc_auc": 0.864136,
-          "cohens_d": 1.436819
+          "roc_auc": 0.866317,
+          "cohens_d": 1.446546
         },
         "normalized_cosine": {
-          "roc_auc": 0.500143,
-          "cohens_d": 0.015327
+          "roc_auc": 0.500531,
+          "cohens_d": 0.013358
         }
       },
       "per_id_metrics": {
@@ -118,44 +118,44 @@
         },
         "id_02": {
           "normalized_euclidean": {
-            "roc_auc": 0.795223,
-            "cohens_d": 0.963596
+            "roc_auc": 0.798305,
+            "cohens_d": 0.970772
           },
           "normalized_manhattan": {
-            "roc_auc": 0.797949,
-            "cohens_d": 0.995646
+            "roc_auc": 0.801091,
+            "cohens_d": 1.003446
           },
           "normalized_cosine": {
-            "roc_auc": 0.645033,
-            "cohens_d": -0.563431
+            "roc_auc": 0.644026,
+            "cohens_d": -0.561164
           }
         },
         "id_04": {
           "normalized_euclidean": {
-            "roc_auc": 0.951604,
-            "cohens_d": 2.511386
+            "roc_auc": 0.953208,
+            "cohens_d": 2.538808
           },
           "normalized_manhattan": {
-            "roc_auc": 0.952358,
-            "cohens_d": 2.544684
+            "roc_auc": 0.953962,
+            "cohens_d": 2.57369
           },
           "normalized_cosine": {
-            "roc_auc": 0.761887,
-            "cohens_d": 1.055847
+            "roc_auc": 0.761981,
+            "cohens_d": 1.057064
           }
         },
         "id_06": {
           "normalized_euclidean": {
-            "roc_auc": 0.929361,
-            "cohens_d": 2.230225
+            "roc_auc": 0.932378,
+            "cohens_d": 2.263689
           },
           "normalized_manhattan": {
-            "roc_auc": 0.929047,
-            "cohens_d": 2.225307
+            "roc_auc": 0.932252,
+            "cohens_d": 2.262412
           },
           "normalized_cosine": {
-            "roc_auc": 0.574849,
-            "cohens_d": -0.255767
+            "roc_auc": 0.578306,
+            "cohens_d": -0.267026
           }
         }
       }
@@ -165,73 +165,73 @@
       "n_abnormal": 890,
       "overall_metrics": {
         "normalized_euclidean": {
-          "roc_auc": 0.881314,
-          "cohens_d": 1.487442
+          "roc_auc": 0.884086,
+          "cohens_d": 1.503828
         },
         "normalized_manhattan": {
-          "roc_auc": 0.880602,
-          "cohens_d": 1.48202
+          "roc_auc": 0.883374,
+          "cohens_d": 1.498327
         },
         "normalized_cosine": {
-          "roc_auc": 0.562571,
-          "cohens_d": -0.214406
+          "roc_auc": 0.563632,
+          "cohens_d": -0.21838
         }
       },
       "per_id_metrics": {
         "id_00": {
           "normalized_euclidean": {
-            "roc_auc": 0.989977,
-            "cohens_d": 3.477528
+            "roc_auc": 0.992777,
+            "cohens_d": 3.585282
           },
           "normalized_manhattan": {
-            "roc_auc": 0.989453,
-            "cohens_d": 3.46271
+            "roc_auc": 0.992253,
+            "cohens_d": 3.569852
           },
           "normalized_cosine": {
-            "roc_auc": 0.741512,
-            "cohens_d": -1.194733
+            "roc_auc": 0.741678,
+            "cohens_d": -1.194798
           }
         },
         "id_02": {
           "normalized_euclidean": {
-            "roc_auc": 0.933596,
-            "cohens_d": 2.145533
+            "roc_auc": 0.937167,
+            "cohens_d": 2.220062
           },
           "normalized_manhattan": {
-            "roc_auc": 0.931247,
-            "cohens_d": 2.11477
+            "roc_auc": 0.934818,
+            "cohens_d": 2.187651
           },
           "normalized_cosine": {
-            "roc_auc": 0.580838,
-            "cohens_d": 0.289579
+            "roc_auc": 0.578756,
+            "cohens_d": 0.283379
           }
         },
         "id_04": {
           "normalized_euclidean": {
-            "roc_auc": 0.67655,
-            "cohens_d": 0.469626
+            "roc_auc": 0.673186,
+            "cohens_d": 0.458471
           },
           "normalized_manhattan": {
-            "roc_auc": 0.676065,
-            "cohens_d": 0.475539
+            "roc_auc": 0.672978,
+            "cohens_d": 0.464645
           },
           "normalized_cosine": {
-            "roc_auc": 0.576189,
-            "cohens_d": 0.291815
+            "roc_auc": 0.57456,
+            "cohens_d": 0.282596
           }
         },
         "id_06": {
           "normalized_euclidean": {
-            "roc_auc": 0.792135,
-            "cohens_d": 0.916534
+            "roc_auc": 0.798863,
+            "cohens_d": 0.957443
           },
           "normalized_manhattan": {
-            "roc_auc": 0.790054,
-            "cohens_d": 0.907722
+            "roc_auc": 0.796366,
+            "cohens_d": 0.946344
           },
           "normalized_cosine": {
-            "roc_auc": 0.563809,
-            "cohens_d": -0.254809
+            "roc_auc": 0.566514,
+            "cohens_d": -0.263944
           }
         }
       }
@@ -241,73 +241,73 @@
       "n_abnormal": 479,
       "overall_metrics": {
         "normalized_euclidean": {
-          "roc_auc": 0.828308,
-          "cohens_d": 1.275274
+          "roc_auc": 0.833465,
+          "cohens_d": 1.302411
         },
         "normalized_manhattan": {
-          "roc_auc": 0.823424,
-          "cohens_d": 1.252035
+          "roc_auc": 0.828589,
+          "cohens_d": 1.278546
         },
         "normalized_cosine": {
-          "roc_auc": 0.544102,
-          "cohens_d": 0.164893
+          "roc_auc": 0.545927,
+          "cohens_d": 0.169769
         }
       },
       "per_id_metrics": {
         "id_00": {
           "normalized_euclidean": {
-            "roc_auc": 0.96098,
-            "cohens_d": 2.511563
+            "roc_auc": 0.969132,
+            "cohens_d": 2.6313
           },
           "normalized_manhattan": {
-            "roc_auc": 0.961261,
-            "cohens_d": 2.557436
+            "roc_auc": 0.969412,
+            "cohens_d": 2.682587
           },
           "normalized_cosine": {
-            "roc_auc": 0.923894,
-            "cohens_d": -1.975078
+            "roc_auc": 0.926555,
+            "cohens_d": -1.997983
           }
         },
         "id_02": {
           "normalized_euclidean": {
-            "roc_auc": 0.771301,
-            "cohens_d": 0.743646
+            "roc_auc": 0.769782,
+            "cohens_d": 0.721322
           },
           "normalized_manhattan": {
-            "roc_auc": 0.771379,
-            "cohens_d": 0.735633
+            "roc_auc": 0.769938,
+            "cohens_d": 0.715495
           },
           "normalized_cosine": {
-            "roc_auc": 0.598014,
-            "cohens_d": 0.315962
+            "roc_auc": 0.598832,
+            "cohens_d": 0.32099
           }
         },
         "id_04": {
           "normalized_euclidean": {
-            "roc_auc": 0.907583,
-            "cohens_d": 1.892008
+            "roc_auc": 0.913333,
+            "cohens_d": 1.97686
           },
           "normalized_manhattan": {
-            "roc_auc": 0.895083,
-            "cohens_d": 1.784566
+            "roc_auc": 0.900556,
+            "cohens_d": 1.861425
           },
           "normalized_cosine": {
-            "roc_auc": 0.765417,
-            "cohens_d": 1.148247
+            "roc_auc": 0.766833,
+            "cohens_d": 1.156315
           }
         },
         "id_06": {
           "normalized_euclidean": {
-            "roc_auc": 0.727194,
-            "cohens_d": 0.855343
+            "roc_auc": 0.733778,
+            "cohens_d": 0.875917
           },
           "normalized_manhattan": {
-            "roc_auc": 0.721306,
-            "cohens_d": 0.84009
+            "roc_auc": 0.727833,
+            "cohens_d": 0.859483
           },
           "normalized_cosine": {
-            "roc_auc": 0.526861,
-            "cohens_d": 0.075087
+            "roc_auc": 0.530778,
+            "cohens_d": 0.089147
           }
         }
       }
@@ -317,16 +317,16 @@
       "n_abnormal": 3300,
       "overall_metrics": {
         "normalized_euclidean": {
-          "roc_auc": 0.787522,
-          "cohens_d": 1.061325
+          "roc_auc": 0.789649,
+          "cohens_d": 1.068191
         },
         "normalized_manhattan": {
-          "roc_auc": 0.785283,
-          "cohens_d": 1.057087
+          "roc_auc": 0.787426,
+          "cohens_d": 1.064077
         },
         "normalized_cosine": {
-          "roc_auc": 0.524603,
-          "cohens_d": -0.074557
+          "roc_auc": 0.52426,
+          "cohens_d": -0.073342
         }
       }
     }

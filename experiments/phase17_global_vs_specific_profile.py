@@ -543,7 +543,7 @@ def main(smoke_test: bool = False) -> None:
 
     # Verify sample counts match phase9 (only in full run)
     if not smoke_test:
-        p9_n_normal   = 2222  # from phase9 evaluation_summary.json
+        p9_n_normal   = 2222  # from clean evaluation_summary.json
         p9_n_abnormal = 3300
         actual_n   = metrics["overall"]["specific"]["n_normal"]
         actual_ab  = metrics["overall"]["specific"]["n_abnormal"]
