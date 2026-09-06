@@ -1,0 +1,186 @@
+{
+  "artifact": "dataset_subset_summary",
+  "generated_by": "experiments/generate_dataset_subset_summary.py",
+  "description": "Documents the exact MIMII dataset subset used in this project. Every fact is tagged with its source file. Facts that cannot be proven from repository evidence are explicitly marked NOT_VERIFIED_FROM_REPOSITORY_EVIDENCE.",
+
+  "repository_verified_facts": {
+
+    "dataset_name": {
+      "value": "MIMII (Malfunctioning Industrial Machine Investigation and Inspection) Dataset",
+      "source": "README.md (References section), experiments/results/phase16/reproducibility_checklist.md (Section 2)"
+    },
+
+    "download_url": {
+      "value": "https://zenodo.org/record/3384388",
+      "source": "README.md (Dataset section), experiments/results/phase16/reproducibility_checklist.md (Section 2)"
+    },
+
+    "local_root_path": {
+      "value": "data/raw/MIMII/",
+      "source": "experiments/phase9_train.py (DATASET_ROOT = Path('data/raw/MIMII')), experiments/phase9_evaluate.py (DATASET_ROOT), experiments/results/phase16/reproducibility_checklist.md (Section 2)"
+    },
+
+    "directory_structure_convention": {
+      "value": "<machine_type>/<machine_id>/<label>/<filename>.wav",
+      "source": "src/dataset/metadata.py (module docstring and extract_metadata())"
+    },
+
+    "machine_types_used": {
+      "value": ["fan", "pump", "slider", "valve"],
+      "source": "experiments/phase9_train.py (MACHINE_TYPES), experiments/phase9_evaluate.py (MACHINE_TYPES), experiments/results/phase13/final_method_config.json (contrastive_training.machine_types)"
+    },
+
+    "machine_ids_used": {
+      "value": ["id_00", "id_02", "id_04", "id_06"],
+      "source": "experiments/phase9_train.py (MACHINE_IDS), experiments/phase9_evaluate.py (MACHINE_IDS), experiments/results/phase13/final_method_config.json (contrastive_training.machine_ids)"
+    },
+
+    "labels_used": {
+      "value": ["normal", "abnormal"],
+      "source": "src/dataset/metadata.py (_VALID_LABELS), src/dataset/split.py (DatasetSplitter.split())"
+    },
+
+    "file_format": {
+      "value": ".wav",
+      "source": "src/dataset/scanner.py (scan_audio_files, extension='.wav')"
+    },
+
+    "file_naming_convention": {
+      "value": "Sequential zero-padded 8-digit integers (e.g. 00000000.wav, 00000001.wav). No SNR or noise-level encoding in filenames.",
+      "source": "Directly observed: data/raw/MIMII/fan/id_00/normal/ directory listing"
+    },
+
+    "snr_subdirectory_structure": {
+      "value": "ABSENT. The on-disk layout is <machine_type>/<machine_id>/<label>/ with no SNR-level subdirectory layer. There is no 6dB/, 0dB/, or -6dB/ directory present.",
+      "source": "Directly observed: listDirectory(data/raw/MIMII, maxDepth=2) — only fan/, pump/, slider/, valve/ at top level, then id_00/ id_02/ id_04/ id_06/ per type, then normal/ and abnormal/ per ID."
+    },
+
+    "actual_wav_file_counts_on_disk": {
+      "note": "Counted via 'dir /b | find /c .wav' on each subdirectory.",
+      "fan": {
+        "id_00": {"normal": 1011, "abnormal": 407},
+        "id_02": {"normal": 1016, "abnormal": 359},
+        "id_04": {"normal": 1033, "abnormal": 348},
+        "id_06": {"normal": 1015, "abnormal": 361},
+        "type_total_normal": 4075,
+        "type_total_abnormal": 1475
+      },
+      "pump": {
+        "id_00": {"normal": 1006, "abnormal": 143},
+        "id_02": {"normal": 1005, "abnormal": 111},
+        "id_04": {"normal": 702,  "abnormal": 100},
+        "id_06": {"normal": 1036, "abnormal": 102},
+        "type_total_normal": 3749,
+        "type_total_abnormal": 456
+      },
+      "slider": {
+        "id_00": {"normal": 1068, "abnormal": 356},
+        "id_02": {"normal": 1068, "abnormal": 267},
+        "id_04": {"normal": 534,  "abnormal": 178},
+        "id_06": {"normal": 534,  "abnormal": 89},
+        "type_total_normal": 3204,
+        "type_total_abnormal": 890
+      },
+      "valve": {
+        "id_00": {"normal": 991,  "abnormal": 119},
+        "id_02": {"normal": 708,  "abnormal": 120},
+        "id_04": {"normal": 1000, "abnormal": 120},
+        "id_06": {"normal": 992,  "abnormal": 120},
+        "type_total_normal": 3691,
+        "type_total_abnormal": 479
+      },
+      "grand_total_normal": 14719,
+      "grand_total_abnormal": 3300,
+      "grand_total": 18019,
+      "source": "Windows 'dir /b | find /c .wav' executed on each subdirectory"
+    },
+
+    "dataset_split_protocol": {
+      "splitter_class": "DatasetSplitter",
+      "train_ratio": 0.70,
+      "profile_ratio": 0.15,
+      "test_ratio": 0.15,
+      "strategy": "per_machine_type_independent",
+      "abnormal_handling": "All abnormal recordings go directly to test_abnormal; never used in training or profile construction",
+      "seed": 42,
+      "source": "experiments/phase9_train.py (TRAIN_RATIO, PROFILE_RATIO, SEED), src/dataset/split.py (DatasetSplitter), experiments/results/phase13/final_method_config.json (dataset_split)"
+    },
+
+    "verified_train_normal_counts_seed42": {
+      "note": "These counts are asserted at runtime in phase9_train.py against _EXPECTED_TRAIN_NORMAL and _EXPECTED_TRAIN_NORMAL_PER_ID.",
+      "fan":    {"total": 2851, "id_00": 707, "id_02": 711, "id_04": 723, "id_06": 710},
+      "pump":   {"total": 2623, "id_00": 704, "id_02": 703, "id_04": 491, "id_06": 725},
+      "slider": {"total": 2240, "id_00": 747, "id_02": 747, "id_04": 373, "id_06": 373},
+      "valve":  {"total": 2582, "id_00": 693, "id_02": 495, "id_04": 700, "id_06": 694},
+      "pooled_total": 10296,
+      "source": "experiments/phase9_train.py (_EXPECTED_TRAIN_NORMAL, _EXPECTED_TRAIN_NORMAL_PER_ID), experiments/results/phase13/final_method_config.json (contrastive_training.per_type_train_normal_counts), experiments/results/phase16/reproducibility_checklist.md (Section 5)"
+    },
+
+    "phase11_evaluation_sample_counts_seed42": {
+      "note": "Counts from the committed Phase 11 seed_42 evaluation CSVs, verified by generate_phase11_per_type_summary.py.",
+      "fan":    {"total": 2090, "normal": 615,  "abnormal": 1475},
+      "pump":   {"total": 1022, "normal": 566,  "abnormal": 456},
+      "slider": {"total": 1374, "normal": 484,  "abnormal": 890},
+      "valve":  {"total": 1036, "normal": 557,  "abnormal": 479},
+      "grand_total": 5522,
+      "source": "experiments/results/phase11/seed_42/evaluation_{fan,pump,slider,valve}.csv, experiments/results/phase11/per_type_summary.json"
+    },
+
+    "audio_preprocessing_applied": {
+      "mono": true,
+      "target_sample_rate_hz": 16000,
+      "amplitude_normalisation": "peak_to_minus1_plus1",
+      "source": "experiments/results/phase13/final_method_config.json (preprocessing)"
+    },
+
+    "snr_filtering_in_code": {
+      "value": "NONE. The DatasetLoader and DatasetSplitter contain no SNR-filtering logic. All .wav files found under the MIMII root are loaded unconditionally.",
+      "source": "src/dataset/loader.py (DatasetLoader._load()), src/dataset/scanner.py (scan_audio_files()), src/dataset/metadata.py (extract_metadata()) — no SNR field, no SNR filter"
+    }
+  },
+
+  "not_verified_from_repository_evidence": {
+
+    "snr_condition": {
+      "status": "NOT_VERIFIED_FROM_REPOSITORY_EVIDENCE",
+      "explanation": "The MIMII dataset on Zenodo (record 3384388) is distributed as separate archives per SNR level (6dB, 0dB, -6dB) and per machine type. The repository contains no code, configuration, script, README section, or result artifact that specifies which SNR archive(s) were downloaded and extracted. The on-disk directory structure has no SNR subdirectory layer, and filenames carry no SNR encoding. The word 'SNR', 'dB', 'decibel', 'noise', '6dB', '0dB', or '-6dB' does not appear anywhere in the repository (verified by exhaustive findstr search across all .py, .md, .json, .txt, .yaml, .yml files). The actual SNR condition(s) present in data/raw/MIMII/ can only be determined by inspecting the audio content or by knowing which Zenodo archive files were downloaded — neither of which is recorded in the repository."
+    },
+
+    "mimii_version_or_release": {
+      "status": "NOT_VERIFIED_FROM_REPOSITORY_EVIDENCE",
+      "explanation": "The repository cites Zenodo record 3384388 (the original MIMII DCASE 2019 release). However, it does not specify whether the full dataset or a subset was downloaded, and does not record which specific Zenodo archive files (e.g. fan_6dB.zip, fan_0dB.zip, fan_-6dB.zip) were used. The file counts on disk (e.g. fan/id_00/normal: 1011 files) are consistent with a single-SNR subset of the original MIMII release, but the specific SNR level cannot be determined from repository evidence alone."
+    },
+
+    "audio_clip_duration": {
+      "status": "NOT_VERIFIED_FROM_REPOSITORY_EVIDENCE",
+      "explanation": "No clip duration is specified in any repository file. The SDD v4 (docs/sdd/System_Design_Document_v4.md, Section 15, Open Design Question 2) explicitly lists 'Fixed clip duration: confirm against actual MIMII clip lengths' as an unresolved design question. The original MIMII dataset uses 10-second clips at 16 kHz, but this is not stated in the repository."
+    },
+
+    "number_of_audio_channels_in_source_files": {
+      "status": "NOT_VERIFIED_FROM_REPOSITORY_EVIDENCE",
+      "explanation": "The preprocessing converts to mono (verified from final_method_config.json), but the original channel count of the source .wav files is not stated in the repository. The original MIMII dataset uses 8-channel microphone array recordings, but this is not documented in the repository."
+    }
+  },
+
+  "evidence_files_searched": [
+    "README.md",
+    "PROJECT_CONTEXT.md",
+    "RELEASE_NOTES.md",
+    "requirements.txt",
+    "experiments/phase9_train.py",
+    "experiments/phase9_evaluate.py",
+    "experiments/results/phase13/final_method_config.json",
+    "experiments/results/phase16/reproducibility_checklist.md",
+    "experiments/results/phase16/phase16_summary.json",
+    "experiments/results/phase11/phase11_results.json",
+    "experiments/results/phase11/per_type_summary.json",
+    "src/dataset/loader.py",
+    "src/dataset/scanner.py",
+    "src/dataset/metadata.py",
+    "src/dataset/split.py",
+    "docs/sdd/System_Design_Document_v4.md",
+    "data/raw/MIMII/ (directory listing, maxDepth=2)",
+    "data/raw/MIMII/fan/id_00/normal/ (file listing for naming convention)",
+    "All .py, .md, .json, .txt, .yaml, .yml files (exhaustive findstr for 'snr', 'dB', 'decibel', 'noise', 'zenodo')"
+  ]
+}
