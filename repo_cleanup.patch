@@ -1,0 +1,518 @@
+diff --git a/experiments/phase17_global_vs_specific_profile.py b/experiments/phase17_global_vs_specific_profile.py
+index e02acef..2ef7bd0 100644
+--- a/experiments/phase17_global_vs_specific_profile.py
++++ b/experiments/phase17_global_vs_specific_profile.py
+@@ -93,12 +93,20 @@ _STD_FLOOR = 1e-10   # matches LearnedDriftMetrics and final_method_config.json
+ # ---------------------------------------------------------------------------
+ 
+ def _roc_auc(y_true: np.ndarray, scores: np.ndarray) -> float:
++    """ROC-AUC with a FIXED score direction (higher score = more anomalous).
++
++    NOTE (correctness): earlier revisions reversed the score direction whenever
++    the computed AUC fell below 0.5.  That reversal chooses the score direction
++    using the test labels, so a detector with no discriminative ability is
++    reported above chance (e.g. a raw AUC of 0.3811 was reported as 0.6189).
++    The anomaly score D is defined so that larger values mean greater deviation
++    from the healthy reference, and that direction is fixed a priori; it must
++    not be re-chosen per scope.  An AUC below 0.5 is a real, reportable outcome
++    meaning the score carries no usable signal in that scope.
++    """
+     from sklearn.metrics import roc_auc_score
+     try:
+-        auc = float(roc_auc_score(y_true, scores))
+-        if not np.isnan(auc) and auc < 0.5:
+-            auc = float(roc_auc_score(y_true, -scores))
+-        return auc
++        return float(roc_auc_score(y_true, scores))
+     except Exception:
+         return float("nan")
+ 
+diff --git a/experiments/phase19_external_comparison.py b/experiments/phase19_external_comparison.py
+index 51ed7c3..47f4ccb 100644
+--- a/experiments/phase19_external_comparison.py
++++ b/experiments/phase19_external_comparison.py
+@@ -71,7 +71,7 @@ def _protocol_summary(p9: dict, p13: dict) -> dict:
+         "proposed_method":  p13["method_name"],
+         "dataset":          "MIMII (Malfunctioning Industrial Machine Investigation and Inspection)",
+         "dataset_source":   "https://zenodo.org/record/3384388",
+-        "dataset_version":  "original (0 dB SNR mix, 16 kHz mono)",
++        "dataset_version":  "MIMII original release (Zenodo 3384388); SNR condition -6 dB per author record of the downloaded archives, NOT verifiable from repository artifacts (see experiments/results/dataset_subset_summary.json); preprocessed to 16 kHz mono",
+         "machine_types":    MACHINE_TYPES,
+         "machine_ids":      MACHINE_IDS,
+         "n_machine_ids":    len(MACHINE_TYPES) * len(MACHINE_IDS),
+@@ -251,60 +251,7 @@ def _build_comparison_rows(p9: dict, p18: dict) -> list[dict]:
+         "notes":                _dcase_ae_notes,
+     })
+ 
+-    rows.append({
+-        "method":               "LSTM Autoencoder",
+-        "method_type":          "LITERATURE_CONTEXT",
+-        "machine_type":         "overall",
+-        "scope":                "overall",
+-        "roc_auc":              0.7351,
+-        "same_dataset":         True,
+-        "same_dataset_version": False,
+-        "same_machine_types":   None,
+-        "same_machine_ids":     False,
+-        "same_protocol":        False,
+-        "same_metric":          True,
+-        "comparability_level":  "CONTEXT_ONLY",
+-        "source": (
+-            "DCASE Challenge 2020: Unsupervised Anomalous Sound Detection "
+-            "of Machinery with Deep Autoencoders"
+-        ),
+-        "notes": (
+-            "LSTM-based autoencoder evaluated in the DCASE 2020/MIMII context. "
+-            "Metric is average ROC-AUC. Protocol differences vs this work: "
+-            "dataset version and SNR conditions unconfirmed, train/test split "
+-            "strategy differs, machine-ID selection unconfirmed. "
+-            "Numerical differences cannot be interpreted as head-to-head "
+-            "performance differences."
+-        ),
+-    })
+ 
+-    rows.append({
+-        "method":               "Conformer ID-Aware AE (single model)",
+-        "method_type":          "LITERATURE_CONTEXT",
+-        "machine_type":         "overall",
+-        "scope":                "overall",
+-        "roc_auc":              0.9047,
+-        "same_dataset":         True,
+-        "same_dataset_version": False,
+-        "same_machine_types":   None,
+-        "same_machine_ids":     False,
+-        "same_protocol":        False,
+-        "same_metric":          True,
+-        "comparability_level":  "CONTEXT_ONLY",
+-        "source": (
+-            "Conformer-Based ID-Aware Autoencoder for Unsupervised "
+-            "Anomalous Sound Detection"
+-        ),
+-        "notes": (
+-            "Single-model result (ensemble AUC=0.9133 not used as primary value). "
+-            "Evaluated on DCASE 2020 Task 2 development set. Protocol differences "
+-            "vs this work: dataset version and SNR conditions differ, model uses "
+-            "machine-ID conditioning (ID-aware), train/test split strategy differs, "
+-            "machine-ID selection unconfirmed. "
+-            "Numerical differences cannot be interpreted as head-to-head "
+-            "performance differences."
+-        ),
+-    })
+ 
+     return rows
+ 
+@@ -357,77 +304,6 @@ def _literature_template() -> dict:
+                     "head-to-head performance differences due to protocol mismatches."
+                 ),
+             },
+-            {
+-                "short_name":           "LSTM_AE",
+-                "full_name":            "LSTM Autoencoder",
+-                "citation": (
+-                    "DCASE Challenge 2020: Unsupervised Anomalous Sound Detection "
+-                    "of Machinery with Deep Autoencoders"
+-                ),
+-                "url":                  "https://dcase.community/challenge2020/task2-unsupervised-detection-of-anomalous-sounds",
+-                "dataset":              "DCASE 2020 / MIMII context",
+-                "dataset_version":      "unconfirmed — differs from MIMII Zenodo 3384388 original",
+-                "machine_types_used":   "unconfirmed",
+-                "machine_ids_used":     "unconfirmed — differs from this work",
+-                "snr_conditions":       "unconfirmed",
+-                "train_test_protocol":  "DCASE 2020 protocol (differs from this work)",
+-                "reported_metric":      "average ROC-AUC",
+-                "reported_roc_auc_overall": 0.7351,
+-                "reported_roc_auc_per_type": None,
+-                "same_dataset":         True,
+-                "same_dataset_version": False,
+-                "same_machine_types":   None,
+-                "same_machine_ids":     False,
+-                "same_protocol":        False,
+-                "same_metric":          True,
+-                "comparability_level":  "CONTEXT_ONLY",
+-                "protocol_differences": [
+-                    "Dataset version and SNR conditions unconfirmed",
+-                    "Train/test split strategy differs",
+-                    "Machine-ID selection unconfirmed",
+-                ],
+-                "notes": (
+-                    "Numerical differences vs this work cannot be interpreted as "
+-                    "head-to-head performance differences due to protocol mismatches."
+-                ),
+-            },
+-            {
+-                "short_name":           "Conformer_ID_Aware_AE",
+-                "full_name":            "Conformer-Based ID-Aware Autoencoder",
+-                "citation": (
+-                    "Conformer-Based ID-Aware Autoencoder for Unsupervised "
+-                    "Anomalous Sound Detection"
+-                ),
+-                "url":                  "https://dcase.community/challenge2020/task2-unsupervised-detection-of-anomalous-sounds",
+-                "dataset":              "DCASE 2020 Task 2 development dataset",
+-                "dataset_version":      "DCASE 2020 dev set (differs from MIMII Zenodo 3384388 original)",
+-                "machine_types_used":   "unconfirmed",
+-                "machine_ids_used":     "unconfirmed — differs from this work",
+-                "snr_conditions":       "DCASE 2020 Task 2 conditions",
+-                "train_test_protocol":  "DCASE 2020 protocol (differs from this work)",
+-                "reported_metric":      "average ROC-AUC",
+-                "reported_roc_auc_overall": 0.9047,
+-                "reported_roc_auc_ensemble": 0.9133,
+-                "primary_value_used":   "single_model (0.9047); ensemble (0.9133) not used as primary",
+-                "reported_roc_auc_per_type": None,
+-                "same_dataset":         True,
+-                "same_dataset_version": False,
+-                "same_machine_types":   None,
+-                "same_machine_ids":     False,
+-                "same_protocol":        False,
+-                "same_metric":          True,
+-                "comparability_level":  "CONTEXT_ONLY",
+-                "protocol_differences": [
+-                    "Dataset version and SNR conditions differ",
+-                    "Model uses machine-ID conditioning (ID-aware)",
+-                    "Train/test split strategy differs",
+-                    "Machine-ID selection unconfirmed",
+-                ],
+-                "notes": (
+-                    "Numerical differences vs this work cannot be interpreted as "
+-                    "head-to-head performance differences due to protocol mismatches."
+-                ),
+-            },
+         ],
+     }
+ 
+@@ -585,7 +461,7 @@ def _report(p9: dict, p18: dict, sig: dict, rows: list[dict]) -> str:
+     L.append("    - Dataset version: literature uses DCASE 2020 Task 2 dev set;")
+     L.append("      this work uses MIMII Zenodo 3384388 original release.")
+     L.append("    - SNR conditions: DCASE 2020 mixes multiple SNR levels;")
+-    L.append("      this work uses the 0 dB SNR mix only.")
++    L.append("      this work uses the -6 dB subset only.")
+     L.append("    - Train/test split: DCASE 2020 uses its own fixed split;")
+     L.append("      this work uses train=0.70 / profile=0.15 / test=0.15 seed=42.")
+     L.append("    - Machine-ID selection: literature machine IDs unconfirmed.")
+diff --git a/experiments/results/phase17_global_vs_specific/comparison_results.json b/experiments/results/phase17_global_vs_specific/comparison_results.json
+index e66f0af..c297bf8 100644
+--- a/experiments/results/phase17_global_vs_specific/comparison_results.json
++++ b/experiments/results/phase17_global_vs_specific/comparison_results.json
+@@ -41,7 +41,7 @@
+     "per_type": {
+       "fan": {
+         "global": {
+-          "roc_auc": 0.500262,
++          "roc_auc": 0.499738,
+           "cohens_d": 0.007995,
+           "n_normal": 615,
+           "n_abnormal": 1475
+@@ -55,7 +55,7 @@
+         "per_id": {
+           "id_00": {
+             "global": {
+-              "roc_auc": 0.544652,
++              "roc_auc": 0.455348,
+               "cohens_d": -0.107189,
+               "n_normal": 153,
+               "n_abnormal": 407
+@@ -141,7 +141,7 @@
+           },
+           "id_02": {
+             "global": {
+-              "roc_auc": 0.506075,
++              "roc_auc": 0.493925,
+               "cohens_d": -0.068931,
+               "n_normal": 152,
+               "n_abnormal": 111
+@@ -155,7 +155,7 @@
+           },
+           "id_04": {
+             "global": {
+-              "roc_auc": 0.618868,
++              "roc_auc": 0.381132,
+               "cohens_d": -0.422204,
+               "n_normal": 106,
+               "n_abnormal": 100
+@@ -185,7 +185,7 @@
+       },
+       "slider": {
+         "global": {
+-          "roc_auc": 0.512177,
++          "roc_auc": 0.487823,
+           "cohens_d": -0.049371,
+           "n_normal": 484,
+           "n_abnormal": 890
+@@ -199,7 +199,7 @@
+         "per_id": {
+           "id_00": {
+             "global": {
+-              "roc_auc": 0.552804,
++              "roc_auc": 0.447196,
+               "cohens_d": -0.140652,
+               "n_normal": 161,
+               "n_abnormal": 356
+@@ -241,7 +241,7 @@
+           },
+           "id_06": {
+             "global": {
+-              "roc_auc": 0.64468,
++              "roc_auc": 0.35532,
+               "cohens_d": -0.517224,
+               "n_normal": 81,
+               "n_abnormal": 89
+@@ -285,7 +285,7 @@
+           },
+           "id_02": {
+             "global": {
+-              "roc_auc": 0.622664,
++              "roc_auc": 0.377336,
+               "cohens_d": -0.433473,
+               "n_normal": 107,
+               "n_abnormal": 120
+@@ -313,7 +313,7 @@
+           },
+           "id_06": {
+             "global": {
+-              "roc_auc": 0.591306,
++              "roc_auc": 0.408694,
+               "cohens_d": -0.30627,
+               "n_normal": 150,
+               "n_abnormal": 120
+@@ -330,7 +330,7 @@
+     },
+     "overall": {
+       "global": {
+-        "roc_auc": 0.507412,
++        "roc_auc": 0.492588,
+         "cohens_d": -0.031736,
+         "n_normal": 2222,
+         "n_abnormal": 3300
+@@ -342,5 +342,6 @@
+         "n_abnormal": 3300
+       }
+     }
+-  }
++  },
++  "score_direction_note": "ROC-AUC uses a fixed score direction (higher normalised deviation = more anomalous). No label-dependent direction reversal is applied. AUC values below 0.5 are reported as computed and indicate no usable signal in that scope."
+ }
+\ No newline at end of file
+diff --git a/experiments/results/phase19_external_comparison/external_benchmark_comparison.csv b/experiments/results/phase19_external_comparison/external_benchmark_comparison.csv
+index 6a311dc..e4e6eac 100644
+--- a/experiments/results/phase19_external_comparison/external_benchmark_comparison.csv
++++ b/experiments/results/phase19_external_comparison/external_benchmark_comparison.csv
+@@ -1,28 +1,26 @@
+-method,method_type,machine_type,scope,roc_auc,same_dataset,same_dataset_version,same_machine_types,same_machine_ids,same_protocol,same_metric,comparability_level,source,notes
+-Proposed (DSP+BEATs+ContrastiveHead),PROPOSED,fan,per_type,0.698489,True,True,True,True,True,True,DIRECT,Phase 9 (this work),Primary result; normalized Euclidean drift on 256-dim L2-normalised embedding.
+-Proposed (DSP+BEATs+ContrastiveHead),PROPOSED,pump,per_type,0.865713,True,True,True,True,True,True,DIRECT,Phase 9 (this work),Primary result; normalized Euclidean drift on 256-dim L2-normalised embedding.
+-Proposed (DSP+BEATs+ContrastiveHead),PROPOSED,slider,per_type,0.884086,True,True,True,True,True,True,DIRECT,Phase 9 (this work),Primary result; normalized Euclidean drift on 256-dim L2-normalised embedding.
+-Proposed (DSP+BEATs+ContrastiveHead),PROPOSED,valve,per_type,0.833465,True,True,True,True,True,True,DIRECT,Phase 9 (this work),Primary result; normalized Euclidean drift on 256-dim L2-normalised embedding.
+-Proposed (DSP+BEATs+ContrastiveHead),PROPOSED,overall,overall,0.789649,True,True,True,True,True,True,DIRECT,Phase 9 (this work),Pooled across all 4 machine types.
+-OC-SVM,INTERNAL_BASELINE,fan,per_type,0.672343,True,True,True,True,True,True,DIRECT,Phase 18 (this work),OC-SVM fit on profile_normal embeddings (256-dim L2-normalised from Phase 9 ProjectionHead). Same split as proposed method.
+-OC-SVM,INTERNAL_BASELINE,pump,per_type,0.813511,True,True,True,True,True,True,DIRECT,Phase 18 (this work),OC-SVM fit on profile_normal embeddings (256-dim L2-normalised from Phase 9 ProjectionHead). Same split as proposed method.
+-OC-SVM,INTERNAL_BASELINE,slider,per_type,0.917423,True,True,True,True,True,True,DIRECT,Phase 18 (this work),OC-SVM fit on profile_normal embeddings (256-dim L2-normalised from Phase 9 ProjectionHead). Same split as proposed method.
+-OC-SVM,INTERNAL_BASELINE,valve,per_type,0.791172,True,True,True,True,True,True,DIRECT,Phase 18 (this work),OC-SVM fit on profile_normal embeddings (256-dim L2-normalised from Phase 9 ProjectionHead). Same split as proposed method.
+-OC-SVM,INTERNAL_BASELINE,overall,overall,0.777297,True,True,True,True,True,True,DIRECT,Phase 18 (this work),Pooled across all 4 machine types.
+-Isolation Forest,INTERNAL_BASELINE,fan,per_type,0.702051,True,True,True,True,True,True,DIRECT,Phase 18 (this work),Isolation Forest fit on profile_normal embeddings (256-dim L2-normalised from Phase 9 ProjectionHead). Same split as proposed method.
+-Isolation Forest,INTERNAL_BASELINE,pump,per_type,0.867282,True,True,True,True,True,True,DIRECT,Phase 18 (this work),Isolation Forest fit on profile_normal embeddings (256-dim L2-normalised from Phase 9 ProjectionHead). Same split as proposed method.
+-Isolation Forest,INTERNAL_BASELINE,slider,per_type,0.889226,True,True,True,True,True,True,DIRECT,Phase 18 (this work),Isolation Forest fit on profile_normal embeddings (256-dim L2-normalised from Phase 9 ProjectionHead). Same split as proposed method.
+-Isolation Forest,INTERNAL_BASELINE,valve,per_type,0.827862,True,True,True,True,True,True,DIRECT,Phase 18 (this work),Isolation Forest fit on profile_normal embeddings (256-dim L2-normalised from Phase 9 ProjectionHead). Same split as proposed method.
+-Isolation Forest,INTERNAL_BASELINE,overall,overall,0.787068,True,True,True,True,True,True,DIRECT,Phase 18 (this work),Pooled across all 4 machine types.
+-kNN,INTERNAL_BASELINE,fan,per_type,0.717116,True,True,True,True,True,True,DIRECT,Phase 18 (this work),kNN fit on profile_normal embeddings (256-dim L2-normalised from Phase 9 ProjectionHead). Same split as proposed method.
+-kNN,INTERNAL_BASELINE,pump,per_type,0.857778,True,True,True,True,True,True,DIRECT,Phase 18 (this work),kNN fit on profile_normal embeddings (256-dim L2-normalised from Phase 9 ProjectionHead). Same split as proposed method.
+-kNN,INTERNAL_BASELINE,slider,per_type,0.843474,True,True,True,True,True,True,DIRECT,Phase 18 (this work),kNN fit on profile_normal embeddings (256-dim L2-normalised from Phase 9 ProjectionHead). Same split as proposed method.
+-kNN,INTERNAL_BASELINE,valve,per_type,0.826928,True,True,True,True,True,True,DIRECT,Phase 18 (this work),kNN fit on profile_normal embeddings (256-dim L2-normalised from Phase 9 ProjectionHead). Same split as proposed method.
+-kNN,INTERNAL_BASELINE,overall,overall,0.77598,True,True,True,True,True,True,DIRECT,Phase 18 (this work),Pooled across all 4 machine types.
+-DCASE 2020 AE Baseline,LITERATURE_CONTEXT,fan,per_type,0.6583,True,False,True,False,False,True,CONTEXT_ONLY,DCASE 2020 Task 2 challenge (official baseline),"DCASE 2020 Task 2 official autoencoder baseline. Evaluated on the DCASE 2020 Task 2 development set. Metric is average ROC-AUC across machine IDs within each type. Protocol differences vs this work: different dataset version (DCASE 2020 dev set vs MIMII Zenodo 3384388 original), different SNR mix, different train/test split strategy, AUC averaged per machine type rather than pooled. Numerical differences cannot be interpreted as head-to-head performance differences."
+-DCASE 2020 AE Baseline,LITERATURE_CONTEXT,pump,per_type,0.7289,True,False,True,False,False,True,CONTEXT_ONLY,DCASE 2020 Task 2 challenge (official baseline),"DCASE 2020 Task 2 official autoencoder baseline. Evaluated on the DCASE 2020 Task 2 development set. Metric is average ROC-AUC across machine IDs within each type. Protocol differences vs this work: different dataset version (DCASE 2020 dev set vs MIMII Zenodo 3384388 original), different SNR mix, different train/test split strategy, AUC averaged per machine type rather than pooled. Numerical differences cannot be interpreted as head-to-head performance differences."
+-DCASE 2020 AE Baseline,LITERATURE_CONTEXT,slider,per_type,0.8476,True,False,True,False,False,True,CONTEXT_ONLY,DCASE 2020 Task 2 challenge (official baseline),"DCASE 2020 Task 2 official autoencoder baseline. Evaluated on the DCASE 2020 Task 2 development set. Metric is average ROC-AUC across machine IDs within each type. Protocol differences vs this work: different dataset version (DCASE 2020 dev set vs MIMII Zenodo 3384388 original), different SNR mix, different train/test split strategy, AUC averaged per machine type rather than pooled. Numerical differences cannot be interpreted as head-to-head performance differences."
+-DCASE 2020 AE Baseline,LITERATURE_CONTEXT,valve,per_type,0.6628,True,False,True,False,False,True,CONTEXT_ONLY,DCASE 2020 Task 2 challenge (official baseline),"DCASE 2020 Task 2 official autoencoder baseline. Evaluated on the DCASE 2020 Task 2 development set. Metric is average ROC-AUC across machine IDs within each type. Protocol differences vs this work: different dataset version (DCASE 2020 dev set vs MIMII Zenodo 3384388 original), different SNR mix, different train/test split strategy, AUC averaged per machine type rather than pooled. Numerical differences cannot be interpreted as head-to-head performance differences."
+-DCASE 2020 AE Baseline,LITERATURE_CONTEXT,overall,overall,0.7244,True,False,True,False,False,True,CONTEXT_ONLY,DCASE 2020 Task 2 challenge (official baseline),"DCASE 2020 Task 2 official autoencoder baseline. Evaluated on the DCASE 2020 Task 2 development set. Metric is average ROC-AUC across machine IDs within each type. Protocol differences vs this work: different dataset version (DCASE 2020 dev set vs MIMII Zenodo 3384388 original), different SNR mix, different train/test split strategy, AUC averaged per machine type rather than pooled. Numerical differences cannot be interpreted as head-to-head performance differences."
+-LSTM Autoencoder,LITERATURE_CONTEXT,overall,overall,0.7351,True,False,,False,False,True,CONTEXT_ONLY,DCASE Challenge 2020: Unsupervised Anomalous Sound Detection of Machinery with Deep Autoencoders,"LSTM-based autoencoder evaluated in the DCASE 2020/MIMII context. Metric is average ROC-AUC. Protocol differences vs this work: dataset version and SNR conditions unconfirmed, train/test split strategy differs, machine-ID selection unconfirmed. Numerical differences cannot be interpreted as head-to-head performance differences."
+-Conformer ID-Aware AE (single model),LITERATURE_CONTEXT,overall,overall,0.9047,True,False,,False,False,True,CONTEXT_ONLY,Conformer-Based ID-Aware Autoencoder for Unsupervised Anomalous Sound Detection,"Single-model result (ensemble AUC=0.9133 not used as primary value). Evaluated on DCASE 2020 Task 2 development set. Protocol differences vs this work: dataset version and SNR conditions differ, model uses machine-ID conditioning (ID-aware), train/test split strategy differs, machine-ID selection unconfirmed. Numerical differences cannot be interpreted as head-to-head performance differences."
++method,method_type,machine_type,scope,roc_auc,same_dataset,same_dataset_version,same_machine_types,same_machine_ids,same_protocol,same_metric,comparability_level,source,notes
++Proposed (DSP+BEATs+ContrastiveHead),PROPOSED,fan,per_type,0.698489,True,True,True,True,True,True,DIRECT,Phase 9 (this work),Primary result; normalized Euclidean drift on 256-dim L2-normalised embedding.
++Proposed (DSP+BEATs+ContrastiveHead),PROPOSED,pump,per_type,0.865713,True,True,True,True,True,True,DIRECT,Phase 9 (this work),Primary result; normalized Euclidean drift on 256-dim L2-normalised embedding.
++Proposed (DSP+BEATs+ContrastiveHead),PROPOSED,slider,per_type,0.884086,True,True,True,True,True,True,DIRECT,Phase 9 (this work),Primary result; normalized Euclidean drift on 256-dim L2-normalised embedding.
++Proposed (DSP+BEATs+ContrastiveHead),PROPOSED,valve,per_type,0.833465,True,True,True,True,True,True,DIRECT,Phase 9 (this work),Primary result; normalized Euclidean drift on 256-dim L2-normalised embedding.
++Proposed (DSP+BEATs+ContrastiveHead),PROPOSED,overall,overall,0.789649,True,True,True,True,True,True,DIRECT,Phase 9 (this work),Pooled across all 4 machine types.
++OC-SVM,INTERNAL_BASELINE,fan,per_type,0.672343,True,True,True,True,True,True,DIRECT,Phase 18 (this work),OC-SVM fit on profile_normal embeddings (256-dim L2-normalised from Phase 9 ProjectionHead). Same split as proposed method.
++OC-SVM,INTERNAL_BASELINE,pump,per_type,0.813511,True,True,True,True,True,True,DIRECT,Phase 18 (this work),OC-SVM fit on profile_normal embeddings (256-dim L2-normalised from Phase 9 ProjectionHead). Same split as proposed method.
++OC-SVM,INTERNAL_BASELINE,slider,per_type,0.917423,True,True,True,True,True,True,DIRECT,Phase 18 (this work),OC-SVM fit on profile_normal embeddings (256-dim L2-normalised from Phase 9 ProjectionHead). Same split as proposed method.
++OC-SVM,INTERNAL_BASELINE,valve,per_type,0.791172,True,True,True,True,True,True,DIRECT,Phase 18 (this work),OC-SVM fit on profile_normal embeddings (256-dim L2-normalised from Phase 9 ProjectionHead). Same split as proposed method.
++OC-SVM,INTERNAL_BASELINE,overall,overall,0.777297,True,True,True,True,True,True,DIRECT,Phase 18 (this work),Pooled across all 4 machine types.
++Isolation Forest,INTERNAL_BASELINE,fan,per_type,0.702051,True,True,True,True,True,True,DIRECT,Phase 18 (this work),Isolation Forest fit on profile_normal embeddings (256-dim L2-normalised from Phase 9 ProjectionHead). Same split as proposed method.
++Isolation Forest,INTERNAL_BASELINE,pump,per_type,0.867282,True,True,True,True,True,True,DIRECT,Phase 18 (this work),Isolation Forest fit on profile_normal embeddings (256-dim L2-normalised from Phase 9 ProjectionHead). Same split as proposed method.
++Isolation Forest,INTERNAL_BASELINE,slider,per_type,0.889226,True,True,True,True,True,True,DIRECT,Phase 18 (this work),Isolation Forest fit on profile_normal embeddings (256-dim L2-normalised from Phase 9 ProjectionHead). Same split as proposed method.
++Isolation Forest,INTERNAL_BASELINE,valve,per_type,0.827862,True,True,True,True,True,True,DIRECT,Phase 18 (this work),Isolation Forest fit on profile_normal embeddings (256-dim L2-normalised from Phase 9 ProjectionHead). Same split as proposed method.
++Isolation Forest,INTERNAL_BASELINE,overall,overall,0.787068,True,True,True,True,True,True,DIRECT,Phase 18 (this work),Pooled across all 4 machine types.
++kNN,INTERNAL_BASELINE,fan,per_type,0.717116,True,True,True,True,True,True,DIRECT,Phase 18 (this work),kNN fit on profile_normal embeddings (256-dim L2-normalised from Phase 9 ProjectionHead). Same split as proposed method.
++kNN,INTERNAL_BASELINE,pump,per_type,0.857778,True,True,True,True,True,True,DIRECT,Phase 18 (this work),kNN fit on profile_normal embeddings (256-dim L2-normalised from Phase 9 ProjectionHead). Same split as proposed method.
++kNN,INTERNAL_BASELINE,slider,per_type,0.843474,True,True,True,True,True,True,DIRECT,Phase 18 (this work),kNN fit on profile_normal embeddings (256-dim L2-normalised from Phase 9 ProjectionHead). Same split as proposed method.
++kNN,INTERNAL_BASELINE,valve,per_type,0.826928,True,True,True,True,True,True,DIRECT,Phase 18 (this work),kNN fit on profile_normal embeddings (256-dim L2-normalised from Phase 9 ProjectionHead). Same split as proposed method.
++kNN,INTERNAL_BASELINE,overall,overall,0.77598,True,True,True,True,True,True,DIRECT,Phase 18 (this work),Pooled across all 4 machine types.
++DCASE 2020 AE Baseline,LITERATURE_CONTEXT,fan,per_type,0.6583,True,False,True,False,False,True,CONTEXT_ONLY,DCASE 2020 Task 2 challenge (official baseline),"DCASE 2020 Task 2 official autoencoder baseline. Evaluated on the DCASE 2020 Task 2 development set. Metric is average ROC-AUC across machine IDs within each type. Protocol differences vs this work: different dataset version (DCASE 2020 dev set vs MIMII Zenodo 3384388 original), different SNR mix, different train/test split strategy, AUC averaged per machine type rather than pooled. Numerical differences cannot be interpreted as head-to-head performance differences."
++DCASE 2020 AE Baseline,LITERATURE_CONTEXT,pump,per_type,0.7289,True,False,True,False,False,True,CONTEXT_ONLY,DCASE 2020 Task 2 challenge (official baseline),"DCASE 2020 Task 2 official autoencoder baseline. Evaluated on the DCASE 2020 Task 2 development set. Metric is average ROC-AUC across machine IDs within each type. Protocol differences vs this work: different dataset version (DCASE 2020 dev set vs MIMII Zenodo 3384388 original), different SNR mix, different train/test split strategy, AUC averaged per machine type rather than pooled. Numerical differences cannot be interpreted as head-to-head performance differences."
++DCASE 2020 AE Baseline,LITERATURE_CONTEXT,slider,per_type,0.8476,True,False,True,False,False,True,CONTEXT_ONLY,DCASE 2020 Task 2 challenge (official baseline),"DCASE 2020 Task 2 official autoencoder baseline. Evaluated on the DCASE 2020 Task 2 development set. Metric is average ROC-AUC across machine IDs within each type. Protocol differences vs this work: different dataset version (DCASE 2020 dev set vs MIMII Zenodo 3384388 original), different SNR mix, different train/test split strategy, AUC averaged per machine type rather than pooled. Numerical differences cannot be interpreted as head-to-head performance differences."
++DCASE 2020 AE Baseline,LITERATURE_CONTEXT,valve,per_type,0.6628,True,False,True,False,False,True,CONTEXT_ONLY,DCASE 2020 Task 2 challenge (official baseline),"DCASE 2020 Task 2 official autoencoder baseline. Evaluated on the DCASE 2020 Task 2 development set. Metric is average ROC-AUC across machine IDs within each type. Protocol differences vs this work: different dataset version (DCASE 2020 dev set vs MIMII Zenodo 3384388 original), different SNR mix, different train/test split strategy, AUC averaged per machine type rather than pooled. Numerical differences cannot be interpreted as head-to-head performance differences."
++DCASE 2020 AE Baseline,LITERATURE_CONTEXT,overall,overall,0.7244,True,False,True,False,False,True,CONTEXT_ONLY,DCASE 2020 Task 2 challenge (official baseline),"DCASE 2020 Task 2 official autoencoder baseline. Evaluated on the DCASE 2020 Task 2 development set. Metric is average ROC-AUC across machine IDs within each type. Protocol differences vs this work: different dataset version (DCASE 2020 dev set vs MIMII Zenodo 3384388 original), different SNR mix, different train/test split strategy, AUC averaged per machine type rather than pooled. Numerical differences cannot be interpreted as head-to-head performance differences."
+diff --git a/experiments/results/phase19_external_comparison/fig_direct_comparison.png b/experiments/results/phase19_external_comparison/fig_direct_comparison.png
+index 60bb374..f2f45e3 100644
+Binary files a/experiments/results/phase19_external_comparison/fig_direct_comparison.png and b/experiments/results/phase19_external_comparison/fig_direct_comparison.png differ
+diff --git a/experiments/results/phase19_external_comparison/literature_methods.json b/experiments/results/phase19_external_comparison/literature_methods.json
+index 41f7cc5..0848c14 100644
+--- a/experiments/results/phase19_external_comparison/literature_methods.json
++++ b/experiments/results/phase19_external_comparison/literature_methods.json
+@@ -34,65 +34,6 @@
+         "AUC averaged per machine type, not pooled across all recordings"
+       ],
+       "notes": "Numerical differences vs this work cannot be interpreted as head-to-head performance differences due to protocol mismatches."
+-    },
+-    {
+-      "short_name": "LSTM_AE",
+-      "full_name": "LSTM Autoencoder",
+-      "citation": "DCASE Challenge 2020: Unsupervised Anomalous Sound Detection of Machinery with Deep Autoencoders",
+-      "url": "https://dcase.community/challenge2020/task2-unsupervised-detection-of-anomalous-sounds",
+-      "dataset": "DCASE 2020 / MIMII context",
+-      "dataset_version": "unconfirmed \u2014 differs from MIMII Zenodo 3384388 original",
+-      "machine_types_used": "unconfirmed",
+-      "machine_ids_used": "unconfirmed \u2014 differs from this work",
+-      "snr_conditions": "unconfirmed",
+-      "train_test_protocol": "DCASE 2020 protocol (differs from this work)",
+-      "reported_metric": "average ROC-AUC",
+-      "reported_roc_auc_overall": 0.7351,
+-      "reported_roc_auc_per_type": null,
+-      "same_dataset": true,
+-      "same_dataset_version": false,
+-      "same_machine_types": null,
+-      "same_machine_ids": false,
+-      "same_protocol": false,
+-      "same_metric": true,
+-      "comparability_level": "CONTEXT_ONLY",
+-      "protocol_differences": [
+-        "Dataset version and SNR conditions unconfirmed",
+-        "Train/test split strategy differs",
+-        "Machine-ID selection unconfirmed"
+-      ],
+-      "notes": "Numerical differences vs this work cannot be interpreted as head-to-head performance differences due to protocol mismatches."
+-    },
+-    {
+-      "short_name": "Conformer_ID_Aware_AE",
+-      "full_name": "Conformer-Based ID-Aware Autoencoder",
+-      "citation": "Conformer-Based ID-Aware Autoencoder for Unsupervised Anomalous Sound Detection",
+-      "url": "https://dcase.community/challenge2020/task2-unsupervised-detection-of-anomalous-sounds",
+-      "dataset": "DCASE 2020 Task 2 development dataset",
+-      "dataset_version": "DCASE 2020 dev set (differs from MIMII Zenodo 3384388 original)",
+-      "machine_types_used": "unconfirmed",
+-      "machine_ids_used": "unconfirmed \u2014 differs from this work",
+-      "snr_conditions": "DCASE 2020 Task 2 conditions",
+-      "train_test_protocol": "DCASE 2020 protocol (differs from this work)",
+-      "reported_metric": "average ROC-AUC",
+-      "reported_roc_auc_overall": 0.9047,
+-      "reported_roc_auc_ensemble": 0.9133,
+-      "primary_value_used": "single_model (0.9047); ensemble (0.9133) not used as primary",
+-      "reported_roc_auc_per_type": null,
+-      "same_dataset": true,
+-      "same_dataset_version": false,
+-      "same_machine_types": null,
+-      "same_machine_ids": false,
+-      "same_protocol": false,
+-      "same_metric": true,
+-      "comparability_level": "CONTEXT_ONLY",
+-      "protocol_differences": [
+-        "Dataset version and SNR conditions differ",
+-        "Model uses machine-ID conditioning (ID-aware)",
+-        "Train/test split strategy differs",
+-        "Machine-ID selection unconfirmed"
+-      ],
+-      "notes": "Numerical differences vs this work cannot be interpreted as head-to-head performance differences due to protocol mismatches."
+     }
+   ]
+ }
+\ No newline at end of file
+diff --git a/experiments/results/phase19_external_comparison/phase19_report.txt b/experiments/results/phase19_external_comparison/phase19_report.txt
+index 7916f65..0df5384 100644
+--- a/experiments/results/phase19_external_comparison/phase19_report.txt
++++ b/experiments/results/phase19_external_comparison/phase19_report.txt
+@@ -74,7 +74,7 @@ numbers from papers without first verifying every comparability field.
+     - Dataset version: literature uses DCASE 2020 Task 2 dev set;
+       this work uses MIMII Zenodo 3384388 original release.
+     - SNR conditions: DCASE 2020 mixes multiple SNR levels;
+-      this work uses the 0 dB SNR mix only.
++      this work uses the -6 dB subset only.
+     - Train/test split: DCASE 2020 uses its own fixed split;
+       this work uses train=0.70 / profile=0.15 / test=0.15 seed=42.
+     - Machine-ID selection: literature machine IDs unconfirmed.
+@@ -91,8 +91,6 @@ numbers from papers without first verifying every comparability field.
+   Method                                      Reported AUC  Source
+   --------------------------------------------------------------------------------
+   DCASE 2020 AE Baseline                            0.7244  DCASE 2020 Task 2 challenge (officia...
+-  LSTM Autoencoder                                  0.7351  DCASE Challenge 2020: Unsupervised A...
+-  Conformer ID-Aware AE (single model)              0.9047  Conformer-Based ID-Aware Autoencoder...
+ 
+   DCASE 2020 AE Baseline — per-machine-type reported AUCs:
+     fan=0.6583  pump=0.7289  slider=0.8476  valve=0.6628  avg=0.7244
+diff --git a/experiments/results/phase19_external_comparison/protocol_summary.json b/experiments/results/phase19_external_comparison/protocol_summary.json
+index 417a331..ca6bc2e 100644
+--- a/experiments/results/phase19_external_comparison/protocol_summary.json
++++ b/experiments/results/phase19_external_comparison/protocol_summary.json
+@@ -3,7 +3,7 @@
+   "proposed_method": "Multi-Machine Contrastive Acoustic Fingerprinting",
+   "dataset": "MIMII (Malfunctioning Industrial Machine Investigation and Inspection)",
+   "dataset_source": "https://zenodo.org/record/3384388",
+-  "dataset_version": "original (0 dB SNR mix, 16 kHz mono)",
++  "dataset_version": "MIMII original release (Zenodo 3384388); SNR condition -6 dB per author record of the downloaded archives, NOT verifiable from repository artifacts (see experiments/results/dataset_subset_summary.json); preprocessed to 16 kHz mono",
+   "machine_types": [
+     "fan",
+     "pump",
+diff --git a/experiments/results/phase9/_archive_superseded/README.md b/experiments/results/phase9/_archive_superseded/README.md
+new file mode 100644
+index 0000000..006e486
+--- /dev/null
++++ b/experiments/results/phase9/_archive_superseded/README.md
+@@ -0,0 +1,23 @@
++# Superseded Phase 9 evaluation artifacts — DO NOT USE
++
++These files predate `experiments/phase9_regen_clean_csv.py` and contain
++scores from the contaminated original Phase 9 run. They are retained only
++for provenance and are **not** read by any final pipeline.
++
++The authoritative Phase 9 artifacts are:
++  - experiments/results/phase9/evaluation_results.csv   (5,522 rows, clean)
++  - experiments/results/phase9/evaluation_summary.json  (regenerated)
++
++| Archived file | Why superseded |
++|---|---|
++| evaluation_pump.csv.bak | Pre-repair; contains 8 zero-metric rows from an aborted `--smoke-test` run. |
++| evaluation_pump_repaired.csv | Step-8 repair keyed on filename alone; MIMII reuses filenames across `normal/` and `abnormal/`, so 3 normal rows received the abnormal recording's score. |
++| evaluation_summary.json.bak | Summary computed from the above. |
++| evaluation_{fan,pump,slider,valve}.csv | Stale per-type outputs of the original run. Their AUCs (0.698577 / 0.863535 / 0.881314 / 0.828308) are the SUPERSEDED values; the clean values are 0.698489 / 0.865713 / 0.884086 / 0.833465. |
++
++Clean per-machine-type metrics come from
++`experiments/results/phase11/per_type_summary.json`.
++
++Historical scripts `phase9_step7_root_cause.py`, `phase9_step8_repair.py`
++and `phase9_cross_machine_analysis.py` reference some of these paths. They
++are historical and are not part of the final pipeline.
+diff --git a/experiments/results/phase9/evaluation_fan.csv b/experiments/results/phase9/_archive_superseded/evaluation_fan.csv
+similarity index 100%
+rename from experiments/results/phase9/evaluation_fan.csv
+rename to experiments/results/phase9/_archive_superseded/evaluation_fan.csv
+diff --git a/experiments/results/phase9/evaluation_pump.csv b/experiments/results/phase9/_archive_superseded/evaluation_pump.csv
+similarity index 100%
+rename from experiments/results/phase9/evaluation_pump.csv
+rename to experiments/results/phase9/_archive_superseded/evaluation_pump.csv
+diff --git a/experiments/results/phase9/evaluation_pump.csv.bak b/experiments/results/phase9/_archive_superseded/evaluation_pump.csv.bak
+similarity index 100%
+rename from experiments/results/phase9/evaluation_pump.csv.bak
+rename to experiments/results/phase9/_archive_superseded/evaluation_pump.csv.bak
+diff --git a/experiments/results/phase9/evaluation_pump_repaired.csv b/experiments/results/phase9/_archive_superseded/evaluation_pump_repaired.csv
+similarity index 100%
+rename from experiments/results/phase9/evaluation_pump_repaired.csv
+rename to experiments/results/phase9/_archive_superseded/evaluation_pump_repaired.csv
+diff --git a/experiments/results/phase9/evaluation_slider.csv b/experiments/results/phase9/_archive_superseded/evaluation_slider.csv
+similarity index 100%
+rename from experiments/results/phase9/evaluation_slider.csv
+rename to experiments/results/phase9/_archive_superseded/evaluation_slider.csv
+diff --git a/experiments/results/phase9/evaluation_summary.json.bak b/experiments/results/phase9/_archive_superseded/evaluation_summary.json.bak
+similarity index 100%
+rename from experiments/results/phase9/evaluation_summary.json.bak
+rename to experiments/results/phase9/_archive_superseded/evaluation_summary.json.bak
+diff --git a/experiments/results/phase9/evaluation_valve.csv b/experiments/results/phase9/_archive_superseded/evaluation_valve.csv
+similarity index 100%
+rename from experiments/results/phase9/evaluation_valve.csv
+rename to experiments/results/phase9/_archive_superseded/evaluation_valve.csv

@@ -56,7 +56,7 @@
           "id_00": {
             "global": {
               "roc_auc": 0.544652,
-              "cohens_d": -0.107189,
+              "cohens_d": -0.107188,
               "n_normal": 153,
               "n_abnormal": 407
             },
@@ -170,7 +170,7 @@
           "id_06": {
             "global": {
               "roc_auc": 0.555556,
-              "cohens_d": 0.161605,
+              "cohens_d": 0.161604,
               "n_normal": 156,
               "n_abnormal": 102
             },
