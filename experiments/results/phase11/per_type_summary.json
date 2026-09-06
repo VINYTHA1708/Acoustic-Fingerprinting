@@ -1,0 +1,46 @@
+{
+  "experiment": "phase11",
+  "seed": 42,
+  "source_csvs": [
+    "experiments\\results\\phase11\\seed_42\\evaluation_fan.csv",
+    "experiments\\results\\phase11\\seed_42\\evaluation_pump.csv",
+    "experiments\\results\\phase11\\seed_42\\evaluation_slider.csv",
+    "experiments\\results\\phase11\\seed_42\\evaluation_valve.csv"
+  ],
+  "primary_metric": "normalized_euclidean",
+  "total_samples": 5522,
+  "verification": {
+    "expected_total": 5522,
+    "passed": true
+  },
+  "per_type": {
+    "fan": {
+      "total_samples": 2090,
+      "normal_samples": 615,
+      "abnormal_samples": 1475,
+      "roc_auc": 0.698489,
+      "cohens_d": 0.735539
+    },
+    "pump": {
+      "total_samples": 1022,
+      "normal_samples": 566,
+      "abnormal_samples": 456,
+      "roc_auc": 0.865713,
+      "cohens_d": 1.433788
+    },
+    "slider": {
+      "total_samples": 1374,
+      "normal_samples": 484,
+      "abnormal_samples": 890,
+      "roc_auc": 0.884086,
+      "cohens_d": 1.503828
+    },
+    "valve": {
+      "total_samples": 1036,
+      "normal_samples": 557,
+      "abnormal_samples": 479,
+      "roc_auc": 0.833465,
+      "cohens_d": 1.302411
+    }
+  }
+}
